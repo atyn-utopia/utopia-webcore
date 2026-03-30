@@ -83,8 +83,11 @@ export default function Sidebar({ userEmail }: SidebarProps) {
           <select
             value={selectedWebsite}
             onChange={e => setSelectedWebsite(e.target.value)}
-            className="w-full appearance-none text-sm font-medium rounded-lg px-3 py-2 pr-8 focus:outline-none cursor-pointer"
+            className="w-full text-sm font-medium rounded-lg px-3 py-2 pr-8 focus:outline-none cursor-pointer"
             style={{
+              appearance: 'none',
+              WebkitAppearance: 'none',
+              MozAppearance: 'none',
               background: 'rgba(255,255,255,0.1)',
               color: 'var(--sidebar-text)',
               border: '1px solid rgba(255,255,255,0.15)',

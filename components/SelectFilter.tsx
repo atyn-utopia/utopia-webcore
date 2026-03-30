@@ -11,12 +11,24 @@ export default function SelectFilter({ label, value, onChange, options }: Select
   return (
     <div>
       <label className="block text-xs font-medium mb-1.5" style={{ color: '#4a7a8a' }}>{label}</label>
-      <div className="relative">
+      <div className="relative inline-block">
         <select
           value={value}
           onChange={e => onChange(e.target.value)}
-          className="appearance-none w-full pl-3 pr-8 py-2 text-sm rounded-lg border focus:outline-none cursor-pointer"
-          style={{ borderColor: 'var(--border)', background: 'white', color: 'var(--foreground)' }}
+          className="cursor-pointer text-sm rounded-lg border focus:outline-none"
+          style={{
+            appearance: 'none',
+            WebkitAppearance: 'none',
+            MozAppearance: 'none',
+            borderColor: 'var(--border)',
+            background: 'white',
+            color: 'var(--foreground)',
+            paddingTop: '0.5rem',
+            paddingBottom: '0.5rem',
+            paddingLeft: '0.75rem',
+            paddingRight: '2.25rem',
+            minWidth: '140px',
+          }}
           onFocus={e => e.currentTarget.style.borderColor = 'var(--primary)'}
           onBlur={e => e.currentTarget.style.borderColor = 'var(--border)'}
         >
