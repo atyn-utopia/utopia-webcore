@@ -77,13 +77,7 @@ export default function NewPhoneNumberPage() {
 
   return (
     <div>
-      <div className="flex items-center gap-2 mb-6">
-        <Link href="/phone-numbers" className="text-slate-400 hover:text-slate-600 text-sm">
-          ← Phone Numbers
-        </Link>
-      </div>
-
-      <h1 className="text-2xl font-bold text-slate-900 mb-1">Add Phone Number</h1>
+<h1 className="text-2xl font-bold text-slate-900 mb-1">Add Phone Number</h1>
       <p className="text-sm text-slate-500 mb-8">Add a new number to the rotation pool for a specific website, product, and location.</p>
 
       {serverError && (

@@ -130,13 +130,7 @@ export default function PostForm({ mode, initialData = {}, postId }: PostFormPro
 
   return (
     <div>
-      <div className="flex items-center gap-2 mb-6">
-        <Link href="/blog" className="text-slate-400 hover:text-slate-600 text-sm">
-          ← Blog Posts
-        </Link>
-      </div>
-
-      <div className="flex items-start justify-between mb-6">
+<div className="flex items-start justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold text-slate-900">{mode === 'new' ? 'New Post' : 'Edit Post'}</h1>
           {mode === 'edit' && (
