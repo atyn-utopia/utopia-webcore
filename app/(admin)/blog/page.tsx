@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { useWebsite } from '@/contexts/WebsiteContext'
 
 interface Post {
   id: string
@@ -28,10 +29,13 @@ function formatDate(d: string | null) {
 
 export default function BlogListPage() {
   const router = useRouter()
+  const { selectedWebsite } = useWebsite()
   const [posts, setPosts] = useState<Post[]>([])
   const [loading, setLoading] = useState(true)
   const [filterWebsite, setFilterWebsite] = useState('')
   const [filterStatus, setFilterStatus] = useState('')
+
+  useEffect(() => { setFilterWebsite(selectedWebsite) }, [selectedWebsite])
   const [deleting, setDeleting] = useState<string | null>(null)
 
   const fetchPosts = useCallback(async () => {
@@ -66,7 +70,7 @@ export default function BlogListPage() {
         </div>
         <Link
           href="/blog/new"
-          className="inline-flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors"
+          className="inline-flex items-center gap-2 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors" style={{ background: 'var(--primary)' }} onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = 'var(--primary-hover)'} onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'var(--primary)'}
         >
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />

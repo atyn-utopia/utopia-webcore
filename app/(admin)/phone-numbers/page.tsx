@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react'
 import Link from 'next/link'
+import { useWebsite } from '@/contexts/WebsiteContext'
 
 interface PhoneNumber {
   id: string
@@ -15,10 +16,13 @@ interface PhoneNumber {
 }
 
 export default function PhoneNumbersPage() {
+  const { selectedWebsite } = useWebsite()
   const [numbers, setNumbers] = useState<PhoneNumber[]>([])
   const [loading, setLoading] = useState(true)
   const [filterWebsite, setFilterWebsite] = useState('')
   const [filterProduct, setFilterProduct] = useState('')
+
+  useEffect(() => { setFilterWebsite(selectedWebsite) }, [selectedWebsite])
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editValues, setEditValues] = useState<Partial<PhoneNumber>>({})
   const [error, setError] = useState('')
@@ -89,7 +93,7 @@ export default function PhoneNumbersPage() {
         </div>
         <Link
           href="/phone-numbers/new"
-          className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors"
+          className="inline-flex items-center gap-2 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors" style={{ background: 'var(--primary)' }} onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = 'var(--primary-hover)'} onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'var(--primary)'}
         >
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
