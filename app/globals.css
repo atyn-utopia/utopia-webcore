@@ -1,16 +1,16 @@
 @import "tailwindcss";
 
 :root {
-  --background: #f5f4fb;
+  --background: #f4f9fb;
   --foreground: #1a1a2e;
-  --sidebar-bg: #434371;
+  --sidebar-bg: #1c6e8c;
   --sidebar-hover: rgba(255,255,255,0.08);
   --sidebar-active: rgba(255,255,255,0.15);
-  --sidebar-text: #c8c7e8;
-  --sidebar-muted: #8887b8;
-  --primary: #434371;
-  --primary-hover: #534f8e;
-  --border: #e4e3f2;
+  --sidebar-text: #b8dde8;
+  --sidebar-muted: #7dbdd0;
+  --primary: #1c6e8c;
+  --primary-hover: #155f7a;
+  --border: #e2eef2;
   --card: #ffffff;
   --font-inter: 'Inter', sans-serif;
 }
@@ -33,7 +33,7 @@ body {
 }
 
 .login-bg {
-  background: linear-gradient(135deg, #434371, #2d2b5e, #6b68b0, #1a183d, #53508a);
+  background: linear-gradient(135deg, #1c6e8c, #0e4f66, #2a9bbf, #0a3a4d, #155f7a);
   background-size: 400% 400%;
   animation: gradientShift 10s ease infinite;
 }

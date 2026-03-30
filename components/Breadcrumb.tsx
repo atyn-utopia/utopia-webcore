@@ -43,9 +43,9 @@ export default function Breadcrumb() {
       <Link
         href="/"
         className="flex items-center transition-colors flex-shrink-0"
-        style={{ color: crumbs.length === 0 ? 'var(--primary)' : '#9896c8' }}
+        style={{ color: crumbs.length === 0 ? 'var(--primary)' : '#7dbdd0' }}
         onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = 'var(--primary)'}
-        onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = crumbs.length === 0 ? 'var(--primary)' : '#9896c8'}
+        onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = crumbs.length === 0 ? 'var(--primary)' : '#7dbdd0'}
       >
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
@@ -56,16 +56,16 @@ export default function Breadcrumb() {
         const isLast = i === crumbs.length - 1
         return (
           <span key={i} className="flex items-center gap-2">
-            <svg className="w-3 h-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: '#c8c7e8' }}>
+            <svg className="w-3 h-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: '#b8dde8' }}>
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
             </svg>
             {crumb.href ? (
               <Link
                 href={crumb.href}
                 className="transition-colors"
-                style={{ color: '#9896c8' }}
+                style={{ color: '#7dbdd0' }}
                 onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = 'var(--primary)'}
-                onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = '#9896c8'}
+                onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = '#7dbdd0'}
               >
                 {crumb.label}
               </Link>
