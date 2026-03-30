@@ -19,13 +19,14 @@ export default function PhoneNumbersPage() {
   const { selectedWebsite } = useWebsite()
   const [numbers, setNumbers] = useState<PhoneNumber[]>([])
   const [loading, setLoading] = useState(true)
+  const [search, setSearch] = useState('')
   const [filterWebsite, setFilterWebsite] = useState('')
   const [filterProduct, setFilterProduct] = useState('')
-
-  useEffect(() => { setFilterWebsite(selectedWebsite) }, [selectedWebsite])
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editValues, setEditValues] = useState<Partial<PhoneNumber>>({})
   const [error, setError] = useState('')
+
+  useEffect(() => { setFilterWebsite(selectedWebsite) }, [selectedWebsite])
 
   const fetchNumbers = useCallback(async () => {
     setLoading(true)
@@ -62,38 +63,42 @@ export default function PhoneNumbersPage() {
   }
 
   async function saveEdit(id: string) {
-    if (!editValues.phone_number) {
-      setError('Phone number is required')
-      return
-    }
+    if (!editValues.phone_number) { setError('Phone number is required'); return }
     const res = await fetch(`/api/phone-numbers/${id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ phone_number: editValues.phone_number, label: editValues.label || null }),
     })
-    if (res.ok) {
-      setEditingId(null)
-      fetchNumbers()
-    } else {
-      const d = await res.json()
-      setError(d.error ?? 'Save failed')
-    }
+    if (res.ok) { setEditingId(null); fetchNumbers() }
+    else { const d = await res.json(); setError(d.error ?? 'Save failed') }
   }
 
-  // Unique websites for filter dropdown
   const websites = [...new Set(numbers.map(n => n.website))]
   const products = [...new Set(numbers.map(n => n.product_slug))]
 
+  const filtered = numbers.filter(n => {
+    if (!search) return true
+    const q = search.toLowerCase()
+    return (
+      n.website.toLowerCase().includes(q) ||
+      n.product_slug.toLowerCase().includes(q) ||
+      n.location_slug.toLowerCase().includes(q) ||
+      n.phone_number.toLowerCase().includes(q) ||
+      (n.label ?? '').toLowerCase().includes(q)
+    )
+  })
+
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-900">Phone Numbers</h1>
-          <p className="text-sm text-slate-500 mt-0.5">Manage phone numbers per website, product, and location</p>
-        </div>
+      {/* Header */}
+      <div className="flex items-center justify-between mb-2">
+        <h1 className="text-2xl font-bold" style={{ color: 'var(--foreground)' }}>Phone Numbers</h1>
         <Link
           href="/phone-numbers/new"
-          className="inline-flex items-center gap-2 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors" style={{ background: 'var(--primary)' }} onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = 'var(--primary-hover)'} onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'var(--primary)'}
+          className="inline-flex items-center gap-2 text-white text-sm font-medium px-4 py-2 rounded-lg transition-opacity"
+          style={{ background: 'var(--primary)' }}
+          onMouseEnter={e => (e.currentTarget as HTMLElement).style.opacity = '0.88'}
+          onMouseLeave={e => (e.currentTarget as HTMLElement).style.opacity = '1'}
         >
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -101,29 +106,62 @@ export default function PhoneNumbersPage() {
           Add Number
         </Link>
       </div>
+      <p className="text-sm mb-6" style={{ color: '#6b6b8a' }}>Manage phone numbers per website, product, and location.</p>
 
-      {/* Filters */}
-      <div className="flex gap-3 mb-5">
-        <select
-          value={filterWebsite}
-          onChange={e => setFilterWebsite(e.target.value)}
-          className="px-3 py-2 bg-white border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-        >
-          <option value="">All websites</option>
-          {websites.map(w => <option key={w} value={w}>{w}</option>)}
-        </select>
-        <select
-          value={filterProduct}
-          onChange={e => setFilterProduct(e.target.value)}
-          className="px-3 py-2 bg-white border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-        >
-          <option value="">All products</option>
-          {products.map(p => <option key={p} value={p}>{p}</option>)}
-        </select>
-        {(filterWebsite || filterProduct) && (
+      {/* Info strip */}
+      <div className="rounded-lg border px-4 py-3 mb-6 text-sm" style={{ borderColor: 'var(--border)', background: '#fafafa', color: '#6b6b8a' }}>
+        Multiple numbers per website + product + location are selected at random on each WhatsApp click. Toggle <strong style={{ color: 'var(--foreground)' }}>Active</strong> to include or exclude a number from rotation.
+      </div>
+
+      {/* Search + filters */}
+      <div className="flex flex-wrap gap-4 mb-5 items-end">
+        <div className="flex-1 min-w-56">
+          <label className="block text-xs font-medium mb-1.5" style={{ color: '#6b6b8a' }}>Search</label>
+          <div className="relative">
+            <svg className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: '#9896c8' }}>
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+            <input
+              type="text"
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              placeholder="Search by website, product, location, or number…"
+              className="w-full pl-9 pr-3 py-2 text-sm rounded-lg border focus:outline-none"
+              style={{ borderColor: 'var(--border)', background: 'white' }}
+              onFocus={e => e.currentTarget.style.borderColor = 'var(--primary)'}
+              onBlur={e => e.currentTarget.style.borderColor = 'var(--border)'}
+            />
+          </div>
+        </div>
+        <div>
+          <label className="block text-xs font-medium mb-1.5" style={{ color: '#6b6b8a' }}>Website</label>
+          <select
+            value={filterWebsite}
+            onChange={e => setFilterWebsite(e.target.value)}
+            className="px-3 py-2 text-sm rounded-lg border focus:outline-none"
+            style={{ borderColor: 'var(--border)', background: 'white', color: 'var(--foreground)' }}
+          >
+            <option value="">All websites</option>
+            {websites.map(w => <option key={w} value={w}>{w}</option>)}
+          </select>
+        </div>
+        <div>
+          <label className="block text-xs font-medium mb-1.5" style={{ color: '#6b6b8a' }}>Product</label>
+          <select
+            value={filterProduct}
+            onChange={e => setFilterProduct(e.target.value)}
+            className="px-3 py-2 text-sm rounded-lg border focus:outline-none"
+            style={{ borderColor: 'var(--border)', background: 'white', color: 'var(--foreground)' }}
+          >
+            <option value="">All products</option>
+            {products.map(p => <option key={p} value={p}>{p}</option>)}
+          </select>
+        </div>
+        {(filterWebsite || filterProduct || search) && (
           <button
-            onClick={() => { setFilterWebsite(''); setFilterProduct('') }}
-            className="px-3 py-2 text-sm text-slate-500 hover:text-slate-700"
+            onClick={() => { setFilterWebsite(''); setFilterProduct(''); setSearch('') }}
+            className="py-2 px-3 text-sm rounded-lg border transition-colors"
+            style={{ borderColor: 'var(--border)', color: '#6b6b8a', background: 'white' }}
           >
             Clear
           </button>
@@ -135,96 +173,115 @@ export default function PhoneNumbersPage() {
       )}
 
       {/* Table */}
-      <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+      <div className="rounded-xl overflow-hidden border" style={{ borderColor: 'var(--border)', background: 'white' }}>
         {loading ? (
-          <div className="p-8 text-center text-sm text-slate-400">Loading…</div>
-        ) : numbers.length === 0 ? (
-          <div className="p-8 text-center text-sm text-slate-400">
+          <div className="p-12 text-center text-sm" style={{ color: '#9896c8' }}>Loading…</div>
+        ) : filtered.length === 0 ? (
+          <div className="p-12 text-center text-sm" style={{ color: '#9896c8' }}>
             No phone numbers found.{' '}
-            <Link href="/phone-numbers/new" className="text-blue-600 hover:underline">Add one</Link>
+            <Link href="/phone-numbers/new" className="hover:underline" style={{ color: 'var(--primary)' }}>Add one</Link>
           </div>
         ) : (
           <table className="w-full text-sm">
-            <thead className="bg-slate-50 border-b border-slate-200">
-              <tr>
-                {['Website', 'Product', 'Location', 'Phone Number', 'Label', 'Active', 'Actions'].map(h => (
-                  <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">{h}</th>
+            <thead>
+              <tr style={{ borderBottom: '1px solid var(--border)', background: '#f9f8ff' }}>
+                {['Website', 'Product', 'Location', 'Phone Number', 'Label', 'Status', ''].map((h, i) => (
+                  <th key={i} className="px-5 py-3.5 text-left text-xs font-semibold" style={{ color: '#6b6b8a' }}>{h}</th>
                 ))}
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
-              {numbers.map(row => (
-                <tr key={row.id} className="hover:bg-slate-50 transition-colors">
-                  <td className="px-4 py-3 font-medium text-slate-800">{row.website}</td>
-                  <td className="px-4 py-3 text-slate-600 font-mono text-xs">{row.product_slug}</td>
-                  <td className="px-4 py-3 text-slate-600 font-mono text-xs">{row.location_slug}</td>
-                  <td className="px-4 py-3">
+            <tbody>
+              {filtered.map((row, i) => (
+                <tr
+                  key={row.id}
+                  style={{ borderBottom: i < filtered.length - 1 ? '1px solid var(--border)' : 'none' }}
+                  onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = '#faf9ff'}
+                  onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'}
+                >
+                  <td className="px-5 py-3.5 font-medium" style={{ color: 'var(--foreground)' }}>{row.website}</td>
+                  <td className="px-5 py-3.5 font-mono text-xs" style={{ color: '#6b6b8a' }}>{row.product_slug}</td>
+                  <td className="px-5 py-3.5 font-mono text-xs" style={{ color: '#6b6b8a' }}>{row.location_slug}</td>
+                  <td className="px-5 py-3.5">
                     {editingId === row.id ? (
                       <input
-                        className="px-2 py-1 border border-blue-400 rounded text-sm w-36 focus:outline-none"
+                        className="px-2 py-1 border rounded text-sm w-36 focus:outline-none"
+                        style={{ borderColor: 'var(--primary)' }}
                         value={editValues.phone_number ?? ''}
                         onChange={e => setEditValues(v => ({ ...v, phone_number: e.target.value }))}
                       />
                     ) : (
-                      <span className="font-mono text-slate-800">{row.phone_number}</span>
+                      <span className="font-mono" style={{ color: 'var(--foreground)' }}>{row.phone_number}</span>
                     )}
                   </td>
-                  <td className="px-4 py-3">
+                  <td className="px-5 py-3.5">
                     {editingId === row.id ? (
                       <input
-                        className="px-2 py-1 border border-blue-400 rounded text-sm w-28 focus:outline-none"
+                        className="px-2 py-1 border rounded text-sm w-28 focus:outline-none"
+                        style={{ borderColor: 'var(--primary)' }}
                         value={editValues.label ?? ''}
                         placeholder="Optional"
                         onChange={e => setEditValues(v => ({ ...v, label: e.target.value }))}
                       />
                     ) : (
-                      <span className="text-slate-500">{row.label ?? '—'}</span>
+                      <span style={{ color: '#9896c8' }}>{row.label ?? '—'}</span>
                     )}
                   </td>
-                  <td className="px-4 py-3">
+                  <td className="px-5 py-3.5">
                     <button
                       onClick={() => toggleActive(row.id, row.is_active)}
-                      className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none ${
-                        row.is_active ? 'bg-green-500' : 'bg-slate-300'
-                      }`}
+                      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium transition-opacity"
+                      style={row.is_active
+                        ? { background: '#dcfce7', color: '#16a34a' }
+                        : { background: '#f1f5f9', color: '#64748b' }
+                      }
                     >
-                      <span
-                        className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${
-                          row.is_active ? 'translate-x-5' : 'translate-x-1'
-                        }`}
-                      />
+                      {row.is_active ? (
+                        <><svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" /></svg>Active</>
+                      ) : (
+                        <><svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" /></svg>Inactive</>
+                      )}
                     </button>
                   </td>
-                  <td className="px-4 py-3">
-                    <div className="flex items-center gap-2">
+                  <td className="px-5 py-3.5">
+                    <div className="flex items-center gap-1 justify-end">
                       {editingId === row.id ? (
                         <>
                           <button
                             onClick={() => saveEdit(row.id)}
-                            className="text-xs bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 rounded transition-colors"
-                          >
-                            Save
-                          </button>
+                            className="px-3 py-1.5 text-xs font-medium text-white rounded-lg transition-opacity"
+                            style={{ background: 'var(--primary)' }}
+                          >Save</button>
                           <button
                             onClick={() => setEditingId(null)}
-                            className="text-xs text-slate-500 hover:text-slate-700"
-                          >
-                            Cancel
-                          </button>
+                            className="px-3 py-1.5 text-xs rounded-lg border transition-colors"
+                            style={{ borderColor: 'var(--border)', color: '#6b6b8a' }}
+                          >Cancel</button>
                         </>
                       ) : (
                         <>
                           <button
                             onClick={() => startEdit(row)}
-                            className="text-xs text-blue-600 hover:text-blue-800"
+                            className="w-8 h-8 flex items-center justify-center rounded-lg border transition-colors"
+                            style={{ borderColor: 'var(--border)', color: '#6b6b8a' }}
+                            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--primary)'; (e.currentTarget as HTMLElement).style.color = 'var(--primary)' }}
+                            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--border)'; (e.currentTarget as HTMLElement).style.color = '#6b6b8a' }}
+                            title="Edit"
                           >
-                            Edit
+                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                            </svg>
                           </button>
                           <button
                             onClick={() => deleteNumber(row.id)}
-                            className="text-xs text-red-500 hover:text-red-700"
+                            className="w-8 h-8 flex items-center justify-center rounded-lg border transition-colors"
+                            style={{ borderColor: 'var(--border)', color: '#6b6b8a' }}
+                            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = '#fca5a5'; (e.currentTarget as HTMLElement).style.color = '#ef4444'; (e.currentTarget as HTMLElement).style.background = '#fef2f2' }}
+                            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--border)'; (e.currentTarget as HTMLElement).style.color = '#6b6b8a'; (e.currentTarget as HTMLElement).style.background = 'transparent' }}
+                            title="Delete"
                           >
-                            Delete
+                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
                           </button>
                         </>
                       )}
@@ -236,6 +293,13 @@ export default function PhoneNumbersPage() {
           </table>
         )}
       </div>
+
+      {/* Row count */}
+      {!loading && filtered.length > 0 && (
+        <p className="mt-3 text-xs" style={{ color: '#9896c8' }}>
+          Showing {filtered.length} of {numbers.length} entries
+        </p>
+      )}
     </div>
   )
 }
