@@ -12,6 +12,18 @@ interface SidebarProps {
 
 const navItems = [
   {
+    href: '/websites',
+    label: 'Websites',
+    icon: (
+      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="9" strokeWidth="2"/>
+        <path strokeWidth="2" d="M12 3c0 0-3 4-3 9s3 9 3 9"/>
+        <path strokeWidth="2" d="M12 3c0 0 3 4 3 9s-3 9-3 9"/>
+        <path strokeWidth="2" d="M3 12h18"/>
+      </svg>
+    ),
+  },
+  {
     href: '/phone-numbers',
     label: 'Phone Numbers',
     icon: (
@@ -40,7 +52,13 @@ export default function Sidebar({ userEmail }: SidebarProps) {
   useEffect(() => {
     fetch('/api/websites')
       .then(r => r.json())
-      .then(data => { if (Array.isArray(data)) setWebsites(data) })
+      .then(data => {
+        if (Array.isArray(data)) {
+          setWebsites(data.map((item: { domain: string } | string) =>
+            typeof item === 'string' ? item : item.domain
+          ))
+        }
+      })
       .catch(() => {})
   }, [])
 

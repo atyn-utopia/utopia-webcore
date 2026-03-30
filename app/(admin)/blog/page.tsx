@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { useWebsite } from '@/contexts/WebsiteContext'
 import SelectFilter from '@/components/SelectFilter'
 
@@ -26,14 +26,19 @@ function formatDate(d: string | null) {
 export default function BlogListPage() {
   const router = useRouter()
   const { selectedWebsite } = useWebsite()
+  const searchParams = useSearchParams()
   const [posts, setPosts] = useState<Post[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
-  const [filterWebsite, setFilterWebsite] = useState('')
+  const [filterWebsite, setFilterWebsite] = useState(() => searchParams.get('website') ?? '')
   const [filterStatus, setFilterStatus] = useState('')
   const [deleting, setDeleting] = useState<string | null>(null)
 
-  useEffect(() => { setFilterWebsite(selectedWebsite) }, [selectedWebsite])
+  useEffect(() => {
+    const fromUrl = searchParams.get('website')
+    if (fromUrl) { setFilterWebsite(fromUrl); return }
+    setFilterWebsite(selectedWebsite)
+  }, [selectedWebsite, searchParams])
 
   const fetchPosts = useCallback(async () => {
     setLoading(true)

@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react'
 import Link from 'next/link'
+import { useSearchParams } from 'next/navigation'
 import { useWebsite } from '@/contexts/WebsiteContext'
 
 interface PhoneNumber {
@@ -17,15 +18,20 @@ interface PhoneNumber {
 
 export default function PhoneNumbersPage() {
   const { selectedWebsite } = useWebsite()
+  const searchParams = useSearchParams()
   const [numbers, setNumbers] = useState<PhoneNumber[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
-  const [filterWebsite, setFilterWebsite] = useState('')
+  const [filterWebsite, setFilterWebsite] = useState(() => searchParams.get('website') ?? '')
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editValues, setEditValues] = useState<Partial<PhoneNumber>>({})
   const [error, setError] = useState('')
 
-  useEffect(() => { setFilterWebsite(selectedWebsite) }, [selectedWebsite])
+  useEffect(() => {
+    const fromUrl = searchParams.get('website')
+    if (fromUrl) { setFilterWebsite(fromUrl); return }
+    setFilterWebsite(selectedWebsite)
+  }, [selectedWebsite, searchParams])
 
   const fetchNumbers = useCallback(async () => {
     setLoading(true)
