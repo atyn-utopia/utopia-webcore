@@ -83,7 +83,7 @@ export default function Sidebar({ userEmail, open, onClose }: SidebarProps) {
       {/* Logo */}
       <div className="px-5 py-5 border-b" style={{ borderColor: 'rgba(255,255,255,0.1)' }}>
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
+          <Link href="/" onClick={onClose} className="flex items-center gap-3">
             {/* Logo icon */}
             <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: 'linear-gradient(135deg, #1a3a6e, #2979d6)' }}>
               <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
@@ -94,7 +94,7 @@ export default function Sidebar({ userEmail, open, onClose }: SidebarProps) {
               <span className="text-sm font-bold text-white tracking-tight">Utopia Webcore</span>
               <p className="text-xs" style={{ color: 'var(--sidebar-muted)' }}>Web & Content Ops</p>
             </div>
-          </div>
+          </Link>
           {/* Mobile close button */}
           <button
             onClick={onClose}

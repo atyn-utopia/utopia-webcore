@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Link from 'next/link'
 import { WebsiteProvider } from '@/contexts/WebsiteContext'
 import Sidebar from './Sidebar'
 import Breadcrumb from './Breadcrumb'
@@ -42,7 +43,7 @@ export default function AdminShell({ userEmail, children }: AdminShellProps) {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
               </svg>
             </button>
-            <div className="flex items-center gap-3">
+            <Link href="/" className="flex items-center gap-3">
               <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: 'linear-gradient(135deg, #1a3a6e, #2979d6)' }}>
                 <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
                   <path d="M12 2L9.5 9.5 2 12l7.5 2.5L12 22l2.5-7.5L22 12l-7.5-2.5z"/>
@@ -52,7 +53,7 @@ export default function AdminShell({ userEmail, children }: AdminShellProps) {
                 <span className="text-sm font-bold tracking-tight" style={{ color: 'var(--foreground)' }}>Utopia Webcore</span>
                 <p className="text-xs text-slate-500">Web & Content Ops</p>
               </div>
-            </div>
+            </Link>
           </div>
 
           <Breadcrumb />

@@ -49,7 +49,7 @@ export default function LoginPage() {
 
         {/* Login Card */}
         <div className="rounded-xl border bg-white p-6" style={{ borderColor: '#e2e8f0' }}>
-          <h2 className="text-sm font-semibold mb-5" style={{ color: '#1e293b' }}>Sign in to your account</h2>
+          <h2 className="text-lg font-semibold mb-5" style={{ color: '#1e293b' }}>Sign in</h2>
 
           {error && (
             <div className="mb-4 p-2.5 rounded-lg border text-xs" style={{ background: '#fef2f2', borderColor: '#fca5a5', color: '#dc2626' }}>
