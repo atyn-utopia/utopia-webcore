@@ -189,16 +189,14 @@ export default function PhoneNumbersPage() {
             return (
             <section key={website} className="rounded-xl border overflow-hidden bg-white" style={{ borderColor: '#cbd5e1' }}>
               {/* Website header */}
-              <div className="px-4 sm:px-5 py-3 flex items-center justify-between gap-3" style={{ background: '#f1f5f9', borderBottom: '1px solid #cbd5e1' }}>
-                <div className="flex items-center gap-2">
+              <div className="px-4 sm:px-5 py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-3" style={{ background: '#f1f5f9', borderBottom: '1px solid #cbd5e1' }}>
+                <div className="flex items-center gap-2 min-w-0">
                   <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: 'var(--primary)' }}>
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9" />
                   </svg>
-                  <span className="text-sm font-semibold overflow-hidden" style={{ color: 'var(--foreground)' }}>
-                    <span className="block sm:inline marquee-text">{website}</span>
-                  </span>
+                  <span className="text-sm font-semibold truncate" style={{ color: 'var(--foreground)' }}>{website}</span>
                 </div>
-                <div className="flex items-center gap-1.5">
+                <div className="flex items-center gap-1.5 flex-shrink-0">
                   {activeRows.length > 0 && (
                     <span
                       className="inline-flex items-center h-6 sm:h-7 text-[10px] sm:text-xs px-2.5 rounded-full font-medium whitespace-nowrap"
