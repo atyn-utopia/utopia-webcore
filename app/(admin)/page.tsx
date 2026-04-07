@@ -4,10 +4,12 @@ import { createClient } from '@/lib/supabase/server'
 export default async function DashboardPage() {
   const supabase = await createClient()
 
-  const [{ count: phoneCount }, { count: postCount }] = await Promise.all([
+  const [{ count: phoneCount }, { count: postCount }, { data: websitesData }] = await Promise.all([
     supabase.from('phone_numbers').select('*', { count: 'exact', head: true }),
     supabase.from('blog_posts').select('*', { count: 'exact', head: true }),
+    supabase.from('phone_numbers').select('website'),
   ])
+  const websiteCount = new Set((websitesData ?? []).map((r: { website: string }) => r.website)).size
 
   return (
     <div>
@@ -28,7 +30,7 @@ export default async function DashboardPage() {
             </div>
             <span className="text-xs font-medium text-slate-400 uppercase tracking-wide">Websites</span>
           </div>
-          <p className="text-3xl font-bold text-slate-900 mb-0.5">—</p>
+          <p className="text-3xl font-bold text-slate-900 mb-0.5">{websiteCount}</p>
           <p className="text-xs text-slate-400">Manage all connected sites</p>
         </Link>
 
