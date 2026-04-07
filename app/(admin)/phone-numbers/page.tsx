@@ -228,7 +228,7 @@ export default function PhoneNumbersPage() {
                         style={{ borderBottom: i < rows.length - 1 ? '1px solid #cbd5e1' : 'none' }}
                       >
                       {/* Location */}
-                      <td className="px-4 py-3 align-middle font-mono text-xs" style={{ color: '#475569' }}>{row.location_slug}</td>
+                      <td className="px-4 py-3 align-middle text-xs" style={{ color: '#475569' }}>{row.location_slug}</td>
 
                       {/* Phone number */}
                       <td className="px-4 py-3 align-middle">
@@ -240,7 +240,7 @@ export default function PhoneNumbersPage() {
                             onChange={e => setEditValues(v => ({ ...v, phone_number: e.target.value }))}
                           />
                         ) : (
-                          <span className="font-mono font-medium" style={{ color: 'var(--foreground)' }}>{row.phone_number}</span>
+                          <span className="font-medium" style={{ color: 'var(--foreground)' }}>{row.phone_number}</span>
                         )}
                       </td>
 

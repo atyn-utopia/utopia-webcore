@@ -206,7 +206,7 @@ export default function PostForm({ mode, initialData = {}, postId }: PostFormPro
                   setSlugLocked(true)
                   setForm(f => ({ ...f, slug: e.target.value }))
                 }}
-                className={`w-full px-3 py-2 border rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                className={`w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                   errors.slug ? 'border-red-400' : 'border-slate-300'
                 } ${mode === 'edit' && slugLocked ? 'bg-slate-50 text-slate-500' : ''}`}
                 placeholder="post-slug"
@@ -233,7 +233,7 @@ export default function PostForm({ mode, initialData = {}, postId }: PostFormPro
               value={form.content}
               onChange={e => setForm(f => ({ ...f, content: e.target.value }))}
               rows={20}
-              className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500 resize-y"
+              className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-y"
               placeholder="Write your post content in Markdown…"
             />
           </div>

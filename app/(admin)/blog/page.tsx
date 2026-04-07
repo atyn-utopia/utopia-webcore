@@ -188,7 +188,7 @@ export default function BlogListPage() {
                     )}
                   </td>
                   <td className="px-5 py-3.5 align-middle whitespace-nowrap" style={{ color: '#475569' }}>{post.website}</td>
-                  <td className="px-5 py-3.5 align-middle font-mono text-xs" style={{ color: '#475569' }}>{post.slug}</td>
+                  <td className="px-5 py-3.5 align-middle text-xs" style={{ color: '#475569' }}>{post.slug}</td>
                   <td className="px-5 py-3.5 align-middle">
                     <span
                       className="inline-flex items-center gap-1 sm:gap-1.5 px-1.5 sm:px-2.5 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-medium whitespace-nowrap"

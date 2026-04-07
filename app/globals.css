@@ -12,7 +12,7 @@
   --primary-hover: #162d4a;
   --border: #e2e8f0;
   --card: #ffffff;
-  --font-inter: 'Inter', sans-serif;
+  --font-inter: 'Roboto Flex', sans-serif;
 }
 
 body {
@@ -23,6 +23,7 @@ body {
 
 * {
   box-sizing: border-box;
+  font-family: var(--font-inter);
 }
 
 /* Login moving gradient */
