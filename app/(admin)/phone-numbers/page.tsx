@@ -201,7 +201,7 @@ export default function PhoneNumbersPage() {
                 <div className="flex items-center gap-1.5">
                   {activeRows.length > 0 && (
                     <span
-                      className="text-[10px] sm:text-xs px-2.5 py-1 rounded-full font-medium whitespace-nowrap"
+                      className="inline-flex items-center h-6 sm:h-7 text-[10px] sm:text-xs px-2.5 rounded-full font-medium whitespace-nowrap"
                       style={pctOk
                         ? { background: '#dcfce7', color: '#16a34a' }
                         : { background: '#fef2f2', color: '#dc2626' }
@@ -210,12 +210,12 @@ export default function PhoneNumbersPage() {
                       {totalPct}% total
                     </span>
                   )}
-                  <span className="text-[10px] sm:text-xs px-2.5 py-1 rounded-full font-medium whitespace-nowrap" style={{ background: 'var(--primary)', color: 'white' }}>
+                  <span className="inline-flex items-center h-6 sm:h-7 text-[10px] sm:text-xs px-2.5 rounded-full font-medium whitespace-nowrap" style={{ background: 'var(--primary)', color: 'white' }}>
                     {rows.length} {rows.length === 1 ? 'number' : 'numbers'}
                   </span>
                   <Link
                     href={`/phone-numbers/new?website=${encodeURIComponent(website)}`}
-                    className="inline-flex items-center gap-1 text-[10px] sm:text-xs font-medium px-2.5 py-1 rounded-full text-white transition-opacity hover:opacity-90 whitespace-nowrap"
+                    className="inline-flex items-center gap-1 h-6 sm:h-7 text-[10px] sm:text-xs font-medium px-2.5 rounded-full text-white transition-opacity hover:opacity-90 whitespace-nowrap"
                     style={{ background: '#475569' }}
                   >
                     <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
