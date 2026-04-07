@@ -161,7 +161,7 @@ export default function BlogListPage() {
             <thead>
               <tr style={{ borderBottom: '1px solid var(--border)', background: '#f4f9fb' }}>
                 {['Title', 'Website', 'Slug', 'Status', 'Published', 'Updated', ''].map((h, i) => (
-                  <th key={i} className="px-5 py-3.5 text-left text-xs font-semibold" style={{ color: '#4a7a8a' }}>{h}</th>
+                  <th key={i} className="px-5 py-3.5 text-left text-[10px] sm:text-xs font-semibold" style={{ color: '#4a7a8a' }}>{h}</th>
                 ))}
               </tr>
             </thead>
@@ -191,7 +191,7 @@ export default function BlogListPage() {
                   <td className="px-5 py-3.5 align-middle font-mono text-xs" style={{ color: '#7dbdd0' }}>{post.slug}</td>
                   <td className="px-5 py-3.5 align-middle">
                     <span
-                      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium"
+                      className="inline-flex items-center gap-1 sm:gap-1.5 px-1.5 sm:px-2.5 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-medium whitespace-nowrap"
                       style={post.status === 'published'
                         ? { background: '#dcfce7', color: '#16a34a' }
                         : { background: '#f1f5f9', color: '#64748b' }

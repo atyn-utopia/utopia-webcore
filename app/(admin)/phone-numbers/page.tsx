@@ -199,11 +199,11 @@ export default function PhoneNumbersPage() {
                 <table className="w-full min-w-[760px] text-sm" style={{ background: 'white' }}>
                   <thead>
                     <tr style={{ borderBottom: '1px solid var(--border)', background: '#fafcfd' }}>
-                      <th className="px-4 py-3 text-left text-xs font-semibold w-28" style={{ color: '#4a7a8a' }}>Location</th>
-                      <th className="px-4 py-3 text-left text-xs font-semibold w-64" style={{ color: '#4a7a8a' }}>Phone Number</th>
-                      <th className="px-4 py-3 text-left text-xs font-semibold w-52" style={{ color: '#4a7a8a' }}>Label</th>
-                      <th className="px-4 py-3 text-left text-xs font-semibold w-44" style={{ color: '#4a7a8a' }}>Status</th>
-                      <th className="px-4 py-3 text-right text-xs font-semibold w-36" style={{ color: '#4a7a8a' }}>Actions</th>
+                      <th className="px-4 py-3 text-left text-[10px] sm:text-xs font-semibold w-28" style={{ color: '#4a7a8a' }}>Location</th>
+                      <th className="px-4 py-3 text-left text-[10px] sm:text-xs font-semibold w-64" style={{ color: '#4a7a8a' }}>Phone Number</th>
+                      <th className="px-4 py-3 text-left text-[10px] sm:text-xs font-semibold w-52" style={{ color: '#4a7a8a' }}>Label</th>
+                      <th className="px-4 py-3 text-left text-[10px] sm:text-xs font-semibold w-44" style={{ color: '#4a7a8a' }}>Status</th>
+                      <th className="px-4 py-3 text-right text-[10px] sm:text-xs font-semibold w-36" style={{ color: '#4a7a8a' }}>Actions</th>
                     </tr>
                   </thead>
                   <tbody>

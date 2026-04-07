@@ -52,7 +52,7 @@ export default function WebsitesPage() {
             <thead>
               <tr style={{ borderBottom: '1px solid var(--border)', background: '#f4f9fb' }}>
                 {['Website', 'Phone Numbers', 'Active Numbers', 'Blog Posts', 'Published Posts', ''].map((h, i) => (
-                  <th key={i} className="px-5 py-3.5 text-left text-xs font-semibold" style={{ color: '#4a7a8a' }}>{h}</th>
+                  <th key={i} className="px-5 py-3.5 text-left text-[10px] sm:text-xs font-semibold" style={{ color: '#4a7a8a' }}>{h}</th>
                 ))}
               </tr>
             </thead>
@@ -99,7 +99,7 @@ export default function WebsitesPage() {
                   {/* Active phone count */}
                   <td className="px-5 py-4 align-middle">
                     <span
-                      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium"
+                      className="inline-flex items-center gap-1 sm:gap-1.5 px-1.5 sm:px-2.5 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-medium whitespace-nowrap"
                       style={site.active_phone_count > 0
                         ? { background: '#dcfce7', color: '#16a34a' }
                         : { background: '#f1f5f9', color: '#64748b' }
@@ -122,7 +122,7 @@ export default function WebsitesPage() {
                   {/* Published blog count */}
                   <td className="px-5 py-4 align-middle">
                     <span
-                      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium"
+                      className="inline-flex items-center gap-1 sm:gap-1.5 px-1.5 sm:px-2.5 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-medium whitespace-nowrap"
                       style={site.published_blog_count > 0
                         ? { background: '#e0f2fe', color: '#0369a1' }
                         : { background: '#f1f5f9', color: '#64748b' }
@@ -137,7 +137,7 @@ export default function WebsitesPage() {
                     <div className="flex items-center gap-2 justify-end">
                       <Link
                         href={`/phone-numbers?website=${encodeURIComponent(site.domain)}`}
-                        className="inline-flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-lg border transition-colors"
+                        className="inline-flex items-center gap-1 sm:gap-1.5 text-[10px] sm:text-xs font-medium px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg border transition-colors whitespace-nowrap"
                         style={{ borderColor: 'var(--border)', color: '#4a7a8a', background: 'white' }}
                         onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--primary)'; (e.currentTarget as HTMLElement).style.color = 'var(--primary)' }}
                         onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--border)'; (e.currentTarget as HTMLElement).style.color = '#4a7a8a' }}
@@ -149,7 +149,7 @@ export default function WebsitesPage() {
                       </Link>
                       <Link
                         href={`/blog?website=${encodeURIComponent(site.domain)}`}
-                        className="inline-flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-lg border transition-colors"
+                        className="inline-flex items-center gap-1 sm:gap-1.5 text-[10px] sm:text-xs font-medium px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg border transition-colors whitespace-nowrap"
                         style={{ borderColor: 'var(--border)', color: '#4a7a8a', background: 'white' }}
                         onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--primary)'; (e.currentTarget as HTMLElement).style.color = 'var(--primary)' }}
                         onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--border)'; (e.currentTarget as HTMLElement).style.color = '#4a7a8a' }}
