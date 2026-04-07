@@ -182,7 +182,11 @@ export default function PhoneNumbersPage() {
         </div>
       ) : (
         <div className="space-y-5">
-          {groupedEntries.map(([website, rows]) => (
+          {groupedEntries.map(([website, rows]) => {
+            const activeRows = rows.filter(r => r.is_active)
+            const totalPct = activeRows.reduce((s, r) => s + (r.percentage ?? 100), 0)
+            const pctOk = activeRows.length === 0 || totalPct === 100
+            return (
             <section key={website} className="rounded-xl border overflow-hidden bg-white" style={{ borderColor: '#cbd5e1' }}>
               {/* Website header */}
               <div className="px-4 sm:px-5 py-3 flex items-center justify-between gap-3" style={{ background: '#f1f5f9', borderBottom: '1px solid #cbd5e1' }}>
@@ -193,6 +197,17 @@ export default function PhoneNumbersPage() {
                   <span className="text-sm font-semibold break-all" style={{ color: 'var(--foreground)' }}>{website}</span>
                 </div>
                 <div className="flex items-center gap-1.5">
+                  {activeRows.length > 0 && (
+                    <span
+                      className="text-[10px] sm:text-xs px-2.5 py-1 rounded-full font-medium whitespace-nowrap"
+                      style={pctOk
+                        ? { background: '#dcfce7', color: '#16a34a' }
+                        : { background: '#fef2f2', color: '#dc2626' }
+                      }
+                    >
+                      {totalPct}% total
+                    </span>
+                  )}
                   <span className="text-[10px] sm:text-xs px-2.5 py-1 rounded-full font-medium whitespace-nowrap" style={{ background: 'var(--primary)', color: 'white' }}>
                     {rows.length} {rows.length === 1 ? 'number' : 'numbers'}
                   </span>
@@ -208,21 +223,27 @@ export default function PhoneNumbersPage() {
                   </Link>
                 </div>
               </div>
+              {!pctOk && activeRows.length > 0 && (
+                <div className="px-4 sm:px-5 py-2 text-xs flex items-center gap-1.5" style={{ background: '#fef2f2', color: '#dc2626', borderBottom: '1px solid #fca5a5' }}>
+                  <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  Active numbers total {totalPct}% — adjust percentages to equal 100%.
+                </div>
+              )}
 
               <div className="overflow-x-auto">
                 <table className="w-full min-w-[700px] text-sm" style={{ background: 'white' }}>
                   <thead>
                     <tr style={{ borderBottom: '1px solid #cbd5e1', background: '#f8fafc' }}>
                       <th className="px-4 py-3 text-left text-[10px] sm:text-xs font-semibold" style={{ color: '#475569' }}>Number Details</th>
-                      <th className="px-4 py-3 text-center text-[10px] sm:text-xs font-semibold w-24" style={{ color: '#475569' }}>Weight</th>
+                      <th className="px-4 py-3 text-center text-[10px] sm:text-xs font-semibold w-24" style={{ color: '#475569' }}>%</th>
                       <th className="px-4 py-3 text-center text-[10px] sm:text-xs font-semibold w-24" style={{ color: '#475569' }}>Status</th>
                       <th className="px-4 py-3 text-right text-[10px] sm:text-xs font-semibold w-24" style={{ color: '#475569' }}>Actions</th>
                     </tr>
                   </thead>
                   <tbody>
                     {rows.map((row, i) => {
-                      const totalWeight = rows.filter(r => r.is_active).reduce((s, r) => s + (r.percentage ?? 100), 0)
-                      const share = row.is_active && totalWeight > 0 ? Math.round(((row.percentage ?? 100) / totalWeight) * 100) : 0
                       return (
                       <tr
                         key={row.id}
@@ -280,12 +301,11 @@ export default function PhoneNumbersPage() {
                             onChange={e => setEditValues(v => ({ ...v, percentage: parseInt(e.target.value) || 1 }))}
                           />
                         ) : (
-                          <div className="flex flex-col items-center gap-1">
-                            <span className="text-xs font-semibold" style={{ color: 'var(--foreground)' }}>{row.percentage ?? 100}</span>
+                          <div className="flex flex-col items-center gap-0.5">
+                            <span className="text-xs font-semibold" style={{ color: 'var(--foreground)' }}>{row.percentage ?? 100}%</span>
                             <div className="w-12 h-1.5 rounded-full overflow-hidden" style={{ background: '#e2e8f0' }}>
-                              <div className="h-full rounded-full" style={{ width: `${share}%`, background: 'var(--primary)' }} />
+                              <div className="h-full rounded-full" style={{ width: `${row.percentage ?? 100}%`, background: row.is_active ? 'var(--primary)' : '#94a3b8' }} />
                             </div>
-                            <span className="text-[10px]" style={{ color: '#94a3b8' }}>{share}%</span>
                           </div>
                         )}
                       </td>
@@ -377,7 +397,7 @@ export default function PhoneNumbersPage() {
                 </table>
               </div>
             </section>
-          ))}
+          )})}
         </div>
       )}
 

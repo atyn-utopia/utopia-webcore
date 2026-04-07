@@ -81,6 +81,9 @@ export default function NewPhoneNumberPage() {
     if (Array.isArray(data)) {
       const texts = [...new Set(data.map((n: { whatsapp_text?: string }) => n.whatsapp_text).filter(Boolean))] as string[]
       setExistingTexts(texts)
+      const activeCount = data.filter((n: { is_active?: boolean }) => n.is_active !== false).length
+      const suggested = Math.floor(100 / (activeCount + 1))
+      setForm(f => ({ ...f, percentage: String(suggested || 1) }))
     }
   }, [])
 
@@ -257,21 +260,24 @@ export default function NewPhoneNumberPage() {
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1" style={{ color: 'var(--foreground)' }}>
-                  Lead Weight <span className="text-xs font-normal" style={{ color: '#475569' }}>(default 100)</span>
+                  Lead Percentage<span className="text-red-500 ml-0.5">*</span>
                 </label>
-                <input
-                  type="number"
-                  min="1"
-                  max="100"
-                  value={form.percentage}
-                  onChange={e => setForm(f => ({ ...f, percentage: e.target.value }))}
-                  className="w-24 px-3 py-2.5 text-sm rounded-lg border focus:outline-none transition-colors"
-                  style={{ borderColor: '#cbd5e1', background: 'white' }}
-                  onFocus={e => e.currentTarget.style.borderColor = 'var(--primary)'}
-                  onBlur={e => e.currentTarget.style.borderColor = '#cbd5e1'}
-                />
+                <div className="flex items-center gap-2">
+                  <input
+                    type="number"
+                    min="1"
+                    max="100"
+                    value={form.percentage}
+                    onChange={e => setForm(f => ({ ...f, percentage: e.target.value }))}
+                    className="w-20 px-3 py-2.5 text-sm rounded-lg border focus:outline-none transition-colors"
+                    style={{ borderColor: '#cbd5e1', background: 'white' }}
+                    onFocus={e => e.currentTarget.style.borderColor = 'var(--primary)'}
+                    onBlur={e => e.currentTarget.style.borderColor = '#cbd5e1'}
+                  />
+                  <span className="text-sm" style={{ color: '#475569' }}>%</span>
+                </div>
                 <p className="mt-1 text-xs" style={{ color: '#475569' }}>
-                  Higher weight = more leads. Numbers with equal weight share leads equally.
+                  All active numbers under the same website must total exactly 100%. You may need to adjust existing numbers after adding this one.
                 </p>
               </div>
               <InputField
