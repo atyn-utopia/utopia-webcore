@@ -4,9 +4,10 @@ import { useEditor, EditorContent } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
 import Underline from '@tiptap/extension-underline'
 import TextAlign from '@tiptap/extension-text-align'
+import LinkExtension from '@tiptap/extension-link'
 import Placeholder from '@tiptap/extension-placeholder'
 import CharacterCount from '@tiptap/extension-character-count'
-import { useEffect } from 'react'
+import { useEffect, useCallback } from 'react'
 
 interface RichTextEditorProps {
   value: string
@@ -55,10 +56,14 @@ export default function RichTextEditor({ value, onChange, placeholder = 'Start w
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
-        heading: { levels: [1, 2, 3] },
+        heading: { levels: [1, 2, 3, 4, 5, 6] },
       }),
       Underline,
       TextAlign.configure({ types: ['heading', 'paragraph'] }),
+      LinkExtension.configure({
+        openOnClick: false,
+        HTMLAttributes: { target: '_blank', rel: 'noopener noreferrer' },
+      }),
       Placeholder.configure({ placeholder }),
       CharacterCount,
     ],
@@ -92,7 +97,24 @@ export default function RichTextEditor({ value, onChange, placeholder = 'Start w
     ? 'H2'
     : editor.isActive('heading', { level: 3 })
     ? 'H3'
-    : 'Body'
+    : editor.isActive('heading', { level: 4 })
+    ? 'H4'
+    : editor.isActive('heading', { level: 5 })
+    ? 'H5'
+    : editor.isActive('heading', { level: 6 })
+    ? 'H6'
+    : 'P'
+
+  const setLink = useCallback(() => {
+    const previousUrl = editor.getAttributes('link').href
+    const url = window.prompt('Enter URL:', previousUrl ?? 'https://')
+    if (url === null) return
+    if (url === '') {
+      editor.chain().focus().extendMarkRange('link').unsetLink().run()
+    } else {
+      editor.chain().focus().extendMarkRange('link').setLink({ href: url }).run()
+    }
+  }, [editor])
 
   return (
     <div className="rounded-lg border overflow-hidden" style={{ borderColor: '#cbd5e1' }}>
@@ -107,10 +129,10 @@ export default function RichTextEditor({ value, onChange, placeholder = 'Start w
             value={currentHeading}
             onChange={e => {
               const val = e.target.value
-              if (val === 'Body') {
+              if (val === 'P') {
                 editor.chain().focus().setParagraph().run()
               } else {
-                const level = parseInt(val.replace('H', '')) as 1 | 2 | 3
+                const level = parseInt(val.replace('H', '')) as 1 | 2 | 3 | 4 | 5 | 6
                 editor.chain().focus().toggleHeading({ level }).run()
               }
             }}
@@ -119,13 +141,16 @@ export default function RichTextEditor({ value, onChange, placeholder = 'Start w
               borderColor: '#e2e8f0',
               background: 'white',
               color: '#475569',
-              minWidth: '80px',
+              minWidth: '100px',
             }}
           >
-            <option value="Body">Body</option>
+            <option value="P">Paragraph</option>
             <option value="H1">Heading 1</option>
             <option value="H2">Heading 2</option>
             <option value="H3">Heading 3</option>
+            <option value="H4">Heading 4</option>
+            <option value="H5">Heading 5</option>
+            <option value="H6">Heading 6</option>
           </select>
         </div>
 
@@ -178,6 +203,32 @@ export default function RichTextEditor({ value, onChange, placeholder = 'Start w
             <path d="M17.5 7.5c0-2-1.5-3.5-5.5-3.5S6.5 5 6.5 7.5c0 4 11 4 11 8.5 0 2.5-2 3.5-5.5 3.5S6 18 6 16" />
           </svg>
         </ToolbarButton>
+
+        {/* Link */}
+        <ToolbarButton
+          active={editor.isActive('link')}
+          onClick={setLink}
+          title="Insert Link"
+        >
+          <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71" />
+            <path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71" />
+          </svg>
+        </ToolbarButton>
+
+        {/* Unlink */}
+        {editor.isActive('link') && (
+          <ToolbarButton
+            onClick={() => editor.chain().focus().unsetLink().run()}
+            title="Remove Link"
+          >
+            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71" />
+              <path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71" />
+              <line x1="4" y1="4" x2="20" y2="20" strokeWidth="2" />
+            </svg>
+          </ToolbarButton>
+        )}
 
         <Divider />
 
