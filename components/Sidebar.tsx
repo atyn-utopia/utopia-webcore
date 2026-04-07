@@ -81,7 +81,7 @@ export default function Sidebar({ userEmail, open, onClose }: SidebarProps) {
       style={{ background: 'var(--sidebar-bg)' }}
     >
       {/* Logo */}
-      <div className="px-5 py-5 border-b" style={{ borderColor: 'rgba(255,255,255,0.1)' }}>
+      <div className="px-5 h-16 flex items-center border-b" style={{ borderColor: 'rgba(255,255,255,0.1)' }}>
         <div className="flex items-center justify-between">
           <Link href="/" onClick={onClose} className="flex items-center gap-3">
             {/* Logo icon */}

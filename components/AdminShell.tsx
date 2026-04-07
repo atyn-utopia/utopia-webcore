@@ -56,7 +56,7 @@ export default function AdminShell({ userEmail, children }: AdminShellProps) {
             </Link>
           </div>
 
-          <div className="md:-mt-8 md:-mx-8 md:px-8 md:flex md:items-center md:h-[68px] md:border-b md:border-[#e2e8f0]">
+          <div className="md:-mt-8 md:-mx-8 md:px-8 md:flex md:items-center md:h-16 md:border-b md:border-[#e2e8f0]">
             <Breadcrumb />
           </div>
           <div className="md:mt-5" />
