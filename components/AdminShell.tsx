@@ -33,7 +33,7 @@ export default function AdminShell({ userEmail, children }: AdminShellProps) {
 
         <main className="flex-1 overflow-y-auto p-4 sm:p-6 md:p-8" style={{ background: '#ffffff' }}>
           {/* Mobile header with hamburger */}
-          <div className="flex items-center gap-3 mb-2 md:hidden">
+          <div className="flex items-center gap-3 mb-4 md:hidden">
             <button
               onClick={() => setSidebarOpen(true)}
               className="w-9 h-9 flex items-center justify-center rounded-lg border"
@@ -57,6 +57,7 @@ export default function AdminShell({ userEmail, children }: AdminShellProps) {
           </div>
 
           <Breadcrumb />
+          <div className="h-px my-3" style={{ background: '#e2e8f0' }} />
           {children}
         </main>
       </div>
