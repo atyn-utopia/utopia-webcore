@@ -25,7 +25,7 @@ export default function Breadcrumb() {
   const crumbs = getCrumbs(pathname)
 
   return (
-    <nav className="flex items-center gap-2 text-sm mb-6" aria-label="Breadcrumb">
+    <nav className="flex items-center gap-2 text-sm" aria-label="Breadcrumb">
       {/* Home */}
       <Link
         href="/"
