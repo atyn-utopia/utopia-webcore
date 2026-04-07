@@ -57,7 +57,7 @@ export default function AdminShell({ userEmail, children }: AdminShellProps) {
           </div>
 
           <Breadcrumb />
-          <div className="h-px my-3" style={{ background: '#e2e8f0' }} />
+          <div className="h-px mt-3 mb-5" style={{ background: '#e2e8f0' }} />
           {children}
         </main>
       </div>
