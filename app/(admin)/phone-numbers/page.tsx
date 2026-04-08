@@ -95,9 +95,9 @@ export default function PhoneNumbersPage() {
   const groupedEntries = Object.entries(grouped).sort(([a], [b]) => a.localeCompare(b))
 
   return (
-    <div className="space-y-6">
+    <div>
       {/* Header */}
-      <div className="sm:flex sm:items-center sm:justify-between gap-3 mb-2">
+      <div className="sm:flex sm:items-center sm:justify-between gap-3 mb-6">
         <div>
           <h1 className="text-2xl font-bold" style={{ color: 'var(--foreground)' }}>Phone Numbers</h1>
           <p className="text-xs sm:text-sm mt-1" style={{ color: '#475569' }}>Manage phone numbers per website and location.</p>
@@ -117,7 +117,7 @@ export default function PhoneNumbersPage() {
       </div>
 
       {/* Search + website filter */}
-      <div className="rounded-xl border p-4 sm:p-5" style={{ borderColor: '#cbd5e1', background: '#f8fafc' }}>
+      <div className="rounded-xl border p-4 sm:p-5 mb-5" style={{ borderColor: '#cbd5e1', background: '#f8fafc' }}>
         <div className="flex flex-wrap gap-4 items-end">
           <div className="flex-1 min-w-56">
           <label className="block text-xs font-medium mb-1.5" style={{ color: '#475569' }}>Search</label>
