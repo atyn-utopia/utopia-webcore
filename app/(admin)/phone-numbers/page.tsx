@@ -5,6 +5,26 @@ import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { useWebsite } from '@/contexts/WebsiteContext'
 
+const MY_STATES = [
+  { label: 'All Locations', slug: 'all' },
+  { label: 'Johor', slug: 'johor' },
+  { label: 'Kedah', slug: 'kedah' },
+  { label: 'Kelantan', slug: 'kelantan' },
+  { label: 'Kuala Lumpur', slug: 'kuala-lumpur' },
+  { label: 'Labuan', slug: 'labuan' },
+  { label: 'Melaka', slug: 'melaka' },
+  { label: 'Negeri Sembilan', slug: 'negeri-sembilan' },
+  { label: 'Pahang', slug: 'pahang' },
+  { label: 'Perak', slug: 'perak' },
+  { label: 'Perlis', slug: 'perlis' },
+  { label: 'Pulau Pinang', slug: 'pulau-pinang' },
+  { label: 'Putrajaya', slug: 'putrajaya' },
+  { label: 'Sabah', slug: 'sabah' },
+  { label: 'Sarawak', slug: 'sarawak' },
+  { label: 'Selangor', slug: 'selangor' },
+  { label: 'Terengganu', slug: 'terengganu' },
+]
+
 interface PhoneNumber {
   id: string
   website: string
@@ -59,7 +79,7 @@ export default function PhoneNumbersPage() {
   function startEditGroup(website: string, rows: PhoneNumber[]) {
     const map: Record<string, Partial<PhoneNumber>> = {}
     rows.forEach(r => {
-      map[r.id] = { phone_number: r.phone_number, whatsapp_text: r.whatsapp_text, percentage: r.percentage ?? 100, label: r.label ?? '', is_active: r.is_active }
+      map[r.id] = { phone_number: r.phone_number, whatsapp_text: r.whatsapp_text, percentage: r.percentage ?? 100, label: r.label ?? '', is_active: r.is_active, location_slug: r.location_slug }
     })
     setEditRows(map)
     setEditingWebsite(website)
@@ -113,6 +133,7 @@ export default function PhoneNumbersPage() {
           percentage: vals.percentage ?? 100,
           label: vals.label || null,
           is_active: vals.is_active,
+          location_slug: vals.location_slug,
         }),
       })
       if (!res.ok) { const d = await res.json(); setError(d.error ?? 'Save failed'); return }
@@ -356,7 +377,7 @@ export default function PhoneNumbersPage() {
                             ) : null}
                           </div>
                           {/* All fields in one row */}
-                          <div className="flex items-end gap-2">
+                          <div className="flex items-end gap-2 flex-wrap sm:flex-nowrap">
                             <div className="w-36 sm:w-40 flex-shrink-0">
                               <label className="block text-[10px] mb-1" style={{ color: '#94a3b8' }}>Phone</label>
                               <input
@@ -375,6 +396,19 @@ export default function PhoneNumbersPage() {
                                 onChange={e => updateEditRow(row.id, { whatsapp_text: e.target.value })}
                               />
                             </div>
+                            {!isDefault && (
+                              <div className="w-28 flex-shrink-0">
+                                <label className="block text-[10px] mb-1" style={{ color: '#94a3b8' }}>Location</label>
+                                <select
+                                  className="px-2 py-1.5 border rounded-lg text-xs w-full outline-none focus:border-[var(--primary)] transition-colors cursor-pointer"
+                                  style={{ borderColor: '#e2e8f0', appearance: 'none', WebkitAppearance: 'none', background: 'white url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'10\' height=\'10\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'%2394a3b8\' stroke-width=\'2\'%3E%3Cpath d=\'M6 9l6 6 6-6\'/%3E%3C/svg%3E") no-repeat right 6px center' }}
+                                  value={vals?.location_slug ?? 'all'}
+                                  onChange={e => updateEditRow(row.id, { location_slug: e.target.value })}
+                                >
+                                  {MY_STATES.map(s => <option key={s.slug} value={s.slug}>{s.label}</option>)}
+                                </select>
+                              </div>
+                            )}
                             <div className="w-14 flex-shrink-0">
                               <label className="block text-[10px] mb-1 text-center" style={{ color: '#94a3b8' }}>%</label>
                               <input
@@ -385,7 +419,6 @@ export default function PhoneNumbersPage() {
                                 onChange={e => updateEditRow(row.id, { percentage: parseInt(e.target.value) || 0 }, rows)}
                               />
                             </div>
-                            {/* Toggle switch */}
                             <div className="flex-shrink-0">
                               <label className="block text-[10px] mb-1 text-center" style={{ color: '#94a3b8' }}>Active</label>
                               <button
@@ -393,14 +426,11 @@ export default function PhoneNumbersPage() {
                                 className="relative w-9 h-5 rounded-full transition-colors flex-shrink-0"
                                 style={{ background: vals?.is_active ? '#16a34a' : '#cbd5e1' }}
                               >
-                                <span
-                                  className="absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform"
-                                  style={{ left: vals?.is_active ? '18px' : '2px' }}
-                                />
+                                <span className="absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform" style={{ left: vals?.is_active ? '18px' : '2px' }} />
                               </button>
                             </div>
                           </div>
-                          {/* WA text suggestions below the WA field */}
+                          {/* WA text suggestions */}
                           {existingTexts.length > 0 && !(vals?.whatsapp_text) && (
                             <div className="mt-2 ml-[152px] sm:ml-[168px]">
                               <div className="flex items-center gap-1.5 flex-wrap">
@@ -427,6 +457,9 @@ export default function PhoneNumbersPage() {
                         <div className="px-4 sm:px-5 py-3 flex items-center gap-3 hover:bg-[#f1f5f9] transition-colors">
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-1.5 min-w-0">
+                              <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: '#94a3b8' }} strokeWidth="1.8">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                              </svg>
                               <span className="text-xs sm:text-sm font-medium font-mono truncate" style={{ color: 'var(--foreground)' }}>{row.phone_number}</span>
                               {isDefault ? (
                                 <span className="text-[10px] px-1.5 py-0.5 rounded-full flex-shrink-0 font-bold" style={{ background: 'var(--primary)', color: 'white' }}>Default</span>
@@ -434,8 +467,23 @@ export default function PhoneNumbersPage() {
                                 <span className="text-[10px] px-1.5 py-0.5 rounded-full flex-shrink-0" style={{ background: '#f1f5f9', color: '#475569' }}>{row.label}</span>
                               ) : null}
                             </div>
-                            {row.whatsapp_text && <p className="text-[10px] sm:text-xs mt-0.5 truncate" style={{ color: '#475569' }}>{row.whatsapp_text}</p>}
-                            {!isDefault && <p className="text-[10px] mt-0.5" style={{ color: '#94a3b8' }}>{row.location_slug}</p>}
+                            {row.whatsapp_text && (
+                              <div className="flex items-center gap-1.5 mt-0.5">
+                                <svg className="w-3 h-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: '#cbd5e1' }} strokeWidth="1.8">
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                                </svg>
+                                <p className="text-[10px] sm:text-xs truncate" style={{ color: '#475569' }}>{row.whatsapp_text}</p>
+                              </div>
+                            )}
+                            {!isDefault && row.location_slug !== 'all' && (
+                              <div className="flex items-center gap-1.5 mt-0.5">
+                                <svg className="w-3 h-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: '#cbd5e1' }} strokeWidth="1.8">
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                                </svg>
+                                <p className="text-[10px]" style={{ color: '#94a3b8' }}>{MY_STATES.find(s => s.slug === row.location_slug)?.label ?? row.location_slug}</p>
+                              </div>
+                            )}
                           </div>
                           <div className="flex items-center gap-3 flex-shrink-0">
                             <div className="text-center">
