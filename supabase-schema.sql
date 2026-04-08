@@ -4,6 +4,32 @@
 -- ============================================================
 
 -- ──────────────────────────────────────────────────────────
+-- 0. companies & company_websites
+-- ──────────────────────────────────────────────────────────
+create table if not exists public.companies (
+  id         uuid primary key default gen_random_uuid(),
+  name       text not null,
+  created_at timestamptz not null default now()
+);
+
+create table if not exists public.company_websites (
+  id         uuid primary key default gen_random_uuid(),
+  company_id uuid not null references public.companies(id) on delete cascade,
+  domain     text not null unique,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists idx_company_websites_company
+  on public.company_websites (company_id);
+
+alter table public.companies enable row level security;
+alter table public.company_websites enable row level security;
+
+create policy "Public read companies" on public.companies for select using (true);
+create policy "Public read company_websites" on public.company_websites for select using (true);
+
+
+-- ──────────────────────────────────────────────────────────
 -- 1. phone_numbers
 -- ──────────────────────────────────────────────────────────
 create table if not exists public.phone_numbers (

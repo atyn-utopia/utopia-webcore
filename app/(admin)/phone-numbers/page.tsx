@@ -43,6 +43,7 @@ export default function PhoneNumbersPage() {
   const { selectedWebsite } = useWebsite()
   const searchParams = useSearchParams()
   const [numbers, setNumbers] = useState<PhoneNumber[]>([])
+  const [companyMap, setCompanyMap] = useState<Record<string, string>>({}) // domain → company name
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
   const [filterWebsite, setFilterWebsite] = useState(() => searchParams.get('website') ?? '')
@@ -56,6 +57,22 @@ export default function PhoneNumbersPage() {
     if (fromUrl) { setFilterWebsite(fromUrl); return }
     setFilterWebsite(selectedWebsite)
   }, [selectedWebsite, searchParams])
+
+  // Fetch company → domain mapping
+  useEffect(() => {
+    fetch('/api/companies')
+      .then(r => r.json())
+      .then(data => {
+        if (Array.isArray(data)) {
+          const map: Record<string, string> = {}
+          data.forEach((c: { name: string; company_websites: { domain: string }[] }) => {
+            c.company_websites?.forEach(w => { map[w.domain] = c.name })
+          })
+          setCompanyMap(map)
+        }
+      })
+      .catch(() => {})
+  }, [])
 
   const fetchNumbers = useCallback(async () => {
     setLoading(true)
@@ -170,6 +187,19 @@ export default function PhoneNumbersPage() {
   const websites = [...new Set(numbers.map(n => n.website))]
   const groupedEntries = Object.entries(grouped).sort(([a], [b]) => a.localeCompare(b))
 
+  // Group websites by company
+  const companyGroups: Record<string, { name: string; websites: [string, PhoneNumber[]][] }> = {}
+  groupedEntries.forEach(([website, rows]) => {
+    const company = companyMap[website] ?? 'Unassigned'
+    if (!companyGroups[company]) companyGroups[company] = { name: company, websites: [] }
+    companyGroups[company].websites.push([website, rows])
+  })
+  const companyEntries = Object.entries(companyGroups).sort(([a], [b]) => {
+    if (a === 'Unassigned') return 1
+    if (b === 'Unassigned') return -1
+    return a.localeCompare(b)
+  })
+
   return (
     <div>
       {/* Header */}
@@ -249,17 +279,27 @@ export default function PhoneNumbersPage() {
         <div className="mb-4 p-3 rounded-lg border text-sm" style={{ background: '#fef2f2', borderColor: '#fca5a5', color: '#dc2626' }}>{error}</div>
       )}
 
-      {/* Grouped tables */}
+      {/* Grouped by company then website */}
       {loading ? (
         <div className="p-12 text-center text-sm rounded-xl border" style={{ borderColor: '#cbd5e1', color: '#475569' }}>Loading…</div>
-      ) : groupedEntries.length === 0 ? (
+      ) : companyEntries.length === 0 ? (
         <div className="p-12 text-center text-sm rounded-xl border" style={{ borderColor: '#cbd5e1', color: '#475569' }}>
           No phone numbers found.{' '}
           <Link href="/phone-numbers/new" className="hover:underline" style={{ color: 'var(--primary)' }}>Add one</Link>
         </div>
       ) : (
-        <div className="space-y-5">
-          {groupedEntries.map(([website, rows]) => {
+        <div className="space-y-8">
+          {companyEntries.map(([companyName, { websites: companyWebsites }]) => (
+            <div key={companyName}>
+              {/* Company header */}
+              <div className="flex items-center gap-2 mb-3">
+                <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: companyName === 'Unassigned' ? '#94a3b8' : 'var(--primary)' }} strokeWidth="1.8">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                </svg>
+                <h2 className="text-sm font-semibold" style={{ color: companyName === 'Unassigned' ? '#94a3b8' : 'var(--foreground)' }}>{companyName}</h2>
+              </div>
+              <div className="space-y-5">
+          {companyWebsites.map(([website, rows]) => {
             const isGroupEditing = editingWebsite === website
             const activeRows = isGroupEditing
               ? rows.filter(r => editRows[r.id]?.is_active !== false)
@@ -548,6 +588,9 @@ export default function PhoneNumbersPage() {
               )}
             </section>
           )})}
+              </div>
+            </div>
+          ))}
         </div>
       )}
 

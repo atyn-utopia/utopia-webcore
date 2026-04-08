@@ -19,6 +19,7 @@ interface Post {
 
 interface WebsiteSummary {
   domain: string
+  company_name: string | null
   blog_count: number
   published_blog_count: number
 }
@@ -108,40 +109,66 @@ export default function BlogListPage() {
           <div className="p-12 text-center text-sm rounded-xl border" style={{ borderColor: '#cbd5e1', color: '#475569' }}>
             No websites found. Add a phone number first to register a website.
           </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {websites.map(site => (
-              <Link
-                key={site.domain}
-                href={`/blog?website=${encodeURIComponent(site.domain)}`}
-                className="group block rounded-xl border bg-white p-5 hover:shadow-sm transition-all hover:border-slate-300"
-                style={{ borderColor: '#e2e8f0' }}
-              >
-                <div className="flex items-start gap-3">
-                  <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: '#f1f5f9' }}>
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: 'var(--primary)' }} strokeWidth="1.5">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
-                    </svg>
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="text-sm font-semibold truncate group-hover:text-[var(--primary)] transition-colors" style={{ color: 'var(--foreground)' }}>{site.domain}</p>
-                    <div className="flex items-center gap-2 mt-1.5">
-                      <span className="text-xs" style={{ color: '#475569' }}>{site.blog_count} {site.blog_count === 1 ? 'post' : 'posts'}</span>
-                      {site.published_blog_count > 0 && (
-                        <span className="inline-flex items-center gap-1 text-[10px] font-medium px-1.5 py-0.5 rounded-full" style={{ background: '#dcfce7', color: '#16a34a' }}>
-                          {site.published_blog_count} live
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                  <svg className="w-4 h-4 mt-1 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: '#94a3b8' }} strokeWidth="2">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+        ) : (() => {
+          // Group by company
+          const companyGroups: Record<string, { name: string; sites: WebsiteSummary[] }> = {}
+          websites.forEach(site => {
+            const key = site.company_name ?? 'Unassigned'
+            if (!companyGroups[key]) companyGroups[key] = { name: key, sites: [] }
+            companyGroups[key].sites.push(site)
+          })
+          const entries = Object.entries(companyGroups).sort(([a], [b]) => {
+            if (a === 'Unassigned') return 1
+            if (b === 'Unassigned') return -1
+            return a.localeCompare(b)
+          })
+          return (
+          <div className="space-y-6">
+            {entries.map(([companyName, { sites: companySites }]) => (
+              <div key={companyName}>
+                <div className="flex items-center gap-2 mb-3">
+                  <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: companyName === 'Unassigned' ? '#94a3b8' : 'var(--primary)' }} strokeWidth="1.8">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                   </svg>
+                  <h2 className="text-sm font-semibold" style={{ color: companyName === 'Unassigned' ? '#94a3b8' : 'var(--foreground)' }}>{companyName}</h2>
                 </div>
-              </Link>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {companySites.map(site => (
+                    <Link
+                      key={site.domain}
+                      href={`/blog?website=${encodeURIComponent(site.domain)}`}
+                      className="group block rounded-xl border bg-white p-5 hover:shadow-sm transition-all hover:border-slate-300"
+                      style={{ borderColor: '#e2e8f0' }}
+                    >
+                      <div className="flex items-start gap-3">
+                        <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: '#f1f5f9' }}>
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: 'var(--primary)' }} strokeWidth="1.5">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
+                          </svg>
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="text-sm font-semibold truncate group-hover:text-[var(--primary)] transition-colors" style={{ color: 'var(--foreground)' }}>{site.domain}</p>
+                          <div className="flex items-center gap-2 mt-1.5">
+                            <span className="text-xs" style={{ color: '#475569' }}>{site.blog_count} {site.blog_count === 1 ? 'post' : 'posts'}</span>
+                            {site.published_blog_count > 0 && (
+                              <span className="inline-flex items-center gap-1 text-[10px] font-medium px-1.5 py-0.5 rounded-full" style={{ background: '#dcfce7', color: '#16a34a' }}>
+                                {site.published_blog_count} live
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                        <svg className="w-4 h-4 mt-1 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: '#94a3b8' }} strokeWidth="2">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                        </svg>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              </div>
             ))}
           </div>
-        )}
+          )
+        })()}
       </div>
     )
   }
