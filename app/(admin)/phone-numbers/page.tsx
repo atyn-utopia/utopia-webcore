@@ -118,8 +118,8 @@ export default function PhoneNumbersPage() {
 
       {/* Search + website filter */}
       <div className="rounded-xl border p-4 sm:p-5 mb-5" style={{ borderColor: '#cbd5e1', background: '#f8fafc' }}>
-        <div className="flex flex-wrap gap-4 items-end">
-          <div className="flex-1 min-w-56">
+        <div className="space-y-4">
+          <div>
           <label className="block text-xs font-medium mb-1.5" style={{ color: '#475569' }}>Search</label>
           <div className="relative">
             <svg className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: '#475569' }}>
@@ -135,9 +135,9 @@ export default function PhoneNumbersPage() {
             />
           </div>
         </div>
-        <div className="min-w-44">
+        <div>
           <label className="block text-xs font-medium mb-1.5" style={{ color: '#475569' }}>Website</label>
-          <div className="relative inline-block">
+          <div className="relative">
             <select
               value={filterWebsite}
               onChange={e => setFilterWebsite(e.target.value)}
@@ -146,7 +146,6 @@ export default function PhoneNumbersPage() {
                 appearance: 'none', WebkitAppearance: 'none', MozAppearance: 'none',
                 borderColor: '#cbd5e1', background: 'white', color: '#475569',
                 paddingTop: '0.5rem', paddingBottom: '0.5rem', paddingLeft: '0.75rem', paddingRight: '2.25rem',
-                minWidth: '176px',
                 ['--tw-ring-color' as string]: 'rgba(30, 58, 95, 0.2)',
               }}
             >
@@ -210,13 +209,13 @@ export default function PhoneNumbersPage() {
                       {totalPct}% total
                     </span>
                   )}
-                  <span className="inline-flex items-center h-6 sm:h-7 text-[10px] sm:text-xs px-2.5 rounded-full font-medium whitespace-nowrap" style={{ background: 'var(--primary)', color: 'white' }}>
+                  <span className="inline-flex items-center h-6 sm:h-7 text-[10px] sm:text-xs px-2.5 rounded-full font-medium whitespace-nowrap" style={{ background: '#e2e8f0', color: '#475569' }}>
                     {rows.length} {rows.length === 1 ? 'number' : 'numbers'}
                   </span>
                   <Link
                     href={`/phone-numbers/new?website=${encodeURIComponent(website)}`}
                     className="inline-flex items-center gap-1 h-6 sm:h-7 text-[10px] sm:text-xs font-medium px-2.5 rounded-full text-white transition-opacity hover:opacity-90 whitespace-nowrap"
-                    style={{ background: '#475569' }}
+                    style={{ background: 'var(--primary)' }}
                   >
                     <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
