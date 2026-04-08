@@ -91,13 +91,13 @@ export default function WebsitesPage() {
                   </td>
 
                   {/* Phone count */}
-                  <td className="px-5 py-4 align-middle">
+                  <td className="px-5 py-4 align-middle text-center">
                     <span className="text-sm font-medium" style={{ color: 'var(--foreground)' }}>{site.phone_count}</span>
                     <span className="text-xs ml-1" style={{ color: '#475569' }}>total</span>
                   </td>
 
                   {/* Active phone count */}
-                  <td className="px-5 py-4 align-middle">
+                  <td className="px-5 py-4 align-middle text-center">
                     <span
                       className="inline-flex items-center gap-1 sm:gap-1.5 px-1.5 sm:px-2.5 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-medium whitespace-nowrap"
                       style={site.active_phone_count > 0
@@ -114,13 +114,13 @@ export default function WebsitesPage() {
                   </td>
 
                   {/* Blog count */}
-                  <td className="px-5 py-4 align-middle">
+                  <td className="px-5 py-4 align-middle text-center">
                     <span className="text-sm font-medium" style={{ color: 'var(--foreground)' }}>{site.blog_count}</span>
                     <span className="text-xs ml-1" style={{ color: '#475569' }}>total</span>
                   </td>
 
                   {/* Published blog count */}
-                  <td className="px-5 py-4 align-middle">
+                  <td className="px-5 py-4 align-middle text-center">
                     <span
                       className="inline-flex items-center gap-1 sm:gap-1.5 px-1.5 sm:px-2.5 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-medium whitespace-nowrap"
                       style={site.published_blog_count > 0
@@ -133,7 +133,7 @@ export default function WebsitesPage() {
                   </td>
 
                   {/* Actions */}
-                  <td className="px-5 py-4 align-middle">
+                  <td className="px-5 py-4 align-middle text-center">
                     <div className="flex items-center gap-2 justify-center">
                       <Link
                         href={`/phone-numbers?website=${encodeURIComponent(site.domain)}`}
