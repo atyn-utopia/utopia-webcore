@@ -14,7 +14,7 @@ export default async function DashboardPage() {
   return (
     <div>
       {/* Welcome banner */}
-      <div className="rounded-xl overflow-hidden mb-8 relative" style={{ background: 'linear-gradient(to right, #f1f5f9, #ffffff)', minHeight: '140px' }}>
+      <div className="rounded-xl overflow-hidden mb-8 relative border" style={{ background: 'linear-gradient(to right, #f0f4f8, #ffffff)', borderColor: '#e2e8f0', minHeight: '140px' }}>
         <div className="relative z-10 p-6 sm:p-8 pr-32 sm:pr-48">
           <h1 className="text-xl sm:text-2xl font-bold text-slate-900 mb-1" style={{ fontFamily: 'var(--font-display)' }}>Welcome back!</h1>
           <p className="text-sm text-slate-500 max-w-md">Manage your websites, phone numbers, and blog content all in one place.</p>
