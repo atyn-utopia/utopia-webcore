@@ -543,36 +543,9 @@ export default function PhoneNumbersPage() {
                               value={vals?.whatsapp_text ?? ''}
                               onChange={e => updateEditRow(row.id, { whatsapp_text: e.target.value })}
                             />
-                          </div>
-                          {/* Row 3: % + Active */}
-                          <div className="flex items-end justify-between">
-                            <div className="flex items-end gap-3">
-                              <div>
-                                <label className="text-[10px] mb-1 block" style={{ color: '#94a3b8' }}>%</label>
-                                <input
-                                  type="number" min="0" max="100"
-                                  className="px-2 py-1.5 border rounded-lg text-xs w-14 outline-none focus:border-[var(--primary)] transition-colors text-center"
-                                  style={{ borderColor: '#e2e8f0' }}
-                                  value={vals?.percentage ?? 100}
-                                  onChange={e => updateEditRow(row.id, { percentage: parseInt(e.target.value) || 0 }, rows)}
-                                />
-                              </div>
-                              <div>
-                                <label className="text-[10px] mb-1 block" style={{ color: '#94a3b8' }}>Active</label>
-                                <button
-                                  onClick={() => updateEditRow(row.id, { is_active: !vals?.is_active }, rows)}
-                                  className="relative w-9 h-5 rounded-full transition-colors"
-                                  style={{ background: vals?.is_active ? '#16a34a' : '#cbd5e1' }}
-                                >
-                                  <span className="absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform" style={{ left: vals?.is_active ? '18px' : '2px' }} />
-                                </button>
-                              </div>
-                            </div>
-                          </div>
-                          {/* WA text suggestions */}
-                          {existingTexts.length > 0 && !(vals?.whatsapp_text) && (
-                            <div className="mt-2 ml-[152px] sm:ml-[168px]">
-                              <div className="flex items-center gap-1.5 flex-wrap">
+                            {/* Suggestions below WA text */}
+                            {existingTexts.length > 0 && !(vals?.whatsapp_text) && (
+                              <div className="flex items-center gap-1.5 flex-wrap mt-1.5">
                                 <span className="text-[10px]" style={{ color: '#94a3b8' }}>Suggestions:</span>
                                 {existingTexts.slice(0, 3).map((text, ti) => (
                                   <button
@@ -588,48 +561,63 @@ export default function PhoneNumbersPage() {
                                   </button>
                                 ))}
                               </div>
+                            )}
+                          </div>
+                          {/* Row 3: % + Active */}
+                          <div className="flex items-end gap-3">
+                            <div>
+                              <label className="text-[10px] mb-1 block" style={{ color: '#94a3b8' }}>%</label>
+                              <input
+                                type="number" min="0" max="100"
+                                className="px-2 py-1.5 border rounded-lg text-xs w-14 outline-none focus:border-[var(--primary)] transition-colors text-center"
+                                style={{ borderColor: '#e2e8f0' }}
+                                value={vals?.percentage ?? 100}
+                                onChange={e => updateEditRow(row.id, { percentage: parseInt(e.target.value) || 0 }, rows)}
+                              />
                             </div>
-                          )}
+                            <div>
+                              <label className="text-[10px] mb-1 block" style={{ color: '#94a3b8' }}>Active</label>
+                              <button
+                                onClick={() => updateEditRow(row.id, { is_active: !vals?.is_active }, rows)}
+                                className="relative w-9 h-5 rounded-full transition-colors"
+                                style={{ background: vals?.is_active ? '#16a34a' : '#cbd5e1' }}
+                              >
+                                <span className="absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform" style={{ left: vals?.is_active ? '18px' : '2px' }} />
+                              </button>
+                            </div>
+                          </div>
                         </div>
                       )})() : (
                         /* View row */
-                        <div className="px-4 sm:px-5 py-3 hover:bg-[#f1f5f9] transition-colors">
-                          {/* Top: phone + badge */}
-                          <div className="flex items-center gap-1.5 min-w-0">
-                            <svg className="w-3.5 h-3.5 flex-shrink-0 hidden sm:block" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: '#94a3b8' }} strokeWidth="1.8">
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                            </svg>
-                            <span className="text-xs sm:text-sm font-medium font-mono truncate" style={{ color: 'var(--foreground)' }}>{row.phone_number}</span>
-                            {isDefault ? (
-                              <span className="text-[10px] px-1.5 py-0.5 rounded-full flex-shrink-0 font-bold" style={{ background: 'var(--primary)', color: 'white' }}>Default</span>
-                            ) : row.label ? (
-                              <span className="text-[10px] px-1.5 py-0.5 rounded-full flex-shrink-0" style={{ background: '#f1f5f9', color: '#475569' }}>{row.label}</span>
-                            ) : null}
+                        <div className="px-4 sm:px-5 py-3 flex items-center gap-3 hover:bg-[#f1f5f9] transition-colors">
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-1.5 min-w-0">
+                              <span className="text-xs sm:text-sm font-medium font-mono truncate" style={{ color: 'var(--foreground)' }}>{row.phone_number}</span>
+                              {isDefault ? (
+                                <span className="text-[10px] px-1.5 py-0.5 rounded-full flex-shrink-0 font-bold" style={{ background: 'var(--primary)', color: 'white' }}>Default</span>
+                              ) : row.label ? (
+                                <span className="text-[10px] px-1.5 py-0.5 rounded-full flex-shrink-0" style={{ background: '#f1f5f9', color: '#475569' }}>{row.label}</span>
+                              ) : null}
+                            </div>
+                            {row.whatsapp_text && <p className="text-[10px] sm:text-xs mt-0.5 truncate" style={{ color: '#475569' }}>{row.whatsapp_text}</p>}
+                            {!isDefault && row.location_slug !== 'all' && (
+                              <p className="text-[10px] mt-0.5" style={{ color: '#94a3b8' }}>{MY_STATES.find(s => s.slug === row.location_slug)?.label ?? row.location_slug}</p>
+                            )}
                           </div>
-                          {/* Middle: WA text + location */}
-                          {row.whatsapp_text && (
-                            <p className="text-[10px] sm:text-xs mt-0.5 truncate" style={{ color: '#475569' }}>{row.whatsapp_text}</p>
-                          )}
-                          {!isDefault && row.location_slug !== 'all' && (
-                            <p className="text-[10px] mt-0.5" style={{ color: '#94a3b8' }}>{MY_STATES.find(s => s.slug === row.location_slug)?.label ?? row.location_slug}</p>
-                          )}
-                          {/* Bottom: stats row */}
-                          <div className="flex items-center justify-between mt-2">
-                            <div className="flex items-center gap-2">
-                              <div className="flex items-center gap-1.5">
-                                <span className="text-[10px] font-semibold" style={{ color: 'var(--foreground)' }}>{row.percentage ?? 100}%</span>
-                                <div className="w-8 h-1 rounded-full" style={{ background: '#e2e8f0' }}>
-                                  <div className="h-full rounded-full" style={{ width: `${row.percentage ?? 100}%`, background: row.is_active ? 'var(--primary)' : '#94a3b8' }} />
-                                </div>
+                          <div className="flex items-center gap-3 flex-shrink-0">
+                            <div className="flex flex-col items-center gap-0.5">
+                              <span className="text-[10px] font-semibold" style={{ color: 'var(--foreground)' }}>{row.percentage ?? 100}%</span>
+                              <div className="w-8 h-1 rounded-full" style={{ background: '#e2e8f0' }}>
+                                <div className="h-full rounded-full" style={{ width: `${row.percentage ?? 100}%`, background: row.is_active ? 'var(--primary)' : '#94a3b8' }} />
                               </div>
-                              <span
-                                className="inline-flex items-center gap-1 text-[10px] font-medium px-2 py-0.5 rounded-full"
-                                style={row.is_active ? { background: '#dcfce7', color: '#16a34a' } : { background: '#f1f5f9', color: '#94a3b8' }}
-                              >
+                            </div>
+                            <span
+                              className="inline-flex items-center gap-1 text-[10px] font-medium px-2 py-0.5 rounded-full"
+                              style={row.is_active ? { background: '#dcfce7', color: '#16a34a' } : { background: '#f1f5f9', color: '#94a3b8' }}
+                            >
                               <span className="w-1.5 h-1.5 rounded-full" style={{ background: row.is_active ? '#16a34a' : '#94a3b8' }} />
                               {row.is_active ? 'Active' : 'Off'}
                             </span>
-                            </div>
                             {!isDefault ? (
                               <button
                                 onClick={() => deleteNumber(row.id)}
@@ -642,7 +630,7 @@ export default function PhoneNumbersPage() {
                                 </svg>
                               </button>
                             ) : (
-                              <div className="w-6" />
+                              <div className="w-6 flex-shrink-0" />
                             )}
                           </div>
                         </div>
