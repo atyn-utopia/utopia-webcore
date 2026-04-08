@@ -520,6 +520,20 @@ export default function PhoneNumbersPage() {
                               <label className="text-[10px] mb-1 block" style={{ color: '#94a3b8' }}>WhatsApp Text</label>
                               <input className="px-2.5 py-1.5 border rounded-lg text-xs w-full outline-none focus:border-[var(--primary)] transition-colors" style={{ borderColor: '#e2e8f0' }}
                                 value={vals?.whatsapp_text ?? ''} onChange={e => updateEditRow(row.id, { whatsapp_text: e.target.value })} />
+                              {existingTexts.length > 0 && !(vals?.whatsapp_text) && (
+                                <div className="flex items-center gap-1.5 flex-wrap mt-1.5">
+                                  <span className="text-[10px]" style={{ color: '#94a3b8' }}>Suggestions:</span>
+                                  {existingTexts.slice(0, 3).map((text, ti) => (
+                                    <button key={ti} type="button" onClick={() => updateEditRow(row.id, { whatsapp_text: text })}
+                                      className="text-[10px] px-2.5 py-1 rounded-md truncate max-w-[180px] transition-all cursor-pointer"
+                                      style={{ background: '#f1f5f9', color: 'var(--primary)' }}
+                                      onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'var(--primary)'; (e.currentTarget as HTMLElement).style.color = 'white' }}
+                                      onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = '#f1f5f9'; (e.currentTarget as HTMLElement).style.color = 'var(--primary)' }}>
+                                      {text}
+                                    </button>
+                                  ))}
+                                </div>
+                              )}
                             </div>
                             {!isDefault && (
                               <div className="w-28 flex-shrink-0">
