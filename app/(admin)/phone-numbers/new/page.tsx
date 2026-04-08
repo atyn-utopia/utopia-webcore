@@ -61,6 +61,8 @@ export default function NewPhoneNumberPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const prefillWebsite = searchParams.get('website') ?? ''
+  const [companies, setCompanies] = useState<{ id: string; name: string; company_websites: { domain: string }[] }[]>([])
+  const [selectedCompany, setSelectedCompany] = useState('')
   const [form, setForm] = useState({
     website: prefillWebsite,
     location_slug: '',
@@ -73,6 +75,27 @@ export default function NewPhoneNumberPage() {
   const [saving, setSaving] = useState(false)
   const [serverError, setServerError] = useState('')
   const [existingTexts, setExistingTexts] = useState<string[]>([])
+
+  // Fetch companies
+  useEffect(() => {
+    fetch('/api/companies')
+      .then(r => r.json())
+      .then(data => {
+        if (Array.isArray(data)) {
+          setCompanies(data)
+          // Auto-select company if website is prefilled
+          if (prefillWebsite) {
+            const match = data.find((c: { company_websites: { domain: string }[] }) =>
+              c.company_websites.some(w => w.domain === prefillWebsite)
+            )
+            if (match) setSelectedCompany(match.id)
+          }
+        }
+      })
+      .catch(() => {})
+  }, [prefillWebsite])
+
+  const companyWebsites = companies.find(c => c.id === selectedCompany)?.company_websites ?? []
 
   const fetchExistingTexts = useCallback(async (website: string) => {
     if (!website.trim()) { setExistingTexts([]); return }
@@ -94,7 +117,8 @@ export default function NewPhoneNumberPage() {
 
   function validate() {
     const e: Record<string, string> = {}
-    if (!form.website.trim()) e.website = 'Website domain is required'
+    if (!selectedCompany) e.website = 'Please select a company and website'
+    else if (!form.website.trim()) e.website = 'Please select a website'
     if (!form.phone_number.trim()) e.phone_number = 'Phone number is required'
     if (!form.whatsapp_text.trim()) e.whatsapp_text = 'WhatsApp text is required'
     return e
@@ -182,14 +206,57 @@ export default function NewPhoneNumberPage() {
                 </div>
               )}
 
-              <InputField
-                label="Website Domain"
-                value={form.website}
-                onChange={v => setForm(f => ({ ...f, website: v }))}
-                placeholder="e.g. oxihome.my"
-                hint="The domain name of the website"
-                error={errors.website}
-              />
+              {/* Company dropdown */}
+              <div>
+                <label className="block text-sm font-medium mb-1" style={{ color: 'var(--foreground)' }}>
+                  Company<span className="text-red-500 ml-0.5">*</span>
+                </label>
+                <div className="relative">
+                  <select
+                    value={selectedCompany}
+                    onChange={e => {
+                      setSelectedCompany(e.target.value)
+                      setForm(f => ({ ...f, website: '' }))
+                    }}
+                    className="w-full px-3 py-2.5 text-sm rounded-lg border focus:outline-none transition-colors cursor-pointer"
+                    style={{ borderColor: errors.website ? '#fca5a5' : '#cbd5e1', background: 'white', appearance: 'none', WebkitAppearance: 'none', paddingRight: '2.5rem' }}
+                    onFocus={e => e.currentTarget.style.borderColor = 'var(--primary)'}
+                    onBlur={e => e.currentTarget.style.borderColor = errors.website ? '#fca5a5' : '#cbd5e1'}
+                  >
+                    <option value="">Select company…</option>
+                    {companies.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                  </select>
+                  <svg className="w-3.5 h-3.5 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: '#94a3b8' }}>
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </div>
+              </div>
+
+              {/* Website dropdown */}
+              <div>
+                <label className="block text-sm font-medium mb-1" style={{ color: 'var(--foreground)' }}>
+                  Website<span className="text-red-500 ml-0.5">*</span>
+                </label>
+                <div className="relative">
+                  <select
+                    value={form.website}
+                    onChange={e => setForm(f => ({ ...f, website: e.target.value }))}
+                    disabled={!selectedCompany}
+                    className="w-full px-3 py-2.5 text-sm rounded-lg border focus:outline-none transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                    style={{ borderColor: errors.website ? '#fca5a5' : '#cbd5e1', background: 'white', appearance: 'none', WebkitAppearance: 'none', paddingRight: '2.5rem' }}
+                    onFocus={e => e.currentTarget.style.borderColor = 'var(--primary)'}
+                    onBlur={e => e.currentTarget.style.borderColor = errors.website ? '#fca5a5' : '#cbd5e1'}
+                  >
+                    <option value="">{selectedCompany ? 'Select website…' : 'Select a company first'}</option>
+                    {companyWebsites.map(w => <option key={w.domain} value={w.domain}>{w.domain}</option>)}
+                  </select>
+                  <svg className="w-3.5 h-3.5 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: '#94a3b8' }}>
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </div>
+                {errors.website && <p className="mt-1 text-xs text-red-500">{errors.website}</p>}
+                {!selectedCompany && <p className="mt-1 text-xs" style={{ color: '#475569' }}>Choose a company to see its websites</p>}
+              </div>
 
               {/* Location dropdown */}
               <div>
