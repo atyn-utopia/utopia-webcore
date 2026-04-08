@@ -85,8 +85,13 @@ export default function PhoneNumbersPage() {
     )
   })
 
-  // Group by website
-  const grouped = filtered.reduce<Record<string, PhoneNumber[]>>((acc, n) => {
+  // Group by website, default numbers first
+  const sorted = [...filtered].sort((a, b) => {
+    if (a.type === 'default' && b.type !== 'default') return -1
+    if (a.type !== 'default' && b.type === 'default') return 1
+    return 0
+  })
+  const grouped = sorted.reduce<Record<string, PhoneNumber[]>>((acc, n) => {
     if (!acc[n.website]) acc[n.website] = []
     acc[n.website].push(n)
     return acc
@@ -255,41 +260,99 @@ export default function PhoneNumbersPage() {
                   <tbody>
                     {rows.map((row, i) => {
                       const isDefault = row.type === 'default'
+                      const isEditing = editingId === row.id
                       return (
                       <tr
                         key={row.id}
-                        className="hover:bg-[#f1f5f9] transition-colors"
+                        className={`transition-colors ${isEditing ? '' : 'hover:bg-[#f1f5f9]'}`}
                         style={{ borderBottom: i < rows.length - 1 ? '1px solid #cbd5e1' : 'none' }}
                       >
-                      {/* Number Details — stacked */}
-                      <td className="px-3 sm:px-4 py-3 align-middle overflow-hidden">
-                        {editingId === row.id ? (
-                          <div className="space-y-2">
-                            <input
-                              className="px-2 py-1 border rounded text-sm w-full outline-none focus:ring-2"
-                              style={{ borderColor: 'var(--primary)', ['--tw-ring-color' as string]: 'rgba(30, 58, 95, 0.2)' }}
-                              value={editValues.phone_number ?? ''}
-                              placeholder="Phone number"
-                              onChange={e => setEditValues(v => ({ ...v, phone_number: e.target.value }))}
-                            />
-                            <input
-                              className="px-2 py-1 border rounded text-sm w-full outline-none focus:ring-2"
-                              style={{ borderColor: '#cbd5e1', ['--tw-ring-color' as string]: 'rgba(30, 58, 95, 0.2)' }}
-                              value={editValues.whatsapp_text ?? ''}
-                              placeholder="WhatsApp text"
-                              onChange={e => setEditValues(v => ({ ...v, whatsapp_text: e.target.value }))}
-                            />
-                            {!isDefault && (
+                      {isEditing ? (
+                        /* Edit mode — full-width panel */
+                        <td colSpan={4} className="px-3 sm:px-5 py-4" style={{ background: '#f8fafc' }}>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
+                            <div>
+                              <label className="block text-[10px] font-medium mb-1" style={{ color: '#475569' }}>Phone Number</label>
                               <input
-                                className="px-2 py-1 border rounded text-sm w-full outline-none focus:ring-2"
-                                style={{ borderColor: '#cbd5e1', ['--tw-ring-color' as string]: 'rgba(30, 58, 95, 0.2)' }}
-                                value={editValues.label ?? ''}
-                                placeholder="Label (optional)"
-                                onChange={e => setEditValues(v => ({ ...v, label: e.target.value }))}
+                                className="px-3 py-2 border rounded-lg text-sm w-full outline-none focus:border-[var(--primary)] transition-colors"
+                                style={{ borderColor: '#cbd5e1' }}
+                                value={editValues.phone_number ?? ''}
+                                placeholder="60123456789"
+                                onChange={e => setEditValues(v => ({ ...v, phone_number: e.target.value }))}
                               />
+                            </div>
+                            <div>
+                              <label className="block text-[10px] font-medium mb-1" style={{ color: '#475569' }}>WhatsApp Text</label>
+                              <input
+                                className="px-3 py-2 border rounded-lg text-sm w-full outline-none focus:border-[var(--primary)] transition-colors"
+                                style={{ borderColor: '#cbd5e1' }}
+                                value={editValues.whatsapp_text ?? ''}
+                                placeholder="Hi, I'd like to enquire..."
+                                onChange={e => setEditValues(v => ({ ...v, whatsapp_text: e.target.value }))}
+                              />
+                            </div>
+                            {!isDefault && (
+                              <div>
+                                <label className="block text-[10px] font-medium mb-1" style={{ color: '#475569' }}>Label</label>
+                                <input
+                                  className="px-3 py-2 border rounded-lg text-sm w-full outline-none focus:border-[var(--primary)] transition-colors"
+                                  style={{ borderColor: '#cbd5e1' }}
+                                  value={editValues.label ?? ''}
+                                  placeholder="e.g. Agent A"
+                                  onChange={e => setEditValues(v => ({ ...v, label: e.target.value }))}
+                                />
+                              </div>
                             )}
+                            <div>
+                              <label className="block text-[10px] font-medium mb-1" style={{ color: '#475569' }}>Lead %</label>
+                              <input
+                                type="number"
+                                min="1"
+                                max="100"
+                                className="px-3 py-2 border rounded-lg text-sm w-20 outline-none focus:border-[var(--primary)] transition-colors"
+                                style={{ borderColor: '#cbd5e1' }}
+                                value={editValues.percentage ?? 100}
+                                onChange={e => setEditValues(v => ({ ...v, percentage: parseInt(e.target.value) || 1 }))}
+                              />
+                            </div>
                           </div>
-                        ) : (
+                          <div className="flex items-center justify-between">
+                            <label className="inline-flex items-center gap-2 cursor-pointer select-none text-xs font-medium"
+                              style={{ color: editValues.is_active ? '#16a34a' : '#94a3b8' }}>
+                              <span
+                                className="w-4 h-4 rounded flex items-center justify-center border"
+                                style={editValues.is_active
+                                  ? { background: '#16a34a', borderColor: '#16a34a' }
+                                  : { background: 'white', borderColor: '#cbd5e1' }
+                                }
+                              >
+                                {editValues.is_active && (
+                                  <svg className="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                                  </svg>
+                                )}
+                              </span>
+                              <input type="checkbox" className="sr-only" checked={!!editValues.is_active} onChange={e => setEditValues(v => ({ ...v, is_active: e.target.checked }))} />
+                              {editValues.is_active ? 'Active' : 'Inactive'}
+                            </label>
+                            <div className="flex items-center gap-2">
+                              <button
+                                onClick={() => setEditingId(null)}
+                                className="px-4 py-2 text-xs rounded-lg border transition-colors hover:bg-white"
+                                style={{ borderColor: '#cbd5e1', color: '#475569' }}
+                              >Cancel</button>
+                              <button
+                                onClick={() => saveEdit(row.id)}
+                                className="px-4 py-2 text-xs font-medium text-white rounded-lg hover:opacity-90 transition-opacity"
+                                style={{ background: 'var(--primary)' }}
+                              >Save Changes</button>
+                            </div>
+                          </div>
+                        </td>
+                      ) : (
+                        <>
+                        {/* Number Details — stacked */}
+                        <td className="px-3 sm:px-4 py-3 align-middle overflow-hidden">
                           <div className="min-w-0">
                             <div className="flex items-center gap-1.5 min-w-0">
                               <span className="text-xs sm:text-sm font-medium font-mono truncate" style={{ color: 'var(--foreground)' }}>{row.phone_number}</span>
@@ -302,57 +365,20 @@ export default function PhoneNumbersPage() {
                             {row.whatsapp_text && <p className="text-[10px] sm:text-xs mt-0.5 truncate" style={{ color: '#475569' }}>{row.whatsapp_text}</p>}
                             {!isDefault && <p className="text-[10px] mt-0.5" style={{ color: '#94a3b8' }}>{row.location_slug}</p>}
                           </div>
-                        )}
-                      </td>
+                        </td>
 
-                      {/* Weight */}
-                      <td className="px-2 py-3 align-middle text-center">
-                        {editingId === row.id ? (
-                          <input
-                            type="number"
-                            min="1"
-                            max="100"
-                            className="px-2 py-1 border rounded text-sm w-16 text-center outline-none focus:ring-2"
-                            style={{ borderColor: 'var(--primary)', ['--tw-ring-color' as string]: 'rgba(30, 58, 95, 0.2)' }}
-                            value={editValues.percentage ?? 100}
-                            onChange={e => setEditValues(v => ({ ...v, percentage: parseInt(e.target.value) || 1 }))}
-                          />
-                        ) : (
+                        {/* Weight */}
+                        <td className="px-2 py-3 align-middle text-center">
                           <div className="flex flex-col items-center gap-0.5">
                             <span className="text-xs font-semibold" style={{ color: 'var(--foreground)' }}>{row.percentage ?? 100}%</span>
                             <div className="w-12 h-1.5 rounded-full overflow-hidden" style={{ background: '#e2e8f0' }}>
                               <div className="h-full rounded-full" style={{ width: `${row.percentage ?? 100}%`, background: row.is_active ? 'var(--primary)' : '#94a3b8' }} />
                             </div>
                           </div>
-                        )}
-                      </td>
+                        </td>
 
-                      {/* Status */}
-                      <td className="px-2 py-3 align-middle text-center">
-                        {editingId === row.id ? (
-                          <label className="inline-flex items-center gap-2 cursor-pointer select-none text-xs font-medium"
-                            style={{ color: editValues.is_active ? '#16a34a' : '#475569' }}>
-                            <span
-                              className="w-4 h-4 rounded flex items-center justify-center border"
-                              style={editValues.is_active
-                                ? { background: '#16a34a', borderColor: '#16a34a' }
-                                : { background: 'white', borderColor: '#cbd5e1' }
-                              }
-                            >
-                              {editValues.is_active && (
-                                <svg className="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                                </svg>
-                              )}
-                            </span>
-                            <input
-                              type="checkbox"
-                              className="sr-only"
-                              checked={!!editValues.is_active}
-                              onChange={e => setEditValues(v => ({ ...v, is_active: e.target.checked }))}
-                            />
-                          </label>
-                        ) : (
+                        {/* Status */}
+                        <td className="px-2 py-3 align-middle text-center">
                           <span
                             className="inline-flex items-center gap-1 text-[10px] font-medium px-2 py-0.5 rounded-full"
                             style={row.is_active
@@ -363,37 +389,22 @@ export default function PhoneNumbersPage() {
                             <span className="w-1.5 h-1.5 rounded-full" style={{ background: row.is_active ? '#16a34a' : '#94a3b8' }} />
                             {row.is_active ? 'Active' : 'Off'}
                           </span>
-                        )}
-                      </td>
+                        </td>
 
-                      {/* Actions */}
-                      <td className="px-2 sm:px-4 py-3 align-middle">
-                        <div className="flex items-center gap-1 justify-center">
-                          {editingId === row.id ? (
-                            <>
-                              <button
-                                onClick={() => saveEdit(row.id)}
-                                className="px-3 py-1.5 text-xs font-medium text-white rounded-lg hover:opacity-90 transition-opacity"
-                                style={{ background: 'var(--primary)' }}
-                              >Save</button>
-                              <button
-                                onClick={() => setEditingId(null)}
-                                className="px-3 py-1.5 text-xs rounded-lg border transition-colors hover:text-[var(--primary)] hover:border-[var(--primary)]"
-                                style={{ borderColor: '#cbd5e1', color: '#475569' }}
-                              >Cancel</button>
-                            </>
-                          ) : (
-                            <>
-                              <button
-                                onClick={() => startEdit(row)}
-                                className="w-8 h-8 flex items-center justify-center rounded-lg border transition-colors hover:text-[var(--primary)] hover:border-[var(--primary)]"
-                                style={{ borderColor: '#cbd5e1', color: '#475569' }}
-                                title="Edit"
-                              >
-                                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                </svg>
-                              </button>
+                        {/* Actions */}
+                        <td className="px-2 sm:px-4 py-3 align-middle">
+                          <div className="flex items-center gap-1 justify-center">
+                            <button
+                              onClick={() => startEdit(row)}
+                              className="w-8 h-8 flex items-center justify-center rounded-lg border transition-colors hover:text-[var(--primary)] hover:border-[var(--primary)]"
+                              style={{ borderColor: '#cbd5e1', color: '#475569' }}
+                              title="Edit"
+                            >
+                              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                              </svg>
+                            </button>
+                            {!isDefault && (
                               <button
                                 onClick={() => deleteNumber(row.id)}
                                 className="w-8 h-8 flex items-center justify-center rounded-lg border transition-colors hover:border-red-300 hover:text-red-500 hover:bg-red-50"
@@ -404,10 +415,11 @@ export default function PhoneNumbersPage() {
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                                 </svg>
                               </button>
-                            </>
-                          )}
-                        </div>
-                      </td>
+                            )}
+                          </div>
+                        </td>
+                        </>
+                      )}
                     </tr>
                     )})}
                   </tbody>
