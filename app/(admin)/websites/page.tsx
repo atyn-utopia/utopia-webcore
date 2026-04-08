@@ -25,12 +25,12 @@ export default function WebsitesPage() {
   return (
     <div>
       {/* Header */}
-      <div className="flex items-center justify-between mb-2">
+      <div className="mb-6">
         <h1 className="text-2xl font-bold" style={{ color: 'var(--foreground)' }}>Websites</h1>
+        <p className="text-xs sm:text-sm mt-1" style={{ color: '#475569' }}>
+          All websites connected to this system. Manage phone numbers and blog content per site.
+        </p>
       </div>
-      <p className="text-xs sm:text-sm mb-6" style={{ color: '#475569' }}>
-        All websites connected to this system. Manage phone numbers and blog content per site.
-      </p>
 
       {/* Info strip */}
       <div className="rounded-lg border px-4 py-3 mb-6 text-sm" style={{ borderColor: '#cbd5e1', background: '#fafafa', color: '#475569' }}>

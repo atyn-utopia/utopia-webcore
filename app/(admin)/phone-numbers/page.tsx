@@ -97,11 +97,14 @@ export default function PhoneNumbersPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-2">
-        <h1 className="text-2xl font-bold" style={{ color: 'var(--foreground)' }}>Phone Numbers</h1>
+      <div className="sm:flex sm:items-center sm:justify-between gap-3 mb-2">
+        <div>
+          <h1 className="text-2xl font-bold" style={{ color: 'var(--foreground)' }}>Phone Numbers</h1>
+          <p className="text-xs sm:text-sm mt-1" style={{ color: '#475569' }}>Manage phone numbers per website and location.</p>
+        </div>
         <Link
           href="/phone-numbers/new"
-          className="inline-flex items-center gap-2 text-white text-sm font-medium px-4 py-2 rounded-lg transition-opacity"
+          className="inline-flex items-center gap-2 text-white text-sm font-medium px-4 py-2 rounded-lg transition-opacity mt-3 sm:mt-0 sm:flex-shrink-0"
           style={{ background: 'var(--primary)' }}
           onMouseEnter={e => (e.currentTarget as HTMLElement).style.opacity = '0.88'}
           onMouseLeave={e => (e.currentTarget as HTMLElement).style.opacity = '1'}
@@ -112,7 +115,6 @@ export default function PhoneNumbersPage() {
           Add Number
         </Link>
       </div>
-      <p className="text-xs sm:text-sm mb-6" style={{ color: '#475569' }}>Manage phone numbers per website and location. Multiple numbers rotate randomly on each WhatsApp click.</p>
 
       {/* Search + website filter */}
       <div className="rounded-xl border p-4 sm:p-5" style={{ borderColor: '#cbd5e1', background: '#f8fafc' }}>

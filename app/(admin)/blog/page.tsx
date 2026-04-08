@@ -83,11 +83,14 @@ export default function BlogListPage() {
   if (!openFolder) {
     return (
       <div>
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-2">
-          <h1 className="text-2xl font-bold" style={{ color: 'var(--foreground)' }}>Blog Posts</h1>
+        <div className="sm:flex sm:items-center sm:justify-between gap-3 mb-6">
+          <div>
+            <h1 className="text-2xl font-bold" style={{ color: 'var(--foreground)' }}>Blog Posts</h1>
+            <p className="text-xs sm:text-sm mt-1" style={{ color: '#475569' }}>Select a website folder to manage its blog posts.</p>
+          </div>
           <Link
             href="/blog/new"
-            className="inline-flex items-center gap-2 text-white text-sm font-medium px-4 py-2 rounded-lg transition-opacity"
+            className="inline-flex items-center gap-2 text-white text-sm font-medium px-4 py-2 rounded-lg transition-opacity mt-3 sm:mt-0 sm:flex-shrink-0"
             style={{ background: 'var(--primary)' }}
             onMouseEnter={e => (e.currentTarget as HTMLElement).style.opacity = '0.88'}
             onMouseLeave={e => (e.currentTarget as HTMLElement).style.opacity = '1'}
@@ -98,7 +101,6 @@ export default function BlogListPage() {
             New Post
           </Link>
         </div>
-        <p className="text-xs sm:text-sm mb-6" style={{ color: '#475569' }}>Select a website folder to manage its blog posts.</p>
 
         {loading ? (
           <div className="p-12 text-center text-sm rounded-xl border" style={{ borderColor: '#cbd5e1', color: '#475569' }}>Loading…</div>
