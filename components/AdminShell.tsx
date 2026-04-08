@@ -8,10 +8,12 @@ import Breadcrumb from './Breadcrumb'
 
 interface AdminShellProps {
   userEmail: string
+  userName: string
+  userRole: 'admin' | 'designer' | 'writer'
   children: React.ReactNode
 }
 
-export default function AdminShell({ userEmail, children }: AdminShellProps) {
+export default function AdminShell({ userEmail, userName, userRole, children }: AdminShellProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
   return (
@@ -27,6 +29,8 @@ export default function AdminShell({ userEmail, children }: AdminShellProps) {
 
         <Sidebar
           userEmail={userEmail}
+          userName={userName}
+          userRole={userRole}
           open={sidebarOpen}
           onClose={() => setSidebarOpen(false)}
         />

@@ -94,7 +94,25 @@ create policy "Authors can delete own posts"
 
 
 -- ──────────────────────────────────────────────────────────
--- 3. writer_permissions
+-- 3. user_profiles
+-- ──────────────────────────────────────────────────────────
+create table if not exists public.user_profiles (
+  id         uuid primary key references auth.users(id) on delete cascade,
+  name       text not null default '',
+  role       text not null default 'admin' check (role in ('admin', 'designer', 'writer')),
+  created_at timestamptz not null default now()
+);
+
+alter table public.user_profiles enable row level security;
+
+create policy "Users can read own profile"
+  on public.user_profiles for select
+  to authenticated
+  using (id = auth.uid());
+
+
+-- ──────────────────────────────────────────────────────────
+-- 4. writer_permissions
 -- ──────────────────────────────────────────────────────────
 create table if not exists public.writer_permissions (
   id         uuid primary key default gen_random_uuid(),

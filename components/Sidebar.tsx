@@ -6,16 +6,21 @@ import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useWebsite } from '@/contexts/WebsiteContext'
 
+type UserRole = 'admin' | 'designer' | 'writer'
+
 interface SidebarProps {
   userEmail: string
+  userName: string
+  userRole: UserRole
   open?: boolean
   onClose?: () => void
 }
 
-const navItems = [
+const navItems: { href: string; label: string; roles: UserRole[]; icon: React.ReactNode }[] = [
   {
     href: '/websites',
     label: 'Websites',
+    roles: ['admin', 'designer', 'writer'],
     icon: (
       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <rect x="2" y="3" width="20" height="14" rx="2" strokeWidth="1.8"/>
@@ -30,6 +35,7 @@ const navItems = [
   {
     href: '/phone-numbers',
     label: 'Phone Numbers',
+    roles: ['admin', 'designer'],
     icon: (
       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z" />
@@ -40,6 +46,7 @@ const navItems = [
   {
     href: '/blog',
     label: 'Blog Posts',
+    roles: ['admin', 'designer', 'writer'],
     icon: (
       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
@@ -49,7 +56,7 @@ const navItems = [
   },
 ]
 
-export default function Sidebar({ userEmail, open, onClose }: SidebarProps) {
+export default function Sidebar({ userEmail, userName, userRole, open, onClose }: SidebarProps) {
   const pathname = usePathname()
   const router = useRouter()
   const { selectedWebsite, setSelectedWebsite } = useWebsite()
@@ -112,7 +119,7 @@ export default function Sidebar({ userEmail, open, onClose }: SidebarProps) {
         <p className="text-xs font-semibold uppercase tracking-wider px-3 mb-2" style={{ color: 'var(--sidebar-muted)' }}>
           Manage
         </p>
-        {navItems.map(item => {
+        {navItems.filter(item => item.roles.includes(userRole)).map(item => {
           const active = pathname === item.href || pathname.startsWith(item.href + '/')
           return (
             <Link
@@ -136,11 +143,14 @@ export default function Sidebar({ userEmail, open, onClose }: SidebarProps) {
 
       {/* Footer */}
       <div className="px-3 py-4 pb-8 md:pb-4 border-t" style={{ borderColor: 'rgba(255,255,255,0.1)' }}>
-        <div className="px-3 mb-3 flex items-center gap-2">
-          <div className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-white flex-shrink-0" style={{ background: 'linear-gradient(135deg, #1a3a6e, #2979d6)' }}>
-            {userEmail[0]?.toUpperCase()}
+        <div className="px-3 mb-3 flex items-center gap-2.5">
+          <div className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold text-white flex-shrink-0" style={{ background: 'linear-gradient(135deg, #1a3a6e, #2979d6)' }}>
+            {userName[0]?.toUpperCase()}
           </div>
-          <p className="text-xs truncate" style={{ color: 'var(--sidebar-muted)' }}>{userEmail}</p>
+          <div className="min-w-0">
+            <p className="text-xs font-medium text-white truncate">{userName}</p>
+            <p className="text-[10px] truncate capitalize" style={{ color: 'var(--sidebar-muted)' }}>{userRole}</p>
+          </div>
         </div>
         <button
           onClick={handleSignOut}
