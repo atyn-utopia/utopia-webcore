@@ -7,7 +7,7 @@ export default function manifest(): MetadataRoute.Manifest {
     description: 'Web & Content Operations, Reporting Engine',
     start_url: '/',
     display: 'standalone',
-    background_color: '#1e293b',
+    background_color: '#ffffff',
     theme_color: '#1e293b',
     icons: [
       { src: '/icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'maskable' },
