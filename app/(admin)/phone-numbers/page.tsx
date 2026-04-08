@@ -66,8 +66,24 @@ export default function PhoneNumbersPage() {
     setError('')
   }
 
-  function updateEditRow(id: string, updates: Partial<PhoneNumber>) {
-    setEditRows(prev => ({ ...prev, [id]: { ...prev[id], ...updates } }))
+  function updateEditRow(id: string, updates: Partial<PhoneNumber>, allRows?: PhoneNumber[]) {
+    setEditRows(prev => {
+      const next = { ...prev, [id]: { ...prev[id], ...updates } }
+      // Auto-redistribute if percentage changed
+      if (updates.percentage !== undefined && allRows) {
+        const activeIds = allRows.filter(r => next[r.id]?.is_active !== false).map(r => r.id)
+        const otherIds = activeIds.filter(oid => oid !== id)
+        if (otherIds.length > 0) {
+          const remaining = 100 - (updates.percentage as number)
+          const base = Math.floor(remaining / otherIds.length)
+          const rem = remaining - base * otherIds.length
+          otherIds.forEach((oid, i) => {
+            next[oid] = { ...next[oid], percentage: Math.max(0, base + (i < rem ? 1 : 0)) }
+          })
+        }
+      }
+      return next
+    })
   }
 
   function distributeEvenly(rows: PhoneNumber[]) {
@@ -330,37 +346,39 @@ export default function PhoneNumbersPage() {
                     <div key={row.id} style={{ borderBottom: i < rows.length - 1 ? '1px solid #cbd5e1' : 'none' }}>
                       {isGroupEditing ? (
                         /* Editing row */
-                        <div className="px-4 sm:px-5 py-3" style={{ background: 'white' }}>
-                          <div className="flex items-center gap-2 mb-2">
-                            <span className="text-xs font-medium font-mono" style={{ color: 'var(--foreground)' }}>{row.phone_number}</span>
-                            {isDefault ? (
-                              <span className="text-[10px] px-1.5 py-0.5 rounded-full font-bold" style={{ background: 'var(--primary)', color: 'white' }}>Default</span>
-                            ) : row.label ? (
-                              <span className="text-[10px] px-1.5 py-0.5 rounded-full" style={{ background: '#f1f5f9', color: '#475569' }}>{row.label}</span>
-                            ) : null}
-                          </div>
-                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                            <div>
-                              <label className="block text-[10px] mb-1" style={{ color: '#94a3b8' }}>Phone</label>
-                              <input
-                                className="px-2.5 py-1.5 border rounded-lg text-xs w-full outline-none focus:border-[var(--primary)] transition-colors"
-                                style={{ borderColor: '#e2e8f0' }}
-                                value={vals?.phone_number ?? ''}
-                                onChange={e => updateEditRow(row.id, { phone_number: e.target.value })}
-                              />
+                        <div className="px-4 sm:px-5 py-3 flex flex-col sm:flex-row sm:items-end gap-2" style={{ background: 'white' }}>
+                          {/* Left: Phone + WA + Label */}
+                          <div className="flex-1 min-w-0 space-y-2">
+                            <div className="flex items-center gap-2 mb-1">
+                              {isDefault ? (
+                                <span className="text-[10px] px-1.5 py-0.5 rounded-full font-bold" style={{ background: 'var(--primary)', color: 'white' }}>Default</span>
+                              ) : row.label ? (
+                                <span className="text-[10px] px-1.5 py-0.5 rounded-full" style={{ background: '#f1f5f9', color: '#475569' }}>{row.label}</span>
+                              ) : (
+                                <span className="text-[10px]" style={{ color: '#94a3b8' }}>Custom</span>
+                              )}
                             </div>
-                            <div>
-                              <label className="block text-[10px] mb-1" style={{ color: '#94a3b8' }}>WhatsApp Text</label>
-                              <input
-                                className="px-2.5 py-1.5 border rounded-lg text-xs w-full outline-none focus:border-[var(--primary)] transition-colors"
-                                style={{ borderColor: '#e2e8f0' }}
-                                value={vals?.whatsapp_text ?? ''}
-                                onChange={e => updateEditRow(row.id, { whatsapp_text: e.target.value })}
-                              />
-                            </div>
-                            <div className="flex gap-2">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                              <div>
+                                <label className="block text-[10px] mb-1" style={{ color: '#94a3b8' }}>Phone</label>
+                                <input
+                                  className="px-2.5 py-1.5 border rounded-lg text-xs w-full outline-none focus:border-[var(--primary)] transition-colors"
+                                  style={{ borderColor: '#e2e8f0' }}
+                                  value={vals?.phone_number ?? ''}
+                                  onChange={e => updateEditRow(row.id, { phone_number: e.target.value })}
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-[10px] mb-1" style={{ color: '#94a3b8' }}>WhatsApp Text</label>
+                                <input
+                                  className="px-2.5 py-1.5 border rounded-lg text-xs w-full outline-none focus:border-[var(--primary)] transition-colors"
+                                  style={{ borderColor: '#e2e8f0' }}
+                                  value={vals?.whatsapp_text ?? ''}
+                                  onChange={e => updateEditRow(row.id, { whatsapp_text: e.target.value })}
+                                />
+                              </div>
                               {!isDefault && (
-                                <div className="flex-1">
+                                <div>
                                   <label className="block text-[10px] mb-1" style={{ color: '#94a3b8' }}>Label</label>
                                   <input
                                     className="px-2.5 py-1.5 border rounded-lg text-xs w-full outline-none focus:border-[var(--primary)] transition-colors"
@@ -370,34 +388,35 @@ export default function PhoneNumbersPage() {
                                   />
                                 </div>
                               )}
-                              <div className={isDefault ? 'flex-1' : ''}>
-                                <label className="block text-[10px] mb-1" style={{ color: '#94a3b8' }}>%</label>
-                                <input
-                                  type="number" min="0" max="100"
-                                  className="px-2.5 py-1.5 border rounded-lg text-xs w-16 outline-none focus:border-[var(--primary)] transition-colors text-center"
-                                  style={{ borderColor: '#e2e8f0' }}
-                                  value={vals?.percentage ?? 100}
-                                  onChange={e => updateEditRow(row.id, { percentage: parseInt(e.target.value) || 0 })}
-                                />
-                              </div>
-                              <div>
-                                <label className="block text-[10px] mb-1" style={{ color: '#94a3b8' }}>Active</label>
-                                <button
-                                  onClick={() => updateEditRow(row.id, { is_active: !vals?.is_active })}
-                                  className="w-8 h-7 rounded-lg border flex items-center justify-center transition-colors"
-                                  style={vals?.is_active
-                                    ? { background: '#16a34a', borderColor: '#16a34a', color: 'white' }
-                                    : { background: 'white', borderColor: '#e2e8f0', color: '#94a3b8' }
-                                  }
-                                >
-                                  {vals?.is_active ? (
-                                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>
-                                  ) : (
-                                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
-                                  )}
-                                </button>
-                              </div>
                             </div>
+                          </div>
+                          {/* Right: % + Active */}
+                          <div className="flex items-end gap-2 flex-shrink-0 sm:ml-auto">
+                            <div>
+                              <label className="block text-[10px] mb-1" style={{ color: '#94a3b8' }}>%</label>
+                              <input
+                                type="number" min="0" max="100"
+                                className="px-2.5 py-1.5 border rounded-lg text-xs w-16 outline-none focus:border-[var(--primary)] transition-colors text-center"
+                                style={{ borderColor: '#e2e8f0' }}
+                                value={vals?.percentage ?? 100}
+                                onChange={e => updateEditRow(row.id, { percentage: parseInt(e.target.value) || 0 }, rows)}
+                              />
+                            </div>
+                            <button
+                              onClick={() => updateEditRow(row.id, { is_active: !vals?.is_active }, rows)}
+                              className="w-8 h-8 rounded-lg border flex items-center justify-center transition-colors flex-shrink-0"
+                              title={vals?.is_active ? 'Active' : 'Inactive'}
+                              style={vals?.is_active
+                                ? { background: '#16a34a', borderColor: '#16a34a', color: 'white' }
+                                : { background: 'white', borderColor: '#e2e8f0', color: '#94a3b8' }
+                              }
+                            >
+                              {vals?.is_active ? (
+                                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>
+                              ) : (
+                                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                              )}
+                            </button>
                           </div>
                         </div>
                       ) : (
