@@ -15,7 +15,7 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     statusBarStyle: 'black-translucent',
-    title: 'Webcore',
+    title: 'WEBCORE',
   },
   other: {
     'mobile-web-app-capable': 'yes',
