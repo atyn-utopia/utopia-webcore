@@ -357,7 +357,7 @@ export default function PhoneNumbersPage() {
 
                       {/* Actions */}
                       <td className="px-2 sm:px-4 py-3 align-middle">
-                        <div className="flex items-center gap-1 justify-end">
+                        <div className="flex items-center gap-1 justify-center">
                           {editingId === row.id ? (
                             <>
                               <button

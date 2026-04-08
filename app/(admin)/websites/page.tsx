@@ -134,7 +134,7 @@ export default function WebsitesPage() {
 
                   {/* Actions */}
                   <td className="px-5 py-4 align-middle">
-                    <div className="flex items-center gap-2 justify-end">
+                    <div className="flex items-center gap-2 justify-center">
                       <Link
                         href={`/phone-numbers?website=${encodeURIComponent(site.domain)}`}
                         className="inline-flex items-center gap-1 sm:gap-1.5 text-[10px] sm:text-xs font-medium px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg border transition-colors whitespace-nowrap"
