@@ -331,7 +331,7 @@ export default function RichTextEditor({ value, onChange, placeholder = 'Start w
       </div>
 
       {/* Editor area with right-click handler */}
-      <div onContextMenu={handleContextMenu}>
+      <div onContextMenu={handleContextMenu} className="overflow-y-auto" style={{ maxHeight: '500px' }}>
         <EditorContent editor={editor} />
       </div>
 
