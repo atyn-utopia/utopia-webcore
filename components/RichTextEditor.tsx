@@ -226,7 +226,7 @@ export default function RichTextEditor({ value, onChange, placeholder = 'Start w
     : 'P'
 
   return (
-    <div className="rounded-lg border relative" style={{ borderColor: '#cbd5e1' }} ref={containerRef}>
+    <div className="rounded-lg border relative flex flex-col" style={{ borderColor: '#cbd5e1' }} ref={containerRef}>
       {/* Toolbar */}
       <div className="flex items-center gap-0.5 px-2 py-1.5 flex-wrap sticky top-0 z-10 rounded-t-lg" style={{ background: '#f8fafc', borderBottom: '1px solid #cbd5e1' }}>
         {/* Heading dropdown */}
@@ -427,7 +427,7 @@ export default function RichTextEditor({ value, onChange, placeholder = 'Start w
       )}
 
       {/* Footer with counts */}
-      <div className="flex items-center justify-end gap-4 px-4 py-2 text-xs" style={{ background: '#f8fafc', borderTop: '1px solid #cbd5e1', color: '#94a3b8' }}>
+      <div className="flex items-center justify-end gap-4 px-4 py-2 text-xs rounded-b-lg" style={{ background: '#f8fafc', borderTop: '1px solid #cbd5e1', color: '#94a3b8' }}>
         <span>{wordCount} words</span>
         <span>{charCount} characters</span>
       </div>
