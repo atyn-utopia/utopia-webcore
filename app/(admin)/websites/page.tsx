@@ -9,10 +9,18 @@ interface WebsiteSummary {
   domain: string
   company_id: string | null
   company_name: string | null
+  leads_mode: string | null
   phone_count: number
   active_phone_count: number
   blog_count: number
   published_blog_count: number
+}
+
+const LEADS_MODE: Record<string, { label: string; color: string; bg: string }> = {
+  single: { label: 'Single', color: '#475569', bg: '#f1f5f9' },
+  rotation: { label: 'Rotation', color: '#0369a1', bg: '#e0f2fe' },
+  location: { label: 'Location', color: '#7c3aed', bg: '#ede9fe' },
+  hybrid: { label: 'Hybrid', color: '#b45309', bg: '#fef3c7' },
 }
 
 interface Company {
@@ -213,7 +221,7 @@ export default function WebsitesPage() {
             <table className="w-full text-sm min-w-[700px]">
               <thead>
                 <tr style={{ borderBottom: '1px solid #cbd5e1', background: '#f1f5f9' }}>
-                  {['Website', ...(isWriter ? [] : ['Phone Numbers', 'Active']), 'Blog Posts', 'Published', ''].map((h, i) => (
+                  {['Website', ...(isWriter ? [] : ['Leads Mode', 'Phone Numbers', 'Active']), 'Blog Posts', 'Published', ''].map((h, i) => (
                     <th key={i} className="px-5 py-3.5 text-center text-[10px] sm:text-xs font-semibold" style={{ color: '#475569' }}>{h}</th>
                   ))}
                 </tr>
@@ -236,6 +244,18 @@ export default function WebsitesPage() {
                         </div>
                       </div>
                     </td>
+                    {!isWriter && (
+                    <td className="px-5 py-4 align-middle text-center">
+                      {site.leads_mode && LEADS_MODE[site.leads_mode] ? (
+                        <span className="inline-flex items-center text-[10px] sm:text-xs font-medium px-2.5 py-0.5 rounded-full"
+                          style={{ background: LEADS_MODE[site.leads_mode].bg, color: LEADS_MODE[site.leads_mode].color }}>
+                          {LEADS_MODE[site.leads_mode].label}
+                        </span>
+                      ) : (
+                        <span className="text-[10px]" style={{ color: '#cbd5e1' }}>—</span>
+                      )}
+                    </td>
+                    )}
                     {!isWriter && (
                     <td className="px-5 py-4 align-middle text-center">
                       <span className="text-sm font-medium" style={{ color: 'var(--foreground)' }}>{site.phone_count}</span>
