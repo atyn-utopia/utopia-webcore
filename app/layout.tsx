@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { Inter, Nunito } from 'next/font/google'
 import './globals.css'
+import LoadingBar from '@/components/LoadingBar'
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' })
 const nunito = Nunito({ subsets: ['latin'], variable: '--font-display' })
@@ -30,6 +31,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="apple-touch-icon" href="/icon-192.png" />
       </head>
       <body className="min-h-full font-inter">
+        <LoadingBar />
         {children}
         <script
           dangerouslySetInnerHTML={{
