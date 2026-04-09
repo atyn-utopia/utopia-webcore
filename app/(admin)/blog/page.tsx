@@ -10,6 +10,7 @@ interface Post {
   website: string
   title: string
   slug: string
+  cover_image_url: string | null
   status: 'draft' | 'published'
   published_at: string | null
   created_at: string
@@ -339,9 +340,14 @@ export default function BlogListPage() {
             <Link
               key={post.id}
               href={`/blog/${post.id}/edit`}
-              className="block rounded-xl border bg-white p-4 hover:shadow-sm transition-shadow"
+              className="block rounded-xl border bg-white overflow-hidden hover:shadow-sm transition-shadow"
               style={{ borderColor: '#e2e8f0' }}
             >
+              {post.cover_image_url && (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={post.cover_image_url} alt="" className="w-full h-32 object-cover" />
+              )}
+              <div className="p-4">
               <div className="flex items-start justify-between gap-2 mb-2">
                 <span
                   className="inline-flex items-center gap-1 text-[10px] font-medium px-2 py-0.5 rounded-full"
@@ -377,6 +383,7 @@ export default function BlogListPage() {
               <div className="flex items-center justify-between">
                 <p className="text-[10px]" style={{ color: '#94a3b8' }}>/{post.slug}</p>
                 <p className="text-[10px]" style={{ color: '#94a3b8' }}>{formatDate(post.updated_at)}</p>
+              </div>
               </div>
             </Link>
           ))}
