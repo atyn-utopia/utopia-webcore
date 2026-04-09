@@ -35,7 +35,7 @@ create policy "Public read company_websites" on public.company_websites for sele
 create table if not exists public.phone_numbers (
   id            uuid primary key default gen_random_uuid(),
   website       text not null,
-  product_slug  text not null,
+
   location_slug text not null,
   phone_number  text not null,
   type          text not null default 'custom',
@@ -48,7 +48,7 @@ create table if not exists public.phone_numbers (
 
 -- Index for the common query pattern (website + product + location)
 create index if not exists idx_phone_numbers_lookup
-  on public.phone_numbers (website, product_slug, location_slug);
+  on public.phone_numbers (website, location_slug);
 
 -- RLS
 alter table public.phone_numbers enable row level security;

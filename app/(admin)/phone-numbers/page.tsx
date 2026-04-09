@@ -28,7 +28,7 @@ const MY_STATES = [
 interface PhoneNumber {
   id: string
   website: string
-  product_slug: string
+
   location_slug: string
   phone_number: string
   type: 'default' | 'custom'

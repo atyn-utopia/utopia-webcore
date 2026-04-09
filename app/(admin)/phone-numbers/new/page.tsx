@@ -140,7 +140,7 @@ export default function NewPhoneNumberPage() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         website: form.website.trim(),
-        product_slug: 'default',
+
         location_slug: form.location_slug || 'all',
         phone_number: form.phone_number.trim(),
         type: 'custom',
