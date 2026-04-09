@@ -18,6 +18,8 @@ function getCrumbs(pathname: string): CrumbItem[] {
   if (/^\/blog\/.+\/view$/.test(pathname)) return [{ label: 'Blog Posts', href: '/blog' }, { label: 'Preview' }]
   if (/^\/blog\/.+\/edit$/.test(pathname)) return [{ label: 'Blog Posts', href: '/blog' }, { label: 'Edit Post' }]
   if (pathname === '/users') return [{ label: 'Users' }]
+  if (pathname === '/tickets') return [{ label: 'Tickets' }]
+  if (pathname === '/help') return [{ label: 'Help & Feedback' }]
   return []
 }
 

@@ -138,6 +138,33 @@ create policy "Users can read own profile"
 
 
 -- ──────────────────────────────────────────────────────────
+-- app_settings (key-value store for admin toggles)
+-- ──────────────────────────────────────────────────────────
+create table if not exists public.app_settings (
+  key   text primary key,
+  value text not null default ''
+);
+alter table public.app_settings enable row level security;
+create policy "Public read app_settings" on public.app_settings for select using (true);
+
+-- ──────────────────────────────────────────────────────────
+-- tickets (help/bug reports)
+-- ──────────────────────────────────────────────────────────
+create table if not exists public.tickets (
+  id          uuid primary key default gen_random_uuid(),
+  user_id     uuid references auth.users(id),
+  user_name   text not null default '',
+  user_role   text not null default '',
+  subject     text not null,
+  description text not null default '',
+  status      text not null default 'open' check (status in ('open', 'in_progress', 'closed')),
+  created_at  timestamptz not null default now()
+);
+alter table public.tickets enable row level security;
+create policy "Users can read own tickets" on public.tickets for select to authenticated using (user_id = auth.uid());
+
+
+-- ──────────────────────────────────────────────────────────
 -- 4. writer_permissions
 -- ──────────────────────────────────────────────────────────
 create table if not exists public.writer_permissions (

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { WebsiteProvider } from '@/contexts/WebsiteContext'
 import Sidebar from './Sidebar'
@@ -15,6 +15,15 @@ interface AdminShellProps {
 
 export default function AdminShell({ userEmail, userName, userRole, children }: AdminShellProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [showBeta, setShowBeta] = useState(false)
+
+  useEffect(() => {
+    if (userRole === 'admin') return
+    fetch('/api/settings?key=beta_banner')
+      .then(r => r.json())
+      .then(data => { if (data.value === 'on') setShowBeta(true) })
+      .catch(() => {})
+  }, [userRole])
 
   return (
     <WebsiteProvider>
@@ -36,6 +45,23 @@ export default function AdminShell({ userEmail, userName, userRole, children }: 
         />
 
         <main className="flex-1 overflow-y-auto p-4 pb-24 sm:p-6 sm:pb-24 md:p-8 md:pb-8" style={{ background: '#ffffff' }}>
+          {/* Beta banner */}
+          {showBeta && (
+            <div className="mb-4 px-4 py-2.5 rounded-lg flex items-center justify-between gap-3" style={{ background: '#fef3c7', border: '1px solid #fcd34d' }}>
+              <div className="flex items-center gap-2">
+                <svg className="w-4 h-4 flex-shrink-0 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <p className="text-xs text-amber-800">
+                  <strong>Beta Testing</strong> — This system is in beta. Found a bug?{' '}
+                  <Link href="/help" className="underline font-medium">Submit a ticket</Link>
+                </p>
+              </div>
+              <button onClick={() => setShowBeta(false)} className="text-amber-400 hover:text-amber-600 flex-shrink-0">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+              </button>
+            </div>
+          )}
           {/* Mobile header with hamburger */}
           <div className="flex items-center gap-3 mb-4 md:hidden">
             <button
