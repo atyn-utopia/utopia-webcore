@@ -233,28 +233,40 @@ export default function WebsitesPage() {
                         </div>
                       </div>
                     </td>
-                    <td className="px-5 py-4 align-middle text-center"><span className="text-sm font-medium" style={{ color: 'var(--foreground)' }}>{site.phone_count}</span></td>
+                    <td className="px-5 py-4 align-middle text-center">
+                      <span className="text-sm font-medium" style={{ color: 'var(--foreground)' }}>{site.phone_count}</span>
+                      <span className="text-[10px] ml-1" style={{ color: '#94a3b8' }}>{site.phone_count === 1 ? 'number' : 'numbers'}</span>
+                    </td>
                     <td className="px-5 py-4 align-middle text-center">
                       <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] sm:text-xs font-medium"
                         style={site.active_phone_count > 0 ? { background: '#dcfce7', color: '#16a34a' } : { background: '#f1f5f9', color: '#64748b' }}>
-                        {site.active_phone_count}
+                        {site.active_phone_count} active
                       </span>
                     </td>
-                    <td className="px-5 py-4 align-middle text-center"><span className="text-sm font-medium" style={{ color: 'var(--foreground)' }}>{site.blog_count}</span></td>
+                    <td className="px-5 py-4 align-middle text-center">
+                      <span className="text-sm font-medium" style={{ color: 'var(--foreground)' }}>{site.blog_count}</span>
+                      <span className="text-[10px] ml-1" style={{ color: '#94a3b8' }}>{site.blog_count === 1 ? 'post' : 'posts'}</span>
+                    </td>
                     <td className="px-5 py-4 align-middle text-center">
                       <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] sm:text-xs font-medium"
                         style={site.published_blog_count > 0 ? { background: '#e0f2fe', color: '#0369a1' } : { background: '#f1f5f9', color: '#64748b' }}>
-                        {site.published_blog_count}
+                        {site.published_blog_count} published
                       </span>
                     </td>
                     <td className="px-5 py-4 align-middle text-center">
                       <div className="flex items-center gap-2 justify-center">
                         <Link href={`/phone-numbers?website=${encodeURIComponent(site.domain)}`}
-                          className="inline-flex items-center gap-1 text-[10px] sm:text-xs font-medium px-2 sm:px-3 py-1 rounded-lg border transition-colors whitespace-nowrap hover:border-[var(--primary)] hover:text-[var(--primary)]"
-                          style={{ borderColor: '#cbd5e1', color: '#475569', background: 'white' }}>Phones</Link>
+                          className="inline-flex items-center gap-1.5 text-[10px] sm:text-xs font-medium px-2 sm:px-3 py-1 rounded-lg border transition-colors whitespace-nowrap hover:border-[var(--primary)] hover:text-[var(--primary)]"
+                          style={{ borderColor: '#cbd5e1', color: '#475569', background: 'white' }}>
+                          Phones
+                          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
+                        </Link>
                         <Link href={`/blog?website=${encodeURIComponent(site.domain)}`}
-                          className="inline-flex items-center gap-1 text-[10px] sm:text-xs font-medium px-2 sm:px-3 py-1 rounded-lg border transition-colors whitespace-nowrap hover:border-[var(--primary)] hover:text-[var(--primary)]"
-                          style={{ borderColor: '#cbd5e1', color: '#475569', background: 'white' }}>Blog</Link>
+                          className="inline-flex items-center gap-1.5 text-[10px] sm:text-xs font-medium px-2 sm:px-3 py-1 rounded-lg border transition-colors whitespace-nowrap hover:border-[var(--primary)] hover:text-[var(--primary)]"
+                          style={{ borderColor: '#cbd5e1', color: '#475569', background: 'white' }}>
+                          Blog
+                          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
+                        </Link>
                       </div>
                     </td>
                   </tr>
