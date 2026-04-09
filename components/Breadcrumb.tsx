@@ -1,35 +1,88 @@
 'use client'
 
 import Link from 'next/link'
-import { usePathname, useRouter } from 'next/navigation'
+import { usePathname, useSearchParams } from 'next/navigation'
+import { useEffect, useState } from 'react'
 
 interface CrumbItem {
   label: string
   href?: string
 }
 
-function getCrumbs(pathname: string): CrumbItem[] {
-  if (pathname === '/') return []
-  if (pathname === '/websites') return [{ label: 'Websites' }]
-  if (pathname === '/phone-numbers') return [{ label: 'Phone Numbers' }]
-  if (pathname === '/phone-numbers/new') return [{ label: 'Phone Numbers', href: '/phone-numbers' }, { label: 'Add Number' }]
-  if (pathname === '/blog') return [{ label: 'Blog Posts' }]
-  if (pathname === '/blog/new') return [{ label: 'Blog Posts', href: '/blog' }, { label: 'New Post' }]
-  if (/^\/blog\/.+\/view$/.test(pathname)) return [{ label: 'Blog Posts', href: '/blog' }, { label: 'Preview' }]
-  if (/^\/blog\/.+\/edit$/.test(pathname)) return [{ label: 'Blog Posts', href: '/blog' }, { label: 'Edit Post' }]
-  if (pathname === '/users') return [{ label: 'Users' }]
-  if (pathname === '/tickets') return [{ label: 'Tickets' }]
-  if (pathname === '/help') return [{ label: 'Help & Feedback' }]
-  return []
-}
-
 export default function Breadcrumb() {
   const pathname = usePathname()
-  const router = useRouter()
-  const crumbs = getCrumbs(pathname)
+  const searchParams = useSearchParams()
+  const company = searchParams.get('company') ?? ''
+  const website = searchParams.get('website') ?? ''
+  const [postTitle, setPostTitle] = useState('')
+
+  // Fetch post title for blog edit/view pages
+  useEffect(() => {
+    const match = pathname.match(/^\/blog\/([^/]+)\/(edit|view)$/)
+    if (match) {
+      fetch(`/api/blog/${match[1]}`)
+        .then(r => r.json())
+        .then(data => {
+          const t = data.blog_translations?.find((t: { language: string }) => t.language === 'en') ?? data.blog_translations?.[0]
+          setPostTitle(t?.title ?? 'Post')
+        })
+        .catch(() => setPostTitle('Post'))
+    } else {
+      setPostTitle('')
+    }
+  }, [pathname])
+
+  function getCrumbs(): CrumbItem[] {
+    // Websites
+    if (pathname === '/websites' && company) {
+      return [{ label: 'Websites', href: '/websites' }, { label: company }]
+    }
+    if (pathname === '/websites') return [{ label: 'Websites' }]
+
+    // Phone Numbers
+    if (pathname === '/phone-numbers/new') {
+      const crumbs: CrumbItem[] = [{ label: 'Phone Numbers', href: '/phone-numbers' }]
+      if (company) crumbs.splice(1, 0, { label: company, href: `/phone-numbers?company=${encodeURIComponent(company)}` })
+      crumbs.push({ label: 'Add Number' })
+      return crumbs
+    }
+    if (pathname === '/phone-numbers' && company) {
+      return [{ label: 'Phone Numbers', href: '/phone-numbers' }, { label: company }]
+    }
+    if (pathname === '/phone-numbers') return [{ label: 'Phone Numbers' }]
+
+    // Blog
+    if (pathname === '/blog/new') {
+      return [{ label: 'Blog Posts', href: '/blog' }, { label: 'New Post' }]
+    }
+    if (/^\/blog\/.+\/view$/.test(pathname)) {
+      return [{ label: 'Blog Posts', href: '/blog' }, { label: postTitle || 'Preview' }]
+    }
+    if (/^\/blog\/.+\/edit$/.test(pathname)) {
+      return [{ label: 'Blog Posts', href: '/blog' }, { label: postTitle || 'Edit Post' }]
+    }
+    if (pathname === '/blog' && website) {
+      const crumbs: CrumbItem[] = [{ label: 'Blog Posts', href: '/blog' }]
+      if (company) crumbs.push({ label: company, href: `/blog?company=${encodeURIComponent(company)}` })
+      crumbs.push({ label: website })
+      return crumbs
+    }
+    if (pathname === '/blog' && company) {
+      return [{ label: 'Blog Posts', href: '/blog' }, { label: company }]
+    }
+    if (pathname === '/blog') return [{ label: 'Blog Posts' }]
+
+    // Others
+    if (pathname === '/users') return [{ label: 'Users' }]
+    if (pathname === '/tickets') return [{ label: 'Tickets' }]
+    if (pathname === '/help') return [{ label: 'Help & Feedback' }]
+    return []
+  }
+
+  const crumbs = getCrumbs()
 
   return (
-    <nav className="flex items-center gap-2 text-sm" aria-label="Breadcrumb">
+    <nav className="flex items-center gap-2 text-sm min-w-0" aria-label="Breadcrumb">
       {/* Home */}
       <Link
         href="/"
@@ -46,22 +99,27 @@ export default function Breadcrumb() {
       {crumbs.map((crumb, i) => {
         const isLast = i === crumbs.length - 1
         return (
-          <span key={i} className="flex items-center gap-2">
-            <svg className="w-3 h-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: '#b8dde8' }}>
+          <span key={i} className="flex items-center gap-2 min-w-0">
+            <svg className="w-3 h-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: '#cbd5e1' }}>
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
             </svg>
             {crumb.href ? (
               <Link
                 href={crumb.href}
-                className="transition-colors"
+                className="transition-colors truncate max-w-[150px]"
                 style={{ color: '#475569' }}
+                title={crumb.label}
                 onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = 'var(--primary)'}
                 onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = '#475569'}
               >
                 {crumb.label}
               </Link>
             ) : (
-              <span className="font-medium" style={{ color: isLast ? 'var(--primary)' : 'var(--foreground)' }}>
+              <span
+                className={`font-medium ${isLast ? 'truncate max-w-[200px]' : ''}`}
+                style={{ color: isLast ? 'var(--primary)' : 'var(--foreground)' }}
+                title={crumb.label}
+              >
                 {crumb.label}
               </span>
             )}
