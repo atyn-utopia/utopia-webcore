@@ -226,9 +226,9 @@ export default function RichTextEditor({ value, onChange, placeholder = 'Start w
     : 'P'
 
   return (
-    <div className="rounded-lg border overflow-hidden relative" style={{ borderColor: '#cbd5e1' }} ref={containerRef}>
+    <div className="rounded-lg border relative" style={{ borderColor: '#cbd5e1' }} ref={containerRef}>
       {/* Toolbar */}
-      <div className="flex items-center gap-0.5 px-2 py-1.5 flex-wrap sticky top-0 z-10" style={{ background: '#f8fafc', borderBottom: '1px solid #cbd5e1' }}>
+      <div className="flex items-center gap-0.5 px-2 py-1.5 flex-wrap sticky top-0 z-10 rounded-t-lg" style={{ background: '#f8fafc', borderBottom: '1px solid #cbd5e1' }}>
         {/* Heading dropdown */}
         <select
           value={currentHeading}

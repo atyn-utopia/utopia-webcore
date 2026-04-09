@@ -23,7 +23,7 @@ export default function LoadingBar() {
         <div
           className="h-full rounded-r-full"
           style={{
-            background: 'linear-gradient(90deg, #1a3a6e, #2979d6)',
+            background: 'linear-gradient(90deg, #60a5fa, #93c5fd)',
             animation: 'loadingBar 1.5s ease-in-out infinite',
           }}
         />
