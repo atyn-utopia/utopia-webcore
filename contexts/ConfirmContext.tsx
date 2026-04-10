@@ -66,7 +66,7 @@ export function ConfirmProvider({ children }: { children: ReactNode }) {
           onClick={handleCancel}
         >
           <div
-            className="relative w-full max-w-md rounded-2xl bg-white shadow-2xl p-8"
+            className="relative w-full max-w-sm rounded-2xl bg-white shadow-2xl p-6"
             style={{
               animation: 'popIn 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
               fontFamily: 'var(--font-inter), -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
@@ -75,7 +75,7 @@ export function ConfirmProvider({ children }: { children: ReactNode }) {
           >
             {/* Title */}
             <h3
-              className="text-[20px] font-semibold text-center mb-3 tracking-tight"
+              className="text-[18px] font-semibold text-center mb-2 tracking-tight"
               style={{ color: '#0f172a', letterSpacing: '-0.01em' }}
             >
               {pending.title ?? 'Are you sure?'}
@@ -83,18 +83,18 @@ export function ConfirmProvider({ children }: { children: ReactNode }) {
 
             {/* Message */}
             <div
-              className="text-[14px] text-center leading-relaxed mb-7 max-w-sm mx-auto font-light"
+              className="text-[13px] text-center leading-relaxed mb-5 font-light"
               style={{ color: '#64748b' }}
             >
               {pending.message}
             </div>
 
             {/* Buttons — full width split */}
-            <div className="flex items-stretch gap-3">
+            <div className="flex items-stretch gap-2">
               <button
                 type="button"
                 onClick={handleCancel}
-                className="flex-1 text-[14px] font-medium px-5 py-3 rounded-xl border transition-colors hover:bg-slate-50"
+                className="flex-1 text-[13px] font-medium px-4 py-2.5 rounded-lg border transition-colors hover:bg-slate-50"
                 style={{ borderColor: '#e2e8f0', color: '#0f172a', background: 'white' }}
               >
                 {pending.cancelLabel ?? 'Cancel'}
@@ -103,7 +103,7 @@ export function ConfirmProvider({ children }: { children: ReactNode }) {
                 type="button"
                 onClick={handleConfirm}
                 autoFocus
-                className="flex-1 text-[14px] font-medium px-5 py-3 rounded-xl text-white transition-colors shadow-sm"
+                className="flex-1 text-[13px] font-medium px-4 py-2.5 rounded-lg text-white transition-colors shadow-sm"
                 style={{ background: styles.btn }}
                 onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.background = styles.btnHover)}
                 onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.background = styles.btn)}

@@ -368,6 +368,15 @@ export default function PhoneNumbersPage() {
               {/* Rows — professional table */}
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
+                  <colgroup>
+                    <col className="w-36" />
+                    <col />
+                    <col className="w-24" />
+                    <col className="w-24" />
+                    <col className="w-14" />
+                    <col className="w-24" />
+                    <col className="w-12" />
+                  </colgroup>
                   <thead>
                     <tr style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
                       <th className="px-4 py-3 text-[10px] sm:text-xs font-medium whitespace-nowrap text-left" style={{ color: '#94a3b8' }}>Phone Number</th>
@@ -388,7 +397,7 @@ export default function PhoneNumbersPage() {
                             <span className="text-sm font-medium font-mono" style={{ color: 'var(--foreground)' }}>{row.phone_number}</span>
                           </td>
                           <td className="px-4 py-3 align-middle">
-                            <span className="text-xs truncate block max-w-[240px]" style={{ color: '#94a3b8' }}>{row.whatsapp_text || '—'}</span>
+                            <span className="text-xs truncate block" style={{ color: '#94a3b8' }}>{row.whatsapp_text || '—'}</span>
                           </td>
                           <td className="px-4 py-3 align-middle">
                             <span className="text-xs" style={{ color: '#94a3b8' }}>{row.location_slug === 'all' ? 'All' : (MY_STATES.find(s => s.slug === row.location_slug)?.label ?? row.location_slug)}</span>
