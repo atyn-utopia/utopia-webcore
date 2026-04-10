@@ -4,11 +4,11 @@ export type ViewMode = 'grid' | 'list'
 
 export default function ViewToggle({ value, onChange }: { value: ViewMode; onChange: (mode: ViewMode) => void }) {
   return (
-    <div className="flex items-center rounded-lg border overflow-hidden" style={{ borderColor: '#cbd5e1' }}>
+    <div className="flex items-center h-9 rounded-lg border overflow-hidden" style={{ borderColor: '#cbd5e1' }}>
       <button
         type="button"
         onClick={() => onChange('list')}
-        className="w-8 h-8 flex items-center justify-center transition-colors"
+        className="w-9 h-full flex items-center justify-center transition-colors"
         style={{ background: value === 'list' ? 'var(--primary)' : 'white', color: value === 'list' ? 'white' : '#94a3b8' }}
         title="List view"
       >
@@ -19,7 +19,7 @@ export default function ViewToggle({ value, onChange }: { value: ViewMode; onCha
       <button
         type="button"
         onClick={() => onChange('grid')}
-        className="w-8 h-8 flex items-center justify-center transition-colors"
+        className="w-9 h-full flex items-center justify-center transition-colors"
         style={{ background: value === 'grid' ? 'var(--primary)' : 'white', color: value === 'grid' ? 'white' : '#94a3b8', borderLeft: '1px solid #cbd5e1' }}
         title="Grid view"
       >

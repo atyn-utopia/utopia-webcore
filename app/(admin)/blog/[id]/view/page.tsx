@@ -65,12 +65,12 @@ export default function BlogViewPage() {
             <div className="relative group">
               {post.status === 'published' ? (
                 <a href={`https://${post.website}/blog/${post.slug}`} target="_blank" rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium rounded-lg border border-slate-200 hover:bg-slate-50 transition-colors" style={{ color: '#475569' }}>
+                  className="inline-flex items-center gap-1.5 px-4 h-9 text-sm font-medium rounded-lg border border-slate-200 hover:bg-slate-50 transition-colors" style={{ color: '#475569' }}>
                   Open
                   <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
                 </a>
               ) : (
-                <span className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium rounded-lg border border-slate-200 cursor-not-allowed opacity-40" style={{ color: '#94a3b8' }}>
+                <span className="inline-flex items-center gap-1.5 px-4 h-9 text-sm font-medium rounded-lg border border-slate-200 cursor-not-allowed opacity-40" style={{ color: '#94a3b8' }}>
                   Open
                   <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
                 </span>
@@ -83,7 +83,7 @@ export default function BlogViewPage() {
               )}
             </div>
             <Link href={`/blog/${id}/edit`}
-              className="inline-flex items-center gap-2 text-white text-sm font-medium px-4 py-2 rounded-lg transition-opacity"
+              className="inline-flex items-center gap-2 text-white text-sm font-medium px-4 h-9 rounded-lg transition-opacity"
               style={{ background: 'var(--primary)' }}>
               Edit
             </Link>

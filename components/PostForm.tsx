@@ -176,12 +176,12 @@ export default function PostForm({ mode, initialData = {}, postId }: PostFormPro
           <>
             {saved && <span className="text-xs text-green-600 font-medium mr-2">{tr('post.saved')}</span>}
             <button type="button" onClick={() => handleSave('draft')} disabled={saving}
-              className="inline-flex items-center gap-2 text-sm font-medium px-4 py-2 rounded-lg border transition-colors disabled:opacity-50 hover:bg-slate-50"
+              className="inline-flex items-center gap-2 text-sm font-medium px-4 h-9 rounded-lg border transition-colors disabled:opacity-50 hover:bg-slate-50"
               style={{ borderColor: '#cbd5e1', color: '#475569' }}>
               {tr('post.saveDraft')}
             </button>
             <button type="button" onClick={() => handleSave('published')} disabled={saving}
-              className="inline-flex items-center gap-2 text-white text-sm font-medium px-4 py-2 rounded-lg transition-opacity disabled:opacity-50"
+              className="inline-flex items-center gap-2 text-white text-sm font-medium px-4 h-9 rounded-lg transition-opacity disabled:opacity-50"
               style={{ background: 'var(--primary)' }}>
               {saving ? tr('common.saving') : status === 'published' ? tr('post.republish') : tr('post.publish')}
             </button>

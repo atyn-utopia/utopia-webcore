@@ -158,7 +158,7 @@ export default function UsersPage() {
         actions={
           <button
             onClick={() => { setShowForm(!showForm); setError(''); setSuccess('') }}
-            className="inline-flex items-center gap-2 text-white text-sm font-medium px-4 py-2 rounded-lg transition-opacity"
+            className="inline-flex items-center gap-2 text-white text-sm font-medium px-4 h-9 rounded-lg transition-opacity"
             style={{ background: 'var(--primary)' }}
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

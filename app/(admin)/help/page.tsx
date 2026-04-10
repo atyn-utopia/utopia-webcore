@@ -69,7 +69,7 @@ export default function HelpPage() {
         description={t('page.help.description')}
         actions={
           <button onClick={() => { setShowForm(!showForm); setSuccess(''); setError('') }}
-            className="inline-flex items-center gap-2 text-white text-sm font-medium px-4 py-2 rounded-lg transition-opacity"
+            className="inline-flex items-center gap-2 text-white text-sm font-medium px-4 h-9 rounded-lg transition-opacity"
             style={{ background: 'var(--primary)' }}>
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
             {t('button.newTicket')}
