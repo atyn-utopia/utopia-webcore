@@ -297,7 +297,7 @@ export default function NewPhoneNumberPage() {
                       {modeChanged && predictedMode && LEADS_MODE[predictedMode] && (
                         <>
                           <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: '#d97706' }} strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
-                          <span className="text-[10px] px-2 py-0.5 rounded-full font-medium ring-2 ring-offset-1" style={{ background: LEADS_MODE[predictedMode].bg, color: LEADS_MODE[predictedMode].color, ringColor: '#fbbf24' }}>
+                          <span className="text-[10px] px-2 py-0.5 rounded-full font-medium ring-2 ring-amber-400 ring-offset-1" style={{ background: LEADS_MODE[predictedMode].bg, color: LEADS_MODE[predictedMode].color }}>
                             {LEADS_MODE[predictedMode].label}
                           </span>
                         </>
