@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import PageHeader from '@/components/PageHeader'
 
 interface Post {
   id: string
@@ -89,10 +90,7 @@ export default function AllBlogPage() {
 
   return (
     <div>
-      <div className="mb-6">
-        <h1 className="text-xl font-bold" style={{ color: 'var(--foreground)' }}>All Blog Posts</h1>
-        <p className="text-xs mt-1" style={{ color: '#94a3b8' }}>{posts.length} posts across all websites</p>
-      </div>
+      <PageHeader title="All Blog Posts" description={`${posts.length} posts across all websites`} />
 
       <div className="rounded-xl border p-4 mb-5 flex flex-wrap gap-3 items-end" style={{ borderColor: '#e2e8f0', background: '#f8fafc' }}>
         <div className="flex-1 min-w-48 max-w-sm">

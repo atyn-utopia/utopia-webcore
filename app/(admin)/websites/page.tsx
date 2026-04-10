@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { useUser } from '@/contexts/UserContext'
+import PageHeader from '@/components/PageHeader'
 
 interface WebsiteSummary {
   domain: string
@@ -90,10 +91,7 @@ export default function WebsitesPage() {
 
     return (
       <div>
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold" style={{ color: 'var(--foreground)' }}>Websites</h1>
-          <p className="text-xs sm:text-sm mt-1" style={{ color: '#475569' }}>Select a company to view its websites.</p>
-        </div>
+        <PageHeader title="Websites" description="Select a company to view its websites" />
 
         {/* Search */}
         <div className="mb-5">
@@ -173,13 +171,7 @@ export default function WebsitesPage() {
 
   return (
     <div>
-      {/* Header */}
-      <div className="sm:flex sm:items-center sm:justify-between gap-3 mb-6">
-        <div>
-          <h1 className="text-xl font-bold" style={{ color: 'var(--foreground)' }}>{openCompany}</h1>
-          <p className="text-xs mt-1" style={{ color: '#94a3b8' }}>{companySites.length} {companySites.length === 1 ? 'website' : 'websites'}</p>
-        </div>
-      </div>
+      <PageHeader title={openCompany ?? 'Websites'} description={`${companySites.length} ${companySites.length === 1 ? 'website' : 'websites'}`} />
 
       {/* Search */}
       {companySites.length > 3 && (

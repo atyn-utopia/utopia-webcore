@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import RichTextEditor from '@/components/RichTextEditor'
 import FlagIcon from '@/components/FlagIcon'
+import PageHeader from '@/components/PageHeader'
 
 interface PostFormProps {
   mode: 'new' | 'edit'
@@ -166,28 +167,25 @@ export default function PostForm({ mode, initialData = {}, postId }: PostFormPro
 
   return (
     <div>
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
-        <div>
-          <h1 className="text-xl font-bold" style={{ color: 'var(--foreground)' }}>{mode === 'new' ? 'New Post' : 'Edit Post'}</h1>
-          {mode === 'edit' && (
-            <span className={`inline-block mt-0.5 px-2 py-0.5 rounded-full text-[10px] font-medium ${status === 'published' ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-500'}`}>
-              {status}
-            </span>
-          )}
-        </div>
-        <div className="flex items-center gap-2">
-          {saved && <span className="text-xs text-green-600 font-medium">Saved</span>}
-          <button type="button" onClick={() => handleSave('draft')} disabled={saving}
-            className="px-3 py-2 text-xs border border-slate-200 rounded-lg text-slate-600 hover:bg-slate-50 disabled:opacity-50 transition-colors">
-            Save as Draft
-          </button>
-          <button type="button" onClick={() => handleSave(status === 'published' ? 'draft' : 'published')} disabled={saving}
-            className="px-3 py-2 text-xs text-white font-medium rounded-lg disabled:opacity-50 transition-colors" style={{ background: 'var(--primary)' }}>
-            {saving ? 'Saving…' : status === 'published' ? 'Unpublish' : 'Publish'}
-          </button>
-        </div>
-      </div>
+      <PageHeader
+        title={mode === 'new' ? 'New Post' : 'Edit Post'}
+        description={mode === 'new' ? 'Create a new blog post with multi-language translations' : `Editing post${status === 'published' ? ' — currently published' : ' — currently draft'}`}
+        actions={
+          <>
+            {saved && <span className="text-xs text-green-600 font-medium mr-2">Saved</span>}
+            <button type="button" onClick={() => handleSave('draft')} disabled={saving}
+              className="inline-flex items-center gap-2 text-sm font-medium px-4 py-2 rounded-lg border transition-colors disabled:opacity-50 hover:bg-slate-50"
+              style={{ borderColor: '#cbd5e1', color: '#475569' }}>
+              Save as Draft
+            </button>
+            <button type="button" onClick={() => handleSave(status === 'published' ? 'draft' : 'published')} disabled={saving}
+              className="inline-flex items-center gap-2 text-white text-sm font-medium px-4 py-2 rounded-lg transition-opacity disabled:opacity-50"
+              style={{ background: 'var(--primary)' }}>
+              {saving ? 'Saving…' : status === 'published' ? 'Unpublish' : 'Publish'}
+            </button>
+          </>
+        }
+      />
 
       {serverError && (
         <div className="mb-5 p-3 rounded-lg border text-sm" style={{ background: '#fef2f2', borderColor: '#fca5a5', color: '#dc2626' }}>{serverError}</div>

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import PageHeader from '@/components/PageHeader'
 
 interface Ticket {
   id: string
@@ -61,18 +62,18 @@ export default function HelpPage() {
 
   return (
     <div>
-      <div className="sm:flex sm:items-center sm:justify-between gap-3 mb-6">
-        <div>
-          <h1 className="text-2xl font-bold" style={{ color: 'var(--foreground)' }}>Help & Feedback</h1>
-          <p className="text-xs sm:text-sm mt-1" style={{ color: '#475569' }}>Report bugs, suggest improvements, or ask questions.</p>
-        </div>
-        <button onClick={() => { setShowForm(!showForm); setSuccess(''); setError('') }}
-          className="inline-flex items-center gap-2 text-white text-sm font-medium px-4 py-2 rounded-lg transition-opacity mt-3 sm:mt-0"
-          style={{ background: 'var(--primary)' }}>
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
-          New Ticket
-        </button>
-      </div>
+      <PageHeader
+        title="Help & Feedback"
+        description="Report bugs, suggest improvements, or ask questions"
+        actions={
+          <button onClick={() => { setShowForm(!showForm); setSuccess(''); setError('') }}
+            className="inline-flex items-center gap-2 text-white text-sm font-medium px-4 py-2 rounded-lg transition-opacity"
+            style={{ background: 'var(--primary)' }}>
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
+            New Ticket
+          </button>
+        }
+      />
 
       {success && (
         <div className="mb-4 p-3 rounded-lg border text-sm" style={{ background: '#f0fdf4', borderColor: '#bbf7d0', color: '#16a34a' }}>{success}</div>

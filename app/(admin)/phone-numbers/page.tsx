@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from 'react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { useWebsite } from '@/contexts/WebsiteContext'
+import PageHeader from '@/components/PageHeader'
 
 const MY_STATES = [
   { label: 'All Locations', slug: 'all' },
@@ -223,16 +224,16 @@ export default function PhoneNumbersPage() {
 
     return (
       <div>
-        <div className="sm:flex sm:items-center sm:justify-between gap-3 mb-6">
-          <div>
-            <h1 className="text-2xl font-bold" style={{ color: 'var(--foreground)' }}>Phone Numbers</h1>
-            <p className="text-xs sm:text-sm mt-1" style={{ color: '#475569' }}>Select a company to manage its phone numbers.</p>
-          </div>
-          <Link href="/phone-numbers/new" className="inline-flex items-center gap-2 text-white text-sm font-medium px-4 py-2 rounded-lg transition-opacity mt-3 sm:mt-0" style={{ background: 'var(--primary)' }}>
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
-            Add Number
-          </Link>
-        </div>
+        <PageHeader
+          title="Phone Numbers"
+          description="Select a company to manage its phone numbers"
+          actions={
+            <Link href="/phone-numbers/new" className="inline-flex items-center gap-2 text-white text-sm font-medium px-4 py-2 rounded-lg transition-opacity" style={{ background: 'var(--primary)' }}>
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
+              Add Number
+            </Link>
+          }
+        />
         <div className="mb-5">
           <div className="relative max-w-sm">
             <svg className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: '#475569' }}><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
@@ -285,25 +286,24 @@ export default function PhoneNumbersPage() {
 
   return (
     <div>
-      {/* Header */}
-      <div className="sm:flex sm:items-center sm:justify-between gap-3 mb-6">
-        <div>
-          <h1 className="text-xl font-bold" style={{ color: 'var(--foreground)' }}>{openCompany || 'Phone Numbers'}</h1>
-          <p className="text-xs sm:text-sm mt-1" style={{ color: '#475569' }}>{openCompany ? 'Phone numbers for this company' : 'Manage phone numbers per website and location.'}</p>
-        </div>
-        <Link
-          href={`/phone-numbers/new${openCompany ? `?company=${encodeURIComponent(openCompany)}` : ''}`}
-          className="inline-flex items-center gap-2 text-white text-sm font-medium px-4 py-2 rounded-lg transition-opacity mt-3 sm:mt-0 sm:flex-shrink-0"
-          style={{ background: 'var(--primary)' }}
-          onMouseEnter={e => (e.currentTarget as HTMLElement).style.opacity = '0.88'}
-          onMouseLeave={e => (e.currentTarget as HTMLElement).style.opacity = '1'}
-        >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-          </svg>
-          Add Number
-        </Link>
-      </div>
+      <PageHeader
+        title={openCompany || 'Phone Numbers'}
+        description={openCompany ? 'Phone numbers for this company' : 'Manage phone numbers per website and location'}
+        actions={
+          <Link
+            href={`/phone-numbers/new${openCompany ? `?company=${encodeURIComponent(openCompany)}` : ''}`}
+            className="inline-flex items-center gap-2 text-white text-sm font-medium px-4 py-2 rounded-lg transition-opacity"
+            style={{ background: 'var(--primary)' }}
+            onMouseEnter={e => (e.currentTarget as HTMLElement).style.opacity = '0.88'}
+            onMouseLeave={e => (e.currentTarget as HTMLElement).style.opacity = '1'}
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+            </svg>
+            Add Number
+          </Link>
+        }
+      />
 
       {/* Search + website filter */}
       <div className="rounded-xl border p-4 sm:p-5 mb-5" style={{ borderColor: '#cbd5e1', background: '#f8fafc' }}>

@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useUser } from '@/contexts/UserContext'
+import PageHeader from '@/components/PageHeader'
 
 interface Site {
   domain: string
@@ -81,10 +82,7 @@ export default function AllWebsitesPage() {
 
   return (
     <div>
-      <div className="mb-6">
-        <h1 className="text-xl font-bold" style={{ color: 'var(--foreground)' }}>All Websites</h1>
-        <p className="text-xs mt-1" style={{ color: '#94a3b8' }}>{sites.length} websites registered</p>
-      </div>
+      <PageHeader title="All Websites" description={`${sites.length} websites registered across all companies`} />
 
       {/* Filters */}
       <div className="rounded-xl border p-4 mb-5 flex flex-wrap gap-3 items-end" style={{ borderColor: '#e2e8f0', background: '#f8fafc' }}>

@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from 'react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useWebsite } from '@/contexts/WebsiteContext'
+import PageHeader from '@/components/PageHeader'
 
 interface Post {
   id: string
@@ -101,16 +102,16 @@ export default function BlogListPage() {
 
     return (
       <div>
-        <div className="sm:flex sm:items-center sm:justify-between gap-3 mb-6">
-          <div>
-            <h1 className="text-2xl font-bold" style={{ color: 'var(--foreground)' }}>Blog Posts</h1>
-            <p className="text-xs sm:text-sm mt-1" style={{ color: '#475569' }}>Select a company to manage its blog posts.</p>
-          </div>
-          <Link href="/blog/new" className="inline-flex items-center gap-2 text-white text-sm font-medium px-4 py-2 rounded-lg transition-opacity mt-3 sm:mt-0" style={{ background: 'var(--primary)' }}>
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
-            New Post
-          </Link>
-        </div>
+        <PageHeader
+          title="Blog Posts"
+          description="Select a company to manage its blog posts"
+          actions={
+            <Link href="/blog/new" className="inline-flex items-center gap-2 text-white text-sm font-medium px-4 py-2 rounded-lg transition-opacity" style={{ background: 'var(--primary)' }}>
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
+              New Post
+            </Link>
+          }
+        />
         <div className="mb-5">
           <div className="relative max-w-sm">
             <svg className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: '#475569' }}><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
@@ -180,16 +181,16 @@ export default function BlogListPage() {
 
     return (
       <div>
-        <div className="sm:flex sm:items-center sm:justify-between gap-3 mb-6">
-          <div>
-            <h1 className="text-xl font-bold" style={{ color: 'var(--foreground)' }}>{openCompany}</h1>
-            <p className="text-xs mt-1" style={{ color: '#94a3b8' }}>Select a website to manage its blog posts</p>
-          </div>
-          <Link href="/blog/new" className="inline-flex items-center gap-2 text-white text-sm font-medium px-4 py-2 rounded-lg transition-opacity mt-3 sm:mt-0" style={{ background: 'var(--primary)' }}>
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
-            New Post
-          </Link>
-        </div>
+        <PageHeader
+          title={openCompany}
+          description="Select a website to manage its blog posts"
+          actions={
+            <Link href="/blog/new" className="inline-flex items-center gap-2 text-white text-sm font-medium px-4 py-2 rounded-lg transition-opacity" style={{ background: 'var(--primary)' }}>
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
+              New Post
+            </Link>
+          }
+        />
         {loading ? (
           <div className="p-12 text-center text-sm rounded-xl border" style={{ borderColor: '#cbd5e1', color: '#475569' }}>Loading…</div>
         ) : companySites.length === 0 ? (
@@ -227,60 +228,48 @@ export default function BlogListPage() {
   // Inside a website folder — show posts
   return (
     <div>
-      {/* Header with back button */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-2">
-        <div className="flex items-center gap-3">
-          <Link
-            href="/blog"
-            className="w-8 h-8 flex items-center justify-center rounded-lg border border-slate-200 hover:bg-slate-50 transition-colors"
-          >
-            <svg className="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-            </svg>
-          </Link>
-          <div>
-            <h1 className="text-xl font-bold" style={{ color: 'var(--foreground)' }}>{openFolder}</h1>
-            <p className="text-xs" style={{ color: '#94a3b8' }}>Blog posts for this website</p>
-          </div>
-        </div>
-        <div className="flex items-center gap-2">
-          {/* View toggle */}
-          <div className="flex items-center rounded-lg border overflow-hidden" style={{ borderColor: '#cbd5e1' }}>
-            <button
-              onClick={() => setViewMode('list')}
-              className="w-8 h-8 flex items-center justify-center transition-colors"
-              style={{ background: viewMode === 'list' ? 'var(--primary)' : 'white', color: viewMode === 'list' ? 'white' : '#94a3b8' }}
-              title="List view"
+      <PageHeader
+        title={openFolder}
+        description="Blog posts for this website"
+        actions={
+          <>
+            <div className="flex items-center rounded-lg border overflow-hidden" style={{ borderColor: '#cbd5e1' }}>
+              <button
+                onClick={() => setViewMode('list')}
+                className="w-8 h-8 flex items-center justify-center transition-colors"
+                style={{ background: viewMode === 'list' ? 'var(--primary)' : 'white', color: viewMode === 'list' ? 'white' : '#94a3b8' }}
+                title="List view"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+                  <line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="18" x2="21" y2="18" />
+                </svg>
+              </button>
+              <button
+                onClick={() => setViewMode('grid')}
+                className="w-8 h-8 flex items-center justify-center transition-colors"
+                style={{ background: viewMode === 'grid' ? 'var(--primary)' : 'white', color: viewMode === 'grid' ? 'white' : '#94a3b8', borderLeft: '1px solid #cbd5e1' }}
+                title="Grid view"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+                  <rect x="3" y="3" width="7" height="7" rx="1" /><rect x="14" y="3" width="7" height="7" rx="1" /><rect x="3" y="14" width="7" height="7" rx="1" /><rect x="14" y="14" width="7" height="7" rx="1" />
+                </svg>
+              </button>
+            </div>
+            <Link
+              href={`/blog/new?website=${encodeURIComponent(openFolder)}${websites.find(w => w.domain === openFolder)?.company_name ? `&company=${encodeURIComponent(websites.find(w => w.domain === openFolder)!.company_name!)}` : ''}`}
+              className="inline-flex items-center gap-2 text-white text-sm font-medium px-4 py-2 rounded-lg transition-opacity"
+              style={{ background: 'var(--primary)' }}
+              onMouseEnter={e => (e.currentTarget as HTMLElement).style.opacity = '0.88'}
+              onMouseLeave={e => (e.currentTarget as HTMLElement).style.opacity = '1'}
             >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
-                <line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="18" x2="21" y2="18" />
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
               </svg>
-            </button>
-            <button
-              onClick={() => setViewMode('grid')}
-              className="w-8 h-8 flex items-center justify-center transition-colors"
-              style={{ background: viewMode === 'grid' ? 'var(--primary)' : 'white', color: viewMode === 'grid' ? 'white' : '#94a3b8', borderLeft: '1px solid #cbd5e1' }}
-              title="Grid view"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
-                <rect x="3" y="3" width="7" height="7" rx="1" /><rect x="14" y="3" width="7" height="7" rx="1" /><rect x="3" y="14" width="7" height="7" rx="1" /><rect x="14" y="14" width="7" height="7" rx="1" />
-              </svg>
-            </button>
-          </div>
-          <Link
-            href={`/blog/new?website=${encodeURIComponent(openFolder)}${websites.find(w => w.domain === openFolder)?.company_name ? `&company=${encodeURIComponent(websites.find(w => w.domain === openFolder)!.company_name!)}` : ''}`}
-            className="inline-flex items-center gap-2 text-white text-sm font-medium px-4 py-2 rounded-lg transition-opacity"
-            style={{ background: 'var(--primary)' }}
-            onMouseEnter={e => (e.currentTarget as HTMLElement).style.opacity = '0.88'}
-            onMouseLeave={e => (e.currentTarget as HTMLElement).style.opacity = '1'}
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-            </svg>
-            New Post
-          </Link>
-        </div>
-      </div>
+              New Post
+            </Link>
+          </>
+        }
+      />
 
       {/* Search */}
       {posts.length > 0 && (

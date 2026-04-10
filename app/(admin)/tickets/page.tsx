@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import PageHeader from '@/components/PageHeader'
 
 interface Ticket {
   id: string
@@ -67,12 +68,7 @@ export default function TicketsPage() {
 
   return (
     <div>
-      <div className="sm:flex sm:items-center sm:justify-between gap-3 mb-6">
-        <div>
-          <h1 className="text-2xl font-bold" style={{ color: 'var(--foreground)' }}>Tickets</h1>
-          <p className="text-xs sm:text-sm mt-1" style={{ color: '#475569' }}>Manage bug reports and feedback from team members.</p>
-        </div>
-      </div>
+      <PageHeader title="Tickets" description="Manage bug reports and feedback from team members" />
 
       {/* Beta banner toggle */}
       <div className="mb-6 rounded-xl border bg-white p-5 flex items-center justify-between" style={{ borderColor: '#cbd5e1' }}>

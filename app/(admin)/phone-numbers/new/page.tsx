@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
+import PageHeader from '@/components/PageHeader'
 
 const MY_STATES = [
   { label: 'Johor', slug: 'johor' },
@@ -260,12 +261,9 @@ export default function NewPhoneNumberPage() {
   }
 
   return (
-    <div className="py-6">
+    <div>
       <div className="max-w-5xl mx-auto w-full">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2" style={{ color: 'var(--foreground)' }}>Add Phone Numbers</h1>
-          <p className="text-sm" style={{ color: '#64748b' }}>Add one or more numbers to a website&apos;s rotation pool. You can also edit existing numbers below.</p>
-        </div>
+        <PageHeader title="Add Phone Numbers" description="Add one or more numbers to a website's rotation pool. You can also edit existing numbers below." />
 
         <div className="rounded-2xl border overflow-hidden shadow-sm" style={{ borderColor: '#e2e8f0', background: 'white' }}>
 
@@ -377,11 +375,44 @@ export default function NewPhoneNumberPage() {
                     })}
                   </div>
                   {/* Status line */}
-                  <p className="text-sm mt-4" style={{ color: '#475569' }}>
-                    {!currentMode && existingNumbers.length === 0 && 'No numbers yet — adding new ones will set the initial mode.'}
-                    {currentMode && !modeChanged && `Currently on ${LEADS_MODE[currentMode].label} mode (${existingNumbers.filter(n => n.is_active).length} active / ${existingNumbers.length} total).`}
-                    {modeChanged && currentMode && predictedMode && `Adding ${rows.length} number${rows.length > 1 ? 's' : ''} will change mode from ${LEADS_MODE[currentMode].label} → ${LEADS_MODE[predictedMode].label}.`}
-                  </p>
+                  <div className="text-sm mt-4 flex items-center gap-2 flex-wrap" style={{ color: '#475569' }}>
+                    {!currentMode && existingNumbers.length === 0 && (
+                      <span className="flex items-center gap-1.5">
+                        <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" style={{ color: '#94a3b8' }}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        This website has no numbers yet. The mode will be set once you add one.
+                      </span>
+                    )}
+                    {currentMode && !modeChanged && (
+                      <>
+                        <span>This website is currently operating in</span>
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold" style={{ background: LEADS_MODE[currentMode].bg, color: LEADS_MODE[currentMode].color }}>
+                          {LEADS_MODE[currentMode].label}
+                        </span>
+                        <span>mode with</span>
+                        <span className="font-semibold" style={{ color: 'var(--foreground)' }}>{existingNumbers.filter(n => n.is_active).length}</span>
+                        <span>of</span>
+                        <span className="font-semibold" style={{ color: 'var(--foreground)' }}>{existingNumbers.length}</span>
+                        <span>number{existingNumbers.length !== 1 ? 's' : ''} active.</span>
+                      </>
+                    )}
+                    {modeChanged && currentMode && predictedMode && (
+                      <>
+                        <span>Adding</span>
+                        <span className="font-semibold" style={{ color: 'var(--foreground)' }}>{rows.length}</span>
+                        <span>new number{rows.length > 1 ? 's' : ''} will transition this website from</span>
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold" style={{ background: LEADS_MODE[currentMode].bg, color: LEADS_MODE[currentMode].color }}>
+                          {LEADS_MODE[currentMode].label}
+                        </span>
+                        <span>to</span>
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold" style={{ background: LEADS_MODE[predictedMode].bg, color: LEADS_MODE[predictedMode].color }}>
+                          {LEADS_MODE[predictedMode].label}
+                        </span>
+                        <span>mode.</span>
+                      </>
+                    )}
+                  </div>
                 </div>
               )}
 
