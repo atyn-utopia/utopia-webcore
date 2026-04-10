@@ -92,11 +92,8 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   return (
     <ToastContext.Provider value={{ toast, success, info, warning, error }}>
       {children}
-      {/* Toast stack — centered within the content area (excluding the 240px sidebar on md+) */}
-      <div
-        className="fixed z-[200] flex flex-col items-center gap-2 pointer-events-none left-1/2 -translate-x-1/2 md:left-[calc(50%+7.5rem)]"
-        style={{ top: '80px' }}
-      >
+      {/* Toast stack — centered below the top bar (h-16 = 64px) */}
+      <div className="fixed left-1/2 -translate-x-1/2 z-[200] flex flex-col items-center gap-2 pointer-events-none" style={{ top: '80px' }}>
         {toasts.map(t => {
           const variant = t.variant ?? 'info'
           const styles = VARIANT_STYLES[variant]
@@ -104,7 +101,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
             <div
               key={t.id}
               role="status"
-              className="pointer-events-auto relative rounded-lg border py-2.5 pl-3 pr-10 shadow-md flex items-center gap-2.5 min-w-[420px] max-w-[640px]"
+              className="pointer-events-auto relative rounded-lg border py-2.5 pl-3 pr-9 shadow-md flex items-center gap-2.5 min-w-[420px] max-w-[640px]"
               style={{
                 background: styles.bg,
                 borderColor: styles.border,
@@ -121,8 +118,8 @@ export function ToastProvider({ children }: { children: ReactNode }) {
               <button
                 type="button"
                 onClick={() => dismiss(t.id)}
-                className="absolute top-1/2 -translate-y-1/2 right-2 w-6 h-6 flex items-center justify-center rounded-md border transition-colors hover:bg-white"
-                style={{ color: '#64748b', borderColor: '#e2e8f0', background: 'white' }}
+                className="absolute top-1/2 -translate-y-1/2 right-2 w-5 h-5 flex items-center justify-center rounded hover:bg-white/60 transition-colors"
+                style={{ color: '#64748b' }}
                 aria-label="Dismiss"
               >
                 <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
