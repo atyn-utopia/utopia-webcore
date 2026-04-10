@@ -95,6 +95,7 @@ export default function NewPhoneNumberPage() {
   const [serverError, setServerError] = useState('')
   const [existingNumbers, setExistingNumbers] = useState<ExistingNumber[]>([])
   const [existingTexts, setExistingTexts] = useState<string[]>([])
+  const [waDropdownId, setWaDropdownId] = useState<string | null>(null)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editDraft, setEditDraft] = useState<Partial<ExistingNumber>>({})
   const [savingEdit, setSavingEdit] = useState(false)
@@ -715,8 +716,8 @@ export default function NewPhoneNumberPage() {
                           {errors[`phone_${i}`] && <p className="mt-0.5 text-xs text-red-500">{errors[`phone_${i}`]}</p>}
                         </div>
 
-                        {/* WhatsApp text */}
-                        <div>
+                        {/* WhatsApp text with suggestions dropdown */}
+                        <div className="relative">
                           <label className="block text-xs font-medium mb-1.5" style={{ color: '#64748b' }}>WhatsApp Text</label>
                           <input
                             type="text"
@@ -725,10 +726,27 @@ export default function NewPhoneNumberPage() {
                             placeholder="e.g. Hi, I'd like to enquire…"
                             className="w-full px-3 py-2 text-sm rounded-lg border focus:outline-none transition-colors"
                             style={{ borderColor: errors[`wa_${i}`] ? '#fca5a5' : '#cbd5e1', background: 'white' }}
-                            onFocus={e => e.currentTarget.style.borderColor = 'var(--primary)'}
-                            onBlur={e => e.currentTarget.style.borderColor = errors[`wa_${i}`] ? '#fca5a5' : '#cbd5e1'}
+                            onFocus={e => { e.currentTarget.style.borderColor = 'var(--primary)'; setWaDropdownId(row.id) }}
+                            onBlur={e => { e.currentTarget.style.borderColor = errors[`wa_${i}`] ? '#fca5a5' : '#cbd5e1'; setTimeout(() => setWaDropdownId(prev => prev === row.id ? null : prev), 150) }}
                           />
                           {errors[`wa_${i}`] && <p className="mt-0.5 text-xs text-red-500">{errors[`wa_${i}`]}</p>}
+                          {waDropdownId === row.id && existingTexts.filter(t => t.toLowerCase().includes(row.whatsapp_text.toLowerCase())).length > 0 && (
+                            <div className="absolute left-0 right-0 top-full mt-1 rounded-lg border shadow-lg z-20 max-h-52 overflow-y-auto" style={{ background: 'white', borderColor: '#e2e8f0' }}>
+                              <div className="px-3 py-1.5 text-[10px] font-semibold uppercase tracking-wider sticky top-0 bg-white" style={{ color: '#94a3b8', borderBottom: '1px solid #f1f5f9' }}>Existing texts</div>
+                              {existingTexts.filter(t => t.toLowerCase().includes(row.whatsapp_text.toLowerCase())).map((text, ti) => (
+                                <button
+                                  key={ti}
+                                  type="button"
+                                  onMouseDown={e => e.preventDefault()}
+                                  onClick={() => { updateRow(row.id, 'whatsapp_text', text); setWaDropdownId(null) }}
+                                  className="w-full text-left px-3 py-2 text-xs hover:bg-slate-50 transition-colors block truncate"
+                                  style={{ color: '#475569' }}
+                                >
+                                  {text}
+                                </button>
+                              ))}
+                            </div>
+                          )}
                         </div>
 
                         {/* Location */}
@@ -776,25 +794,6 @@ export default function NewPhoneNumberPage() {
                         </div>
                       </div>
 
-                      {/* WA text suggestions (only show for first row if no text filled) */}
-                      {i === 0 && existingTexts.length > 0 && !row.whatsapp_text && (
-                        <div className="mt-3 pt-3" style={{ borderTop: '1px solid #e2e8f0' }}>
-                          <p className="text-xs font-medium mb-1.5.5" style={{ color: '#94a3b8' }}>Existing texts — click to use:</p>
-                          <div className="flex flex-wrap gap-1.5">
-                            {existingTexts.map((text, ti) => (
-                              <button
-                                key={ti}
-                                type="button"
-                                onClick={() => updateRow(row.id, 'whatsapp_text', text)}
-                                className="text-xs px-2.5 py-1 rounded-md border transition-colors hover:border-[var(--primary)] hover:text-[var(--primary)]"
-                                style={{ borderColor: '#e2e8f0', color: '#475569', background: 'white' }}
-                              >
-                                {text.length > 50 ? text.slice(0, 50) + '…' : text}
-                              </button>
-                            ))}
-                          </div>
-                        </div>
-                      )}
                     </div>
                   ))}
                 </div>

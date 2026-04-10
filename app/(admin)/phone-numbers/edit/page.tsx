@@ -84,6 +84,8 @@ export default function EditPhoneNumbersPage() {
   const [newRow, setNewRow] = useState<NewRow>(emptyNewRow())
   const [addingNew, setAddingNew] = useState(false)
   const [newError, setNewError] = useState('')
+  const [newWaOpen, setNewWaOpen] = useState(false)
+  const [editWaOpen, setEditWaOpen] = useState(false)
 
   // Fetch companies
   useEffect(() => {
@@ -445,10 +447,29 @@ export default function EditPhoneNumbersPage() {
                                 <input type="text" value={editDraft.phone_number ?? ''} onChange={e => setEditDraft(d => ({ ...d, phone_number: e.target.value }))}
                                   className="w-full px-3 py-2 text-sm rounded-lg border focus:outline-none" style={{ borderColor: editError ? '#fca5a5' : '#cbd5e1', background: 'white' }} />
                               </div>
-                              <div>
+                              <div className="relative">
                                 <label className="block text-xs font-medium mb-1.5" style={{ color: '#64748b' }}>WhatsApp Text</label>
                                 <input type="text" value={editDraft.whatsapp_text ?? ''} onChange={e => setEditDraft(d => ({ ...d, whatsapp_text: e.target.value }))}
-                                  className="w-full px-3 py-2 text-sm rounded-lg border focus:outline-none" style={{ borderColor: '#cbd5e1', background: 'white' }} />
+                                  className="w-full px-3 py-2 text-sm rounded-lg border focus:outline-none" style={{ borderColor: '#cbd5e1', background: 'white' }}
+                                  onFocus={() => setEditWaOpen(true)}
+                                  onBlur={() => setTimeout(() => setEditWaOpen(false), 150)} />
+                                {editWaOpen && existingTexts.filter(t => t.toLowerCase().includes((editDraft.whatsapp_text ?? '').toLowerCase())).length > 0 && (
+                                  <div className="absolute left-0 right-0 top-full mt-1 rounded-lg border shadow-lg z-20 max-h-52 overflow-y-auto" style={{ background: 'white', borderColor: '#e2e8f0' }}>
+                                    <div className="px-3 py-1.5 text-[10px] font-semibold uppercase tracking-wider sticky top-0 bg-white" style={{ color: '#94a3b8', borderBottom: '1px solid #f1f5f9' }}>Existing texts</div>
+                                    {existingTexts.filter(t => t.toLowerCase().includes((editDraft.whatsapp_text ?? '').toLowerCase())).map((text, ti) => (
+                                      <button
+                                        key={ti}
+                                        type="button"
+                                        onMouseDown={e => e.preventDefault()}
+                                        onClick={() => { setEditDraft(d => ({ ...d, whatsapp_text: text })); setEditWaOpen(false) }}
+                                        className="w-full text-left px-3 py-2 text-xs hover:bg-slate-50 transition-colors block truncate"
+                                        style={{ color: '#475569' }}
+                                      >
+                                        {text}
+                                      </button>
+                                    ))}
+                                  </div>
+                                )}
                               </div>
                               <div>
                                 <label className="block text-xs font-medium mb-1.5" style={{ color: '#64748b' }}>Location</label>
@@ -553,15 +574,32 @@ export default function EditPhoneNumbersPage() {
                         onFocus={e => e.currentTarget.style.borderColor = 'var(--primary)'}
                         onBlur={e => e.currentTarget.style.borderColor = '#cbd5e1'} />
                     </div>
-                    <div>
+                    <div className="relative">
                       <label className="block text-xs font-medium mb-1.5" style={{ color: '#64748b' }}>WhatsApp Text</label>
                       <input type="text" value={newRow.whatsapp_text}
                         onChange={e => setNewRow(r => ({ ...r, whatsapp_text: e.target.value }))}
                         placeholder="e.g. Hi, I'd like to enquire…"
                         className="w-full px-3 py-2 text-sm rounded-lg border focus:outline-none transition-colors"
                         style={{ borderColor: '#cbd5e1', background: 'white' }}
-                        onFocus={e => e.currentTarget.style.borderColor = 'var(--primary)'}
-                        onBlur={e => e.currentTarget.style.borderColor = '#cbd5e1'} />
+                        onFocus={e => { e.currentTarget.style.borderColor = 'var(--primary)'; setNewWaOpen(true) }}
+                        onBlur={e => { e.currentTarget.style.borderColor = '#cbd5e1'; setTimeout(() => setNewWaOpen(false), 150) }} />
+                      {newWaOpen && existingTexts.filter(t => t.toLowerCase().includes(newRow.whatsapp_text.toLowerCase())).length > 0 && (
+                        <div className="absolute left-0 right-0 top-full mt-1 rounded-lg border shadow-lg z-20 max-h-52 overflow-y-auto" style={{ background: 'white', borderColor: '#e2e8f0' }}>
+                          <div className="px-3 py-1.5 text-[10px] font-semibold uppercase tracking-wider sticky top-0 bg-white" style={{ color: '#94a3b8', borderBottom: '1px solid #f1f5f9' }}>Existing texts</div>
+                          {existingTexts.filter(t => t.toLowerCase().includes(newRow.whatsapp_text.toLowerCase())).map((text, ti) => (
+                            <button
+                              key={ti}
+                              type="button"
+                              onMouseDown={e => e.preventDefault()}
+                              onClick={() => { setNewRow(r => ({ ...r, whatsapp_text: text })); setNewWaOpen(false) }}
+                              className="w-full text-left px-3 py-2 text-xs hover:bg-slate-50 transition-colors block truncate"
+                              style={{ color: '#475569' }}
+                            >
+                              {text}
+                            </button>
+                          ))}
+                        </div>
+                      )}
                     </div>
                     <div>
                       <label className="block text-xs font-medium mb-1.5" style={{ color: '#64748b' }}>Location</label>
@@ -596,23 +634,7 @@ export default function EditPhoneNumbersPage() {
                     </div>
                   </div>
 
-                  {/* WA text suggestions */}
-                  {existingTexts.length > 0 && !newRow.whatsapp_text && (
-                    <div className="mt-3 pt-3" style={{ borderTop: '1px solid #e2e8f0' }}>
-                      <p className="text-xs font-medium mb-1.5" style={{ color: '#94a3b8' }}>Existing texts — click to use:</p>
-                      <div className="flex flex-wrap gap-1.5">
-                        {existingTexts.map((text, ti) => (
-                          <button key={ti} type="button" onClick={() => setNewRow(r => ({ ...r, whatsapp_text: text }))}
-                            className="text-xs px-2.5 py-1 rounded-md border transition-colors hover:border-[var(--primary)] hover:text-[var(--primary)]"
-                            style={{ borderColor: '#e2e8f0', color: '#475569', background: 'white' }}>
-                            {text.length > 50 ? text.slice(0, 50) + '…' : text}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Add to pool button — full width, prominent */}
+{/* Add to pool button — full width, prominent */}
                   <div className="mt-5 pt-4" style={{ borderTop: '1px solid #e2e8f0' }}>
                     <button type="button" onClick={addNewNumber} disabled={addingNew || !website}
                       className="group/btn w-full flex items-center justify-center gap-2 text-sm font-semibold px-6 py-3 rounded-lg text-white transition-all disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none shadow-sm hover:shadow-md"
