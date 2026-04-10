@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import PageHeader from '@/components/PageHeader'
 import { useConfirm } from '@/contexts/ConfirmContext'
+import { validatePhoneNumber, isDuplicatePhone } from '@/lib/validatePhone'
 
 const MY_STATES = [
   { label: 'Johor', slug: 'johor' },
@@ -135,6 +136,7 @@ export default function EditPhoneNumbersPage() {
   // ─── Inline edit existing ─────────────────────────────────────
   function startEdit(n: ExistingNumber) {
     setEditingId(n.id)
+    setEditError('')
     setEditDraft({
       phone_number: n.phone_number,
       whatsapp_text: n.whatsapp_text,
@@ -148,10 +150,24 @@ export default function EditPhoneNumbersPage() {
   function cancelEdit() {
     setEditingId(null)
     setEditDraft({})
+    setEditError('')
   }
+
+  const [editError, setEditError] = useState('')
 
   async function saveEdit() {
     if (!editingId) return
+    setEditError('')
+    const phoneErr = validatePhoneNumber(editDraft.phone_number ?? '')
+    if (phoneErr) { setEditError(phoneErr); return }
+    if (isDuplicatePhone(editDraft.phone_number ?? '', existingNumbers, editingId)) {
+      setEditError('Another number with this value already exists for this website')
+      return
+    }
+    if (!(editDraft.whatsapp_text ?? '').trim()) {
+      setEditError('WhatsApp text is required')
+      return
+    }
     setSavingEdit(true)
     const res = await fetch(`/api/phone-numbers/${editingId}`, {
       method: 'PATCH',
@@ -162,6 +178,9 @@ export default function EditPhoneNumbersPage() {
     if (res.ok) {
       await fetchExisting(website)
       cancelEdit()
+    } else {
+      const d = await res.json()
+      setEditError(d.error ?? 'Save failed')
     }
   }
 
@@ -181,7 +200,12 @@ export default function EditPhoneNumbersPage() {
   async function addNewNumber() {
     setNewError('')
     if (!website.trim()) { setNewError('Please select a website first'); return }
-    if (!newRow.phone_number.trim()) { setNewError('Phone number is required'); return }
+    const phoneErr = validatePhoneNumber(newRow.phone_number)
+    if (phoneErr) { setNewError(phoneErr); return }
+    if (isDuplicatePhone(newRow.phone_number, existingNumbers)) {
+      setNewError('This number already exists for this website')
+      return
+    }
     if (!newRow.whatsapp_text.trim()) { setNewError('WhatsApp text is required'); return }
 
     setAddingNew(true)
@@ -410,11 +434,16 @@ export default function EditPhoneNumbersPage() {
                           </div>
                         ) : (
                           <div className="p-4" style={{ background: '#fafbfc' }}>
+                            {editError && (
+                              <div className="mb-3 p-3 rounded-lg border text-sm" style={{ background: '#fef2f2', borderColor: '#fca5a5', color: '#dc2626' }}>
+                                {editError}
+                              </div>
+                            )}
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                               <div>
                                 <label className="block text-xs font-medium mb-1.5" style={{ color: '#64748b' }}>Phone Number</label>
                                 <input type="text" value={editDraft.phone_number ?? ''} onChange={e => setEditDraft(d => ({ ...d, phone_number: e.target.value }))}
-                                  className="w-full px-3 py-2 text-sm rounded-lg border focus:outline-none" style={{ borderColor: '#cbd5e1', background: 'white' }} />
+                                  className="w-full px-3 py-2 text-sm rounded-lg border focus:outline-none" style={{ borderColor: editError ? '#fca5a5' : '#cbd5e1', background: 'white' }} />
                               </div>
                               <div>
                                 <label className="block text-xs font-medium mb-1.5" style={{ color: '#64748b' }}>WhatsApp Text</label>

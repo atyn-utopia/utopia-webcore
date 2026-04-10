@@ -6,6 +6,7 @@ import Link from 'next/link'
 import PageHeader from '@/components/PageHeader'
 import { useLanguage } from '@/contexts/LanguageContext'
 import { useConfirm } from '@/contexts/ConfirmContext'
+import { validatePhoneNumber, isDuplicatePhone } from '@/lib/validatePhone'
 
 const MY_STATES = [
   { label: 'Johor', slug: 'johor' },
@@ -222,8 +223,19 @@ export default function NewPhoneNumberPage() {
     const e: Record<string, string> = {}
     if (!selectedCompany) e.company = 'Please select a company'
     if (!website.trim()) e.website = 'Please select a website'
+    // Track duplicates across the new rows themselves as well
+    const seenInRows = new Set<string>()
     rows.forEach((r, i) => {
-      if (!r.phone_number.trim()) e[`phone_${i}`] = 'Required'
+      const phoneErr = validatePhoneNumber(r.phone_number)
+      if (phoneErr) {
+        e[`phone_${i}`] = phoneErr
+      } else if (isDuplicatePhone(r.phone_number, existingNumbers)) {
+        e[`phone_${i}`] = 'This number already exists for this website'
+      } else if (seenInRows.has(r.phone_number.trim())) {
+        e[`phone_${i}`] = 'Duplicate in the rows above'
+      } else {
+        seenInRows.add(r.phone_number.trim())
+      }
       if (!r.whatsapp_text.trim()) e[`wa_${i}`] = 'Required'
     })
     return e
