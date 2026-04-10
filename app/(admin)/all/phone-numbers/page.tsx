@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import PageHeader from '@/components/PageHeader'
+import { useLanguage } from '@/contexts/LanguageContext'
 
 interface PhoneNumber {
   id: string
@@ -35,6 +36,7 @@ function formatDateTime(d: string) {
 }
 
 export default function AllPhoneNumbersPage() {
+  const { t } = useLanguage()
   const [numbers, setNumbers] = useState<PhoneNumber[]>([])
   const [companies, setCompanies] = useState<Company[]>([])
   const [loading, setLoading] = useState(true)
@@ -90,7 +92,7 @@ export default function AllPhoneNumbersPage() {
 
   return (
     <div>
-      <PageHeader title="All Phone Numbers" description={`${numbers.length} numbers across all websites`} />
+      <PageHeader title={t('page.allPhones.title')} description={`${numbers.length} ${t('page.allPhones.description')}`} />
 
       <div className="rounded-xl border p-4 mb-5 flex flex-wrap gap-3 items-end" style={{ borderColor: '#e2e8f0', background: '#f8fafc' }}>
         <div className="flex-1 min-w-48 max-w-sm">

@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { useUser } from '@/contexts/UserContext'
 import PageHeader from '@/components/PageHeader'
+import { useLanguage } from '@/contexts/LanguageContext'
 
 interface WebsiteSummary {
   domain: string
@@ -32,6 +33,7 @@ interface Company {
 
 export default function WebsitesPage() {
   const { role } = useUser()
+  const { t } = useLanguage()
   const isWriter = role === 'writer'
   const searchParams = useSearchParams()
   const openCompany = searchParams.get('company') ?? ''
@@ -91,7 +93,7 @@ export default function WebsitesPage() {
 
     return (
       <div>
-        <PageHeader title="Websites" description="Select a company to view its websites" />
+        <PageHeader title={t('page.websites.title')} description={t('page.websites.description')} />
 
         {/* Search */}
         <div className="mb-5">

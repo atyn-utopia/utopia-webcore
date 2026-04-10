@@ -6,6 +6,7 @@ import Link from 'next/link'
 import RichTextEditor from '@/components/RichTextEditor'
 import FlagIcon from '@/components/FlagIcon'
 import PageHeader from '@/components/PageHeader'
+import { useLanguage } from '@/contexts/LanguageContext'
 
 interface PostFormProps {
   mode: 'new' | 'edit'
@@ -43,6 +44,7 @@ function toSlug(str: string) {
 
 export default function PostForm({ mode, initialData = {}, postId }: PostFormProps) {
   const router = useRouter()
+  const { t: tr } = useLanguage()
 
   const [website, setWebsite] = useState((initialData.website as string) ?? '')
   const [slug, setSlug] = useState((initialData.slug as string) ?? '')
@@ -168,20 +170,20 @@ export default function PostForm({ mode, initialData = {}, postId }: PostFormPro
   return (
     <div>
       <PageHeader
-        title={mode === 'new' ? 'New Post' : 'Edit Post'}
-        description={mode === 'new' ? 'Create a new blog post with multi-language translations' : `Editing post${status === 'published' ? ' — currently published' : ' — currently draft'}`}
+        title={mode === 'new' ? tr('page.newPost.title') : tr('page.editPost.title')}
+        description={mode === 'new' ? tr('page.newPost.description') : `${tr('common.status')}: ${status === 'published' ? tr('common.published') : tr('common.draft')}`}
         actions={
           <>
-            {saved && <span className="text-xs text-green-600 font-medium mr-2">Saved</span>}
+            {saved && <span className="text-xs text-green-600 font-medium mr-2">{tr('common.save')}</span>}
             <button type="button" onClick={() => handleSave('draft')} disabled={saving}
               className="inline-flex items-center gap-2 text-sm font-medium px-4 py-2 rounded-lg border transition-colors disabled:opacity-50 hover:bg-slate-50"
               style={{ borderColor: '#cbd5e1', color: '#475569' }}>
-              Save as Draft
+              {tr('common.draft')}
             </button>
             <button type="button" onClick={() => handleSave(status === 'published' ? 'draft' : 'published')} disabled={saving}
               className="inline-flex items-center gap-2 text-white text-sm font-medium px-4 py-2 rounded-lg transition-opacity disabled:opacity-50"
               style={{ background: 'var(--primary)' }}>
-              {saving ? 'Saving…' : status === 'published' ? 'Unpublish' : 'Publish'}
+              {saving ? tr('common.saving') : status === 'published' ? tr('common.draft') : tr('common.published')}
             </button>
           </>
         }

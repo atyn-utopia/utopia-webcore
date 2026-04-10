@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import PageHeader from '@/components/PageHeader'
+import { useLanguage } from '@/contexts/LanguageContext'
 
 const MY_STATES = [
   { label: 'Johor', slug: 'johor' },
@@ -78,6 +79,7 @@ function predictMode(existing: ExistingNumber[], newRows: NumberRow[]): string |
 
 export default function NewPhoneNumberPage() {
   const router = useRouter()
+  const { t } = useLanguage()
   const searchParams = useSearchParams()
   const prefillWebsite = searchParams.get('website') ?? ''
   const prefillCompany = searchParams.get('company') ?? ''
@@ -263,7 +265,7 @@ export default function NewPhoneNumberPage() {
   return (
     <div>
       <div className="max-w-5xl mx-auto w-full">
-        <PageHeader title="Add Phone Numbers" description="Add one or more numbers to a website's rotation pool. You can also edit existing numbers below." />
+        <PageHeader title={t('page.addPhone.title')} description={t('page.addPhone.description')} />
 
         <div className="rounded-2xl border overflow-hidden shadow-sm" style={{ borderColor: '#e2e8f0', background: 'white' }}>
 

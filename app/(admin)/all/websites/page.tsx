@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useUser } from '@/contexts/UserContext'
 import PageHeader from '@/components/PageHeader'
+import { useLanguage } from '@/contexts/LanguageContext'
 
 interface Site {
   domain: string
@@ -39,6 +40,7 @@ function SelectArrow() {
 
 export default function AllWebsitesPage() {
   const { role } = useUser()
+  const { t } = useLanguage()
   const isWriter = role === 'writer'
   const [sites, setSites] = useState<Site[]>([])
   const [loading, setLoading] = useState(true)
@@ -82,7 +84,7 @@ export default function AllWebsitesPage() {
 
   return (
     <div>
-      <PageHeader title="All Websites" description={`${sites.length} websites registered across all companies`} />
+      <PageHeader title={t('page.allWebsites.title')} description={`${sites.length} ${t('page.allWebsites.description')}`} />
 
       {/* Filters */}
       <div className="rounded-xl border p-4 mb-5 flex flex-wrap gap-3 items-end" style={{ borderColor: '#e2e8f0', background: '#f8fafc' }}>

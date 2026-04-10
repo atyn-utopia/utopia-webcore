@@ -1,7 +1,8 @@
-import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { createServiceClient } from '@/lib/supabase/service'
 import { getUserScope } from '@/lib/getUserScope'
+import DashboardClient from '@/components/DashboardClient'
+import type { UserRole } from '@/contexts/UserContext'
 
 export default async function DashboardPage() {
   const supabase = await createClient()
@@ -9,11 +10,9 @@ export default async function DashboardPage() {
 
   const service = createServiceClient()
   const scope = user ? await getUserScope(user.id) : { role: 'admin' as const, isScoped: false, companyIds: null, domains: null }
-  const role = scope.role
-  const isWriter = role === 'writer'
-  const isScoped = scope.isScoped // indoor_sales or manager
+  const role = scope.role as UserRole
+  const isScoped = scope.isScoped
 
-  // Build scoped queries — if user is restricted to certain domains, apply .in() filter
   const allowedDomains = scope.isScoped ? (scope.domains ?? []) : null
   const noAccess = scope.isScoped && allowedDomains!.length === 0
 
@@ -51,210 +50,18 @@ export default async function DashboardPage() {
     recentPhonesRes = results[4] as RecentData
   }
 
-  const phoneCount = phoneCountRes.count
-  const postCount = postCountRes.count
-  const websitesData = websitesRes.data
-  const recentPosts = recentPostsRes.data
-  const recentPhones = recentPhonesRes.data
-
-  // For scoped users, include their assigned domains even if no phone/blog data exists yet
-  const websitesSet = new Set((websitesData ?? []).map((r: { website: string }) => r.website))
+  const websitesSet = new Set((websitesRes.data ?? []).map((r: { website: string }) => r.website))
   if (allowedDomains) allowedDomains.forEach(d => websitesSet.add(d))
-  const websiteCount = websitesSet.size
 
   return (
-    <div>
-      {/* Welcome banner */}
-      <div className="rounded-xl overflow-hidden mb-8 relative border" style={{ background: 'linear-gradient(to right, #f0f4f8, #ffffff)', borderColor: '#e2e8f0', minHeight: '140px' }}>
-        <div className="relative z-10 p-6 sm:p-8 pr-32 sm:pr-48">
-          <h1 className="text-xl sm:text-2xl font-bold text-slate-900 mb-1" style={{ fontFamily: 'var(--font-display)' }}>Welcome back!</h1>
-          <p className="text-sm text-slate-500 max-w-md">
-            {role === 'admin' && 'You have full access to manage websites, phone numbers, users, and blog content.'}
-            {role === 'designer' && 'Manage websites, phone numbers, and blog content across all companies.'}
-            {role === 'writer' && 'Create and publish blog content across all websites.'}
-            {role === 'manager' && 'View your assigned company websites and track phone number performance.'}
-            {role === 'indoor_sales' && 'Monitor websites and phone numbers for your assigned companies.'}
-          </p>
-        </div>
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/character.gif" alt="" className="absolute right-0 bottom-0 h-full object-contain object-right-bottom pointer-events-none" style={{ maxHeight: '140px' }} />
-      </div>
-
-      {/* Stats */}
-      <div className={`grid grid-cols-1 ${isWriter || isScoped ? 'sm:grid-cols-2' : 'sm:grid-cols-3'} gap-4 mb-8`}>
-        <Link href="/all/websites" className="group block rounded-xl border border-slate-200 bg-white p-5 hover:shadow-sm transition-shadow">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: '#f1f5f9' }}>
-              <svg className="w-4.5 h-4.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8">
-                <rect x="2" y="3" width="20" height="14" rx="2" /><path d="M2 7h20" /><path strokeLinecap="round" d="M8 21h8M12 17v4" />
-              </svg>
-            </div>
-            <span className="text-xs font-medium text-slate-400 uppercase tracking-wide">Websites</span>
-          </div>
-          <p className="text-3xl font-bold text-slate-900 mb-0.5">{websiteCount}</p>
-          <p className="text-xs text-slate-400">Manage all connected sites</p>
-        </Link>
-
-        {!isWriter && (
-          <Link href="/all/phone-numbers" className="group block rounded-xl border border-slate-200 bg-white p-5 hover:shadow-sm transition-shadow">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: '#eff6ff' }}>
-                <svg className="w-4.5 h-4.5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z" />
-                </svg>
-              </div>
-              <span className="text-xs font-medium text-slate-400 uppercase tracking-wide">Phone Numbers</span>
-            </div>
-            <p className="text-3xl font-bold text-slate-900 mb-0.5">{phoneCount ?? 0}</p>
-            <p className="text-xs text-slate-400">WhatsApp rotation pool across all sites</p>
-          </Link>
-        )}
-
-        {!isScoped && (
-          <Link href="/all/blog" className="group block rounded-xl border border-slate-200 bg-white p-5 hover:shadow-sm transition-shadow">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: '#f0fdf4' }}>
-                <svg className="w-4.5 h-4.5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                </svg>
-              </div>
-              <span className="text-xs font-medium text-slate-400 uppercase tracking-wide">Blog Posts</span>
-            </div>
-            <p className="text-3xl font-bold text-slate-900 mb-0.5">{postCount ?? 0}</p>
-            <p className="text-xs text-slate-400">SEO content published across websites</p>
-          </Link>
-        )}
-      </div>
-
-      {/* Quick Actions */}
-      <h2 className="text-sm font-semibold text-slate-700 mb-3">Quick Actions</h2>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        {!isWriter && !isScoped && (
-          <Link href="/phone-numbers/new" className="flex items-center gap-3 p-3 rounded-lg border border-slate-200 hover:border-slate-300 hover:bg-slate-50 transition-colors">
-            <div className="w-8 h-8 rounded-md flex items-center justify-center bg-blue-50">
-              <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" /></svg>
-            </div>
-            <div>
-              <p className="text-sm font-medium text-slate-800">Add Phone Number</p>
-              <p className="text-xs text-slate-400">Add a new number to the WhatsApp rotation</p>
-            </div>
-          </Link>
-        )}
-
-        {!isScoped && (
-          <Link href="/blog/new" className="flex items-center gap-3 p-3 rounded-lg border border-slate-200 hover:border-slate-300 hover:bg-slate-50 transition-colors">
-            <div className="w-8 h-8 rounded-md flex items-center justify-center bg-green-50">
-              <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" /></svg>
-            </div>
-            <div>
-              <p className="text-sm font-medium text-slate-800">New Blog Post</p>
-              <p className="text-xs text-slate-400">Create SEO content for any website</p>
-            </div>
-          </Link>
-        )}
-
-        <Link href="/websites" className="flex items-center gap-3 p-3 rounded-lg border border-slate-200 hover:border-slate-300 hover:bg-slate-50 transition-colors">
-          <div className="w-8 h-8 rounded-md flex items-center justify-center bg-slate-100">
-            <svg className="w-4 h-4 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
-              <rect x="2" y="3" width="20" height="14" rx="2" /><path d="M2 7h20" strokeLinecap="round" /><path d="M8 21h8M12 17v4" strokeLinecap="round" />
-            </svg>
-          </div>
-          <div>
-            <p className="text-sm font-medium text-slate-800">{isScoped ? 'View Websites' : 'Manage Websites'}</p>
-            <p className="text-xs text-slate-400">{isScoped ? 'Your assigned company websites' : 'View all connected sites and their data'}</p>
-          </div>
-        </Link>
-
-        {!isWriter && (
-          <Link href="/phone-numbers" className="flex items-center gap-3 p-3 rounded-lg border border-slate-200 hover:border-slate-300 hover:bg-slate-50 transition-colors">
-            <div className="w-8 h-8 rounded-md flex items-center justify-center bg-blue-50">
-              <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-              </svg>
-            </div>
-            <div>
-              <p className="text-sm font-medium text-slate-800">{isScoped ? 'View Phone Numbers' : 'Configure Percentages'}</p>
-              <p className="text-xs text-slate-400">{isScoped ? 'See numbers for your companies' : 'Adjust lead distribution weights per site'}</p>
-            </div>
-          </Link>
-        )}
-      </div>
-
-      {/* Recent Activity */}
-      <h2 className="text-sm font-semibold text-slate-700 mt-8 mb-3">Recent Activity</h2>
-      <div className={`grid grid-cols-1 ${isWriter || isScoped ? '' : 'lg:grid-cols-2'} gap-4`}>
-        {/* Recent Blog Posts */}
-        {!isScoped && (
-        <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
-          <div className="px-4 py-3 flex items-center justify-between" style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
-            <div className="flex items-center gap-2">
-              <svg className="w-3.5 h-3.5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8"><path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
-              <span className="text-xs font-medium" style={{ color: '#475569' }}>Latest Blog Posts</span>
-            </div>
-            <Link href="/blog" className="text-[10px] font-medium hover:underline" style={{ color: 'var(--primary)' }}>View all</Link>
-          </div>
-          {(recentPosts ?? []).length === 0 ? (
-            <p className="px-4 py-6 text-center text-xs" style={{ color: '#94a3b8' }}>No blog posts yet</p>
-          ) : (
-            <div>
-              {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-              {(recentPosts ?? []).map((post: any, i: number) => {
-                const t = post.blog_translations?.find((t: { language: string }) => t.language === 'en') ?? post.blog_translations?.[0]
-                return (
-                  <Link key={post.id} href={`/blog/${post.id}/edit`}
-                    className="flex items-center justify-between px-4 py-2.5 hover:bg-slate-50 transition-colors"
-                    style={{ borderBottom: i < (recentPosts ?? []).length - 1 ? '1px solid #f1f5f9' : 'none' }}>
-                    <div className="min-w-0 flex-1">
-                      <p className="text-xs font-medium truncate" style={{ color: 'var(--foreground)' }}>{t?.title ?? '(Untitled)'}</p>
-                      <p className="text-[10px] truncate" style={{ color: '#94a3b8' }}>{post.website}</p>
-                    </div>
-                    <div className="flex items-center gap-2 flex-shrink-0 ml-3">
-                      <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-medium ${post.status === 'published' ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-500'}`}>
-                        {post.status === 'published' ? 'Live' : 'Draft'}
-                      </span>
-                    </div>
-                  </Link>
-                )
-              })}
-            </div>
-          )}
-        </div>
-        )}
-
-        {/* Recent Phone Numbers */}
-        {!isWriter && (
-          <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
-            <div className="px-4 py-3 flex items-center justify-between" style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
-              <div className="flex items-center gap-2">
-                <svg className="w-3.5 h-3.5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8"><path strokeLinecap="round" strokeLinejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>
-                <span className="text-xs font-medium" style={{ color: '#475569' }}>Latest Phone Numbers</span>
-              </div>
-              <Link href="/phone-numbers" className="text-[10px] font-medium hover:underline" style={{ color: 'var(--primary)' }}>View all</Link>
-            </div>
-            {(recentPhones ?? []).length === 0 ? (
-              <p className="px-4 py-6 text-center text-xs" style={{ color: '#94a3b8' }}>No phone numbers yet</p>
-            ) : (
-              <div>
-                {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-                {(recentPhones ?? []).map((phone: any, i: number) => (
-                  <div key={phone.id}
-                    className="flex items-center justify-between px-4 py-2.5"
-                    style={{ borderBottom: i < (recentPhones ?? []).length - 1 ? '1px solid #f1f5f9' : 'none' }}>
-                    <div className="min-w-0 flex-1">
-                      <p className="text-xs font-medium font-mono" style={{ color: 'var(--foreground)' }}>{phone.phone_number}</p>
-                      <p className="text-[10px] truncate" style={{ color: '#94a3b8' }}>{phone.website}</p>
-                    </div>
-                    <span className="text-[9px] px-1.5 py-0.5 rounded-full font-medium flex-shrink-0 ml-3"
-                      style={phone.type === 'default' ? { background: 'var(--primary)', color: 'white' } : { background: '#f1f5f9', color: '#475569' }}>
-                      {phone.type === 'default' ? 'Default' : (phone.label ?? 'Custom')}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
-      </div>
-    </div>
+    <DashboardClient
+      role={role}
+      isScoped={isScoped}
+      websiteCount={websitesSet.size}
+      phoneCount={phoneCountRes.count}
+      postCount={postCountRes.count}
+      recentPosts={recentPostsRes.data ?? []}
+      recentPhones={recentPhonesRes.data ?? []}
+    />
   )
 }

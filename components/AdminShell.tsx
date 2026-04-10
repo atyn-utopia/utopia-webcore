@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { WebsiteProvider } from '@/contexts/WebsiteContext'
 import { UserProvider, type UserRole } from '@/contexts/UserContext'
+import { LanguageProvider } from '@/contexts/LanguageContext'
 import Sidebar from './Sidebar'
 import Breadcrumb from './Breadcrumb'
 import TopBar from './TopBar'
@@ -28,6 +29,7 @@ export default function AdminShell({ userEmail, userName, userRole, children }: 
   }, [userRole])
 
   return (
+    <LanguageProvider>
     <UserProvider value={{ email: userEmail, name: userName, role: userRole }}>
     <WebsiteProvider>
       <div className="flex flex-col h-screen" style={{ background: '#ffffff' }}>
@@ -87,7 +89,7 @@ export default function AdminShell({ userEmail, userName, userRole, children }: 
                 </div>
                 <div>
                   <span className="text-sm font-bold tracking-tight" style={{ color: 'var(--foreground)' }}>Utopia Webcore</span>
-                  <p className="text-xs text-slate-500">Web & Content Ops</p>
+                  <p className="text-xs text-slate-500">Web &amp; Content Ops</p>
                 </div>
               </Link>
             </div>
@@ -105,5 +107,6 @@ export default function AdminShell({ userEmail, userName, userRole, children }: 
       </div>
     </WebsiteProvider>
     </UserProvider>
+    </LanguageProvider>
   )
 }

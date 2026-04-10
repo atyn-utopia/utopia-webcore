@@ -3,9 +3,11 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { LanguageProvider, useLanguage } from '@/contexts/LanguageContext'
 
-export default function LoginPage() {
+function LoginPageInner() {
   const router = useRouter()
+  const { t, language, setLanguage } = useLanguage()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
@@ -16,7 +18,7 @@ export default function LoginPage() {
     e.preventDefault()
     setError('')
     if (!email || !password) {
-      setError('Email and password are required.')
+      setError(t('login.error.empty'))
       return
     }
     setLoading(true)
@@ -44,8 +46,8 @@ export default function LoginPage() {
               <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
             </svg>
           </div>
-          <p className="text-sm font-medium" style={{ color: 'var(--foreground)', animation: 'fadeUp 0.4s ease 0.4s both' }}>Welcome back!</p>
-          <p className="text-xs mt-1" style={{ color: '#94a3b8', animation: 'fadeUp 0.4s ease 0.5s both' }}>Redirecting to dashboard…</p>
+          <p className="text-sm font-medium" style={{ color: 'var(--foreground)', animation: 'fadeUp 0.4s ease 0.4s both' }}>{t('login.welcomeBack')}</p>
+          <p className="text-xs mt-1" style={{ color: '#94a3b8', animation: 'fadeUp 0.4s ease 0.5s both' }}>{t('login.redirecting')}</p>
           <div className="mt-4 w-32 h-1 rounded-full overflow-hidden" style={{ background: '#e2e8f0', animation: 'fadeUp 0.4s ease 0.6s both' }}>
             <div className="h-full rounded-full" style={{ background: 'linear-gradient(90deg, #1a3a6e, #2979d6)', animation: 'progressBar 1.2s ease 0.6s both' }} />
           </div>
@@ -70,16 +72,30 @@ export default function LoginPage() {
               <path d="M12 2L9.5 9.5 2 12l7.5 2.5L12 22l2.5-7.5L22 12l-7.5-2.5z"/>
             </svg>
           </div>
-          <h1 className="text-xl font-bold tracking-tight" style={{ color: '#1e293b' }}>Utopia Webcore</h1>
-          <p className="text-sm mt-1" style={{ color: '#64748b' }}>Web & Content Operations Platform</p>
+          <h1 className="text-xl font-bold tracking-tight" style={{ color: '#1e293b' }}>{t('login.title')}</h1>
+          <p className="text-sm mt-1" style={{ color: '#64748b' }}>{t('login.subtitle')}</p>
           <p className="text-xs mt-3 text-center leading-relaxed max-w-xs" style={{ color: '#94a3b8' }}>
-            Centralized management for website phone numbers, blog content, and multi-site operations. Authorized personnel only.
+            {t('login.description')}
           </p>
+          {/* Language switcher */}
+          <div className="mt-4 flex gap-1 p-0.5 rounded-lg border" style={{ borderColor: '#e2e8f0', background: '#f8fafc' }}>
+            {(['en', 'ms'] as const).map(lang => (
+              <button
+                key={lang}
+                type="button"
+                onClick={() => setLanguage(lang)}
+                className="px-3 py-1 text-[11px] font-semibold rounded-md transition-colors"
+                style={{ background: language === lang ? 'white' : 'transparent', color: language === lang ? '#1e293b' : '#94a3b8', boxShadow: language === lang ? '0 1px 2px rgba(0,0,0,0.05)' : undefined }}
+              >
+                {lang === 'en' ? 'EN' : 'BM'}
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* Login Card */}
         <div className="rounded-xl border bg-white p-6" style={{ borderColor: '#e2e8f0' }}>
-          <h2 className="text-lg font-semibold mb-5" style={{ color: '#1e293b' }}>Sign in</h2>
+          <h2 className="text-lg font-semibold mb-5" style={{ color: '#1e293b' }}>{t('login.signIn')}</h2>
 
           {error && (
             <div className="mb-4 p-2.5 rounded-lg border text-xs" style={{ background: '#fef2f2', borderColor: '#fca5a5', color: '#dc2626' }}>
@@ -89,7 +105,7 @@ export default function LoginPage() {
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-xs font-medium mb-1.5" style={{ color: '#475569' }}>Email address</label>
+              <label className="block text-xs font-medium mb-1.5" style={{ color: '#475569' }}>{t('login.email')}</label>
               <input
                 type="email"
                 value={email}
@@ -104,7 +120,7 @@ export default function LoginPage() {
               />
             </div>
             <div>
-              <label className="block text-xs font-medium mb-1.5" style={{ color: '#475569' }}>Password</label>
+              <label className="block text-xs font-medium mb-1.5" style={{ color: '#475569' }}>{t('login.password')}</label>
               <input
                 type="password"
                 value={password}
@@ -132,18 +148,26 @@ export default function LoginPage() {
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                   </svg>
-                  Signing in…
+                  {t('login.signingIn')}
                 </span>
-              ) : 'Sign in'}
+              ) : t('login.signIn')}
             </button>
           </form>
         </div>
 
         {/* Footer */}
         <p className="text-center text-xs mt-6" style={{ color: '#94a3b8' }}>
-          Utopia Webcore v1.0 — Internal Use Only
+          {t('login.footer')}
         </p>
       </div>
     </div>
+  )
+}
+
+export default function LoginPage() {
+  return (
+    <LanguageProvider>
+      <LoginPageInner />
+    </LanguageProvider>
   )
 }

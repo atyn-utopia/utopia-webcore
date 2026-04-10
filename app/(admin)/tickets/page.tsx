@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import PageHeader from '@/components/PageHeader'
+import { useLanguage } from '@/contexts/LanguageContext'
 
 interface Ticket {
   id: string
@@ -26,6 +27,7 @@ const ROLE_STYLE: Record<string, { bg: string; color: string }> = {
 }
 
 export default function TicketsPage() {
+  const { t } = useLanguage()
   const [tickets, setTickets] = useState<Ticket[]>([])
   const [loading, setLoading] = useState(true)
   const [betaOn, setBetaOn] = useState(false)
@@ -68,7 +70,7 @@ export default function TicketsPage() {
 
   return (
     <div>
-      <PageHeader title="Tickets" description="Manage bug reports and feedback from team members" />
+      <PageHeader title={t('page.tickets.title')} description={t('page.tickets.description')} />
 
       {/* Beta banner toggle */}
       <div className="mb-6 rounded-xl border bg-white p-5 flex items-center justify-between" style={{ borderColor: '#cbd5e1' }}>

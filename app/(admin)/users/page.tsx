@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import PageHeader from '@/components/PageHeader'
+import { useLanguage } from '@/contexts/LanguageContext'
 
 type UserRole = 'admin' | 'designer' | 'writer' | 'indoor_sales' | 'manager'
 
@@ -30,6 +31,7 @@ const SCOPED_ROLES: UserRole[] = ['indoor_sales', 'manager']
 function isScoped(r: UserRole) { return SCOPED_ROLES.includes(r) }
 
 export default function UsersPage() {
+  const { t } = useLanguage()
   const [users, setUsers] = useState<UserProfile[]>([])
   const [companies, setCompanies] = useState<Company[]>([])
   const [loading, setLoading] = useState(true)
@@ -151,8 +153,8 @@ export default function UsersPage() {
   return (
     <div>
       <PageHeader
-        title="Users"
-        description="Manage team members, roles, and company access"
+        title={t('page.users.title')}
+        description={t('page.users.description')}
         actions={
           <button
             onClick={() => { setShowForm(!showForm); setError(''); setSuccess('') }}
@@ -162,7 +164,7 @@ export default function UsersPage() {
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
             </svg>
-            Add User
+            {t('button.addUser')}
           </button>
         }
       />

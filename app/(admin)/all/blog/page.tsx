@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import PageHeader from '@/components/PageHeader'
+import { useLanguage } from '@/contexts/LanguageContext'
 
 interface Post {
   id: string
@@ -33,6 +34,7 @@ function formatDate(d: string) {
 }
 
 export default function AllBlogPage() {
+  const { t } = useLanguage()
   const [posts, setPosts] = useState<Post[]>([])
   const [companies, setCompanies] = useState<Company[]>([])
   const [loading, setLoading] = useState(true)
@@ -90,7 +92,7 @@ export default function AllBlogPage() {
 
   return (
     <div>
-      <PageHeader title="All Blog Posts" description={`${posts.length} posts across all websites`} />
+      <PageHeader title={t('page.allBlog.title')} description={`${posts.length} ${t('page.allBlog.description')}`} />
 
       <div className="rounded-xl border p-4 mb-5 flex flex-wrap gap-3 items-end" style={{ borderColor: '#e2e8f0', background: '#f8fafc' }}>
         <div className="flex-1 min-w-48 max-w-sm">

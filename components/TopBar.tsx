@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { useLanguage } from '@/contexts/LanguageContext'
 
 interface Notification {
   id: string
@@ -21,14 +22,17 @@ interface SearchResult {
 
 export default function TopBar() {
   const router = useRouter()
+  const { language, setLanguage, t } = useLanguage()
   const [notifications, setNotifications] = useState<Notification[]>([])
   const [showPanel, setShowPanel] = useState(false)
+  const [showLang, setShowLang] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [searchResults, setSearchResults] = useState<SearchResult[]>([])
   const [showSearch, setShowSearch] = useState(false)
   const [searching, setSearching] = useState(false)
   const panelRef = useRef<HTMLDivElement>(null)
   const searchRef = useRef<HTMLDivElement>(null)
+  const langRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     fetch('/api/tickets').then(r => r.json()).then(data => {
@@ -45,6 +49,7 @@ export default function TopBar() {
     function handleClick(e: MouseEvent) {
       if (panelRef.current && !panelRef.current.contains(e.target as Node)) setShowPanel(false)
       if (searchRef.current && !searchRef.current.contains(e.target as Node)) setShowSearch(false)
+      if (langRef.current && !langRef.current.contains(e.target as Node)) setShowLang(false)
     }
     document.addEventListener('mousedown', handleClick)
     return () => document.removeEventListener('mousedown', handleClick)
@@ -158,6 +163,36 @@ export default function TopBar() {
       <button onClick={() => router.forward()} className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-slate-100 transition-colors" style={{ color: '#94a3b8' }} title="Go forward">
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></svg>
       </button>
+
+      {/* Language switcher */}
+      <div className="relative" ref={langRef}>
+        <button onClick={() => setShowLang(!showLang)} className="h-8 px-2 flex items-center gap-1 rounded-lg hover:bg-slate-100 transition-colors text-[11px] font-semibold uppercase tracking-wider" style={{ color: '#64748b' }} title={t('lang.switcher.title')}>
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129" />
+          </svg>
+          {language === 'en' ? 'EN' : 'BM'}
+        </button>
+        {showLang && (
+          <div className="absolute right-0 top-10 w-40 rounded-xl border shadow-lg z-50 overflow-hidden" style={{ background: 'white', borderColor: '#e2e8f0' }}>
+            <div className="px-3 py-2 text-[10px] font-semibold uppercase tracking-wider" style={{ color: '#94a3b8', borderBottom: '1px solid #f1f5f9' }}>
+              {t('lang.switcher.title')}
+            </div>
+            {(['en', 'ms'] as const).map(lang => (
+              <button
+                key={lang}
+                onClick={() => { setLanguage(lang); setShowLang(false) }}
+                className="w-full text-left px-3 py-2.5 text-xs font-medium flex items-center justify-between transition-colors hover:bg-slate-50"
+                style={{ color: language === lang ? 'var(--primary)' : '#475569' }}
+              >
+                <span>{lang === 'en' ? t('lang.english') : t('lang.malay')}</span>
+                {language === lang && (
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+                )}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
 
       {/* Notification bell */}
       <div className="relative" ref={panelRef}>

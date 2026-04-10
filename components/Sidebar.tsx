@@ -6,6 +6,8 @@ import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useWebsite } from '@/contexts/WebsiteContext'
 import type { UserRole } from '@/contexts/UserContext'
+import { useLanguage } from '@/contexts/LanguageContext'
+import type { TranslationKey } from '@/lib/i18n/en'
 
 interface SidebarProps {
   userEmail: string
@@ -15,18 +17,18 @@ interface SidebarProps {
   onClose?: () => void
 }
 
-const ROLE_LABELS: Record<UserRole, string> = {
-  admin: 'Admin',
-  designer: 'Designer',
-  writer: 'Writer',
-  indoor_sales: 'Indoor Sales',
-  manager: 'Manager',
+const ROLE_KEY: Record<UserRole, TranslationKey> = {
+  admin: 'role.admin',
+  designer: 'role.designer',
+  writer: 'role.writer',
+  indoor_sales: 'role.indoor_sales',
+  manager: 'role.manager',
 }
 
-const navItems: { href: string; label: string; roles: UserRole[]; icon: React.ReactNode }[] = [
+const navItems: { href: string; labelKey: TranslationKey; roles: UserRole[]; icon: React.ReactNode }[] = [
   {
     href: '/',
-    label: 'Dashboard',
+    labelKey: 'nav.dashboard',
     roles: ['admin', 'designer', 'writer', 'indoor_sales', 'manager'],
     icon: (
       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8">
@@ -36,7 +38,7 @@ const navItems: { href: string; label: string; roles: UserRole[]; icon: React.Re
   },
   {
     href: '/websites',
-    label: 'Websites',
+    labelKey: 'nav.websites',
     roles: ['admin', 'designer', 'writer', 'indoor_sales', 'manager'],
     icon: (
       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -51,7 +53,7 @@ const navItems: { href: string; label: string; roles: UserRole[]; icon: React.Re
   },
   {
     href: '/phone-numbers',
-    label: 'Phone Numbers',
+    labelKey: 'nav.phoneNumbers',
     roles: ['admin', 'designer', 'indoor_sales', 'manager'],
     icon: (
       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -62,7 +64,7 @@ const navItems: { href: string; label: string; roles: UserRole[]; icon: React.Re
   },
   {
     href: '/blog',
-    label: 'Blog Posts',
+    labelKey: 'nav.blogPosts',
     roles: ['admin', 'designer', 'writer'],
     icon: (
       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -73,7 +75,7 @@ const navItems: { href: string; label: string; roles: UserRole[]; icon: React.Re
   },
   {
     href: '/users',
-    label: 'Users',
+    labelKey: 'nav.users',
     roles: ['admin'],
     icon: (
       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -83,7 +85,7 @@ const navItems: { href: string; label: string; roles: UserRole[]; icon: React.Re
   },
   {
     href: '/tickets',
-    label: 'Tickets',
+    labelKey: 'nav.tickets',
     roles: ['admin'],
     icon: (
       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -93,7 +95,7 @@ const navItems: { href: string; label: string; roles: UserRole[]; icon: React.Re
   },
   {
     href: '/help',
-    label: 'Help',
+    labelKey: 'nav.help',
     roles: ['admin', 'designer', 'writer', 'indoor_sales', 'manager'],
     icon: (
       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -106,6 +108,7 @@ const navItems: { href: string; label: string; roles: UserRole[]; icon: React.Re
 export default function Sidebar({ userEmail, userName, userRole, open, onClose }: SidebarProps) {
   const pathname = usePathname()
   const router = useRouter()
+  const { t } = useLanguage()
   const { selectedWebsite, setSelectedWebsite } = useWebsite()
   const [websites, setWebsites] = useState<string[]>([])
 
@@ -164,7 +167,7 @@ export default function Sidebar({ userEmail, userName, userRole, open, onClose }
       {/* Nav */}
       <nav className="flex-1 px-3 py-4 space-y-1">
         <p className="text-xs font-semibold uppercase tracking-wider px-3 mb-2" style={{ color: 'var(--sidebar-muted)' }}>
-          Manage
+          {t('nav.manage')}
         </p>
         {navItems.filter(item => item.roles.includes(userRole)).map(item => {
           const active = item.href === '/' ? pathname === '/' : (pathname === item.href || pathname.startsWith(item.href + '/'))
@@ -182,7 +185,7 @@ export default function Sidebar({ userEmail, userName, userRole, open, onClose }
               onMouseLeave={e => { if (!active) (e.currentTarget as HTMLElement).style.background = 'transparent' }}
             >
               {item.icon}
-              {item.label}
+              {t(item.labelKey)}
             </Link>
           )
         })}
@@ -196,7 +199,7 @@ export default function Sidebar({ userEmail, userName, userRole, open, onClose }
           </div>
           <div className="min-w-0">
             <p className="text-xs font-medium text-white truncate">{userName}</p>
-            <p className="text-[10px] truncate" style={{ color: 'var(--sidebar-muted)' }}>{ROLE_LABELS[userRole] ?? userRole}</p>
+            <p className="text-[10px] truncate" style={{ color: 'var(--sidebar-muted)' }}>{t(ROLE_KEY[userRole] ?? 'role.admin')}</p>
           </div>
         </div>
         <button
@@ -209,7 +212,7 @@ export default function Sidebar({ userEmail, userName, userRole, open, onClose }
           <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
           </svg>
-          Sign out
+          {t('nav.signOut')}
         </button>
       </div>
     </aside>
