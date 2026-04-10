@@ -75,7 +75,7 @@ export function ConfirmProvider({ children }: { children: ReactNode }) {
           >
             {/* Title */}
             <h3
-              className="text-[20px] font-bold text-center mb-3 tracking-tight"
+              className="text-[20px] font-semibold text-center mb-3 tracking-tight"
               style={{ color: '#0f172a', letterSpacing: '-0.01em' }}
             >
               {pending.title ?? 'Are you sure?'}
@@ -83,8 +83,8 @@ export function ConfirmProvider({ children }: { children: ReactNode }) {
 
             {/* Message */}
             <div
-              className="text-[14px] text-center leading-relaxed mb-7 max-w-sm mx-auto"
-              style={{ color: '#475569' }}
+              className="text-[14px] text-center leading-relaxed mb-7 max-w-sm mx-auto font-light"
+              style={{ color: '#64748b' }}
             >
               {pending.message}
             </div>
@@ -94,7 +94,7 @@ export function ConfirmProvider({ children }: { children: ReactNode }) {
               <button
                 type="button"
                 onClick={handleCancel}
-                className="flex-1 text-[14px] font-semibold px-5 py-3 rounded-xl border transition-colors hover:bg-slate-50"
+                className="flex-1 text-[14px] font-medium px-5 py-3 rounded-xl border transition-colors hover:bg-slate-50"
                 style={{ borderColor: '#e2e8f0', color: '#0f172a', background: 'white' }}
               >
                 {pending.cancelLabel ?? 'Cancel'}
@@ -103,7 +103,7 @@ export function ConfirmProvider({ children }: { children: ReactNode }) {
                 type="button"
                 onClick={handleConfirm}
                 autoFocus
-                className="flex-1 text-[14px] font-semibold px-5 py-3 rounded-xl text-white transition-colors shadow-sm"
+                className="flex-1 text-[14px] font-medium px-5 py-3 rounded-xl text-white transition-colors shadow-sm"
                 style={{ background: styles.btn }}
                 onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.background = styles.btnHover)}
                 onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.background = styles.btn)}
