@@ -39,7 +39,17 @@ export default function DashboardClient({ role, isScoped, websiteCount, phoneCou
 
       {/* Stats */}
       <div className={`grid grid-cols-1 ${isWriter || isScoped ? 'sm:grid-cols-2' : 'sm:grid-cols-3'} gap-4 mb-8`}>
-        <Link href="/all/websites" className="group block rounded-xl border border-slate-200 bg-white p-5 hover:shadow-sm transition-shadow">
+        <div className="relative rounded-xl border border-slate-200 bg-white p-5">
+          <Link
+            href="/all/websites"
+            className="absolute top-3 right-3 w-8 h-8 flex items-center justify-center rounded-lg border border-slate-200 text-slate-400 hover:border-[var(--primary)] hover:text-[var(--primary)] transition-colors"
+            aria-label="View all websites"
+            title="View all websites"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+            </svg>
+          </Link>
           <div className="flex items-center gap-3 mb-3">
             <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: '#f1f5f9' }}>
               <svg className="w-4.5 h-4.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8">
@@ -50,10 +60,20 @@ export default function DashboardClient({ role, isScoped, websiteCount, phoneCou
           </div>
           <p className="text-3xl font-bold text-slate-900 mb-0.5">{websiteCount}</p>
           <p className="text-xs text-slate-400">{t('dashboard.stats.websites.desc')}</p>
-        </Link>
+        </div>
 
         {!isWriter && (
-          <Link href="/all/phone-numbers" className="group block rounded-xl border border-slate-200 bg-white p-5 hover:shadow-sm transition-shadow">
+          <div className="relative rounded-xl border border-slate-200 bg-white p-5">
+            <Link
+              href="/all/phone-numbers"
+              className="absolute top-3 right-3 w-8 h-8 flex items-center justify-center rounded-lg border border-slate-200 text-slate-400 hover:border-[var(--primary)] hover:text-[var(--primary)] transition-colors"
+              aria-label="View all phone numbers"
+              title="View all phone numbers"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+              </svg>
+            </Link>
             <div className="flex items-center gap-3 mb-3">
               <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: '#eff6ff' }}>
                 <svg className="w-4.5 h-4.5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8">
@@ -64,11 +84,21 @@ export default function DashboardClient({ role, isScoped, websiteCount, phoneCou
             </div>
             <p className="text-3xl font-bold text-slate-900 mb-0.5">{phoneCount ?? 0}</p>
             <p className="text-xs text-slate-400">{t('dashboard.stats.phoneNumbers.desc')}</p>
-          </Link>
+          </div>
         )}
 
         {!isScoped && (
-          <Link href="/all/blog" className="group block rounded-xl border border-slate-200 bg-white p-5 hover:shadow-sm transition-shadow">
+          <div className="relative rounded-xl border border-slate-200 bg-white p-5">
+            <Link
+              href="/all/blog"
+              className="absolute top-3 right-3 w-8 h-8 flex items-center justify-center rounded-lg border border-slate-200 text-slate-400 hover:border-[var(--primary)] hover:text-[var(--primary)] transition-colors"
+              aria-label="View all blog posts"
+              title="View all blog posts"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+              </svg>
+            </Link>
             <div className="flex items-center gap-3 mb-3">
               <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: '#f0fdf4' }}>
                 <svg className="w-4.5 h-4.5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8">
@@ -79,7 +109,7 @@ export default function DashboardClient({ role, isScoped, websiteCount, phoneCou
             </div>
             <p className="text-3xl font-bold text-slate-900 mb-0.5">{postCount ?? 0}</p>
             <p className="text-xs text-slate-400">{t('dashboard.stats.blogPosts.desc')}</p>
-          </Link>
+          </div>
         )}
       </div>
 
