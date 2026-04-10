@@ -11,6 +11,7 @@ export default async function DashboardPage() {
   const scope = user ? await getUserScope(user.id) : { role: 'admin' as const, isScoped: false, companyIds: null, domains: null }
   const role = scope.role
   const isWriter = role === 'writer'
+  const isScoped = scope.isScoped // indoor_sales or manager
 
   // Build scoped queries — if user is restricted to certain domains, apply .in() filter
   const allowedDomains = scope.isScoped ? (scope.domains ?? []) : null
@@ -76,7 +77,7 @@ export default async function DashboardPage() {
       </div>
 
       {/* Stats */}
-      <div className={`grid grid-cols-1 ${isWriter ? 'sm:grid-cols-2' : 'sm:grid-cols-3'} gap-4 mb-8`}>
+      <div className={`grid grid-cols-1 ${isWriter || isScoped ? 'sm:grid-cols-2' : 'sm:grid-cols-3'} gap-4 mb-8`}>
         <Link href="/all/websites" className="group block rounded-xl border border-slate-200 bg-white p-5 hover:shadow-sm transition-shadow">
           <div className="flex items-center gap-3 mb-3">
             <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: '#f1f5f9' }}>
@@ -105,24 +106,26 @@ export default async function DashboardPage() {
           </Link>
         )}
 
-        <Link href="/all/blog" className="group block rounded-xl border border-slate-200 bg-white p-5 hover:shadow-sm transition-shadow">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: '#f0fdf4' }}>
-              <svg className="w-4.5 h-4.5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-              </svg>
+        {!isScoped && (
+          <Link href="/all/blog" className="group block rounded-xl border border-slate-200 bg-white p-5 hover:shadow-sm transition-shadow">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: '#f0fdf4' }}>
+                <svg className="w-4.5 h-4.5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                </svg>
+              </div>
+              <span className="text-xs font-medium text-slate-400 uppercase tracking-wide">Blog Posts</span>
             </div>
-            <span className="text-xs font-medium text-slate-400 uppercase tracking-wide">Blog Posts</span>
-          </div>
-          <p className="text-3xl font-bold text-slate-900 mb-0.5">{postCount ?? 0}</p>
-          <p className="text-xs text-slate-400">SEO content published across websites</p>
-        </Link>
+            <p className="text-3xl font-bold text-slate-900 mb-0.5">{postCount ?? 0}</p>
+            <p className="text-xs text-slate-400">SEO content published across websites</p>
+          </Link>
+        )}
       </div>
 
       {/* Quick Actions */}
       <h2 className="text-sm font-semibold text-slate-700 mb-3">Quick Actions</h2>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        {!isWriter && (
+        {!isWriter && !isScoped && (
           <Link href="/phone-numbers/new" className="flex items-center gap-3 p-3 rounded-lg border border-slate-200 hover:border-slate-300 hover:bg-slate-50 transition-colors">
             <div className="w-8 h-8 rounded-md flex items-center justify-center bg-blue-50">
               <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" /></svg>
@@ -134,15 +137,17 @@ export default async function DashboardPage() {
           </Link>
         )}
 
-        <Link href="/blog/new" className="flex items-center gap-3 p-3 rounded-lg border border-slate-200 hover:border-slate-300 hover:bg-slate-50 transition-colors">
-          <div className="w-8 h-8 rounded-md flex items-center justify-center bg-green-50">
-            <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" /></svg>
-          </div>
-          <div>
-            <p className="text-sm font-medium text-slate-800">New Blog Post</p>
-            <p className="text-xs text-slate-400">Create SEO content for any website</p>
-          </div>
-        </Link>
+        {!isScoped && (
+          <Link href="/blog/new" className="flex items-center gap-3 p-3 rounded-lg border border-slate-200 hover:border-slate-300 hover:bg-slate-50 transition-colors">
+            <div className="w-8 h-8 rounded-md flex items-center justify-center bg-green-50">
+              <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" /></svg>
+            </div>
+            <div>
+              <p className="text-sm font-medium text-slate-800">New Blog Post</p>
+              <p className="text-xs text-slate-400">Create SEO content for any website</p>
+            </div>
+          </Link>
+        )}
 
         <Link href="/websites" className="flex items-center gap-3 p-3 rounded-lg border border-slate-200 hover:border-slate-300 hover:bg-slate-50 transition-colors">
           <div className="w-8 h-8 rounded-md flex items-center justify-center bg-slate-100">
@@ -151,22 +156,21 @@ export default async function DashboardPage() {
             </svg>
           </div>
           <div>
-            <p className="text-sm font-medium text-slate-800">Manage Websites</p>
-            <p className="text-xs text-slate-400">View all connected sites and their data</p>
+            <p className="text-sm font-medium text-slate-800">{isScoped ? 'View Websites' : 'Manage Websites'}</p>
+            <p className="text-xs text-slate-400">{isScoped ? 'Your assigned company websites' : 'View all connected sites and their data'}</p>
           </div>
         </Link>
 
         {!isWriter && (
           <Link href="/phone-numbers" className="flex items-center gap-3 p-3 rounded-lg border border-slate-200 hover:border-slate-300 hover:bg-slate-50 transition-colors">
-            <div className="w-8 h-8 rounded-md flex items-center justify-center bg-slate-100">
-              <svg className="w-4 h-4 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                <circle cx="12" cy="12" r="3" />
+            <div className="w-8 h-8 rounded-md flex items-center justify-center bg-blue-50">
+              <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
               </svg>
             </div>
             <div>
-              <p className="text-sm font-medium text-slate-800">Configure Percentages</p>
-              <p className="text-xs text-slate-400">Adjust lead distribution weights per site</p>
+              <p className="text-sm font-medium text-slate-800">{isScoped ? 'View Phone Numbers' : 'Configure Percentages'}</p>
+              <p className="text-xs text-slate-400">{isScoped ? 'See numbers for your companies' : 'Adjust lead distribution weights per site'}</p>
             </div>
           </Link>
         )}
@@ -174,8 +178,9 @@ export default async function DashboardPage() {
 
       {/* Recent Activity */}
       <h2 className="text-sm font-semibold text-slate-700 mt-8 mb-3">Recent Activity</h2>
-      <div className={`grid grid-cols-1 ${isWriter ? '' : 'lg:grid-cols-2'} gap-4`}>
+      <div className={`grid grid-cols-1 ${isWriter || isScoped ? '' : 'lg:grid-cols-2'} gap-4`}>
         {/* Recent Blog Posts */}
+        {!isScoped && (
         <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
           <div className="px-4 py-3 flex items-center justify-between" style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
             <div className="flex items-center gap-2">
@@ -210,6 +215,7 @@ export default async function DashboardPage() {
             </div>
           )}
         </div>
+        )}
 
         {/* Recent Phone Numbers */}
         {!isWriter && (
