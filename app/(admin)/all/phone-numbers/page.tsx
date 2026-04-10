@@ -77,7 +77,7 @@ export default function AllPhoneNumbersPage() {
     return (
       <th className="px-4 py-3 text-[10px] sm:text-xs font-medium whitespace-nowrap cursor-pointer select-none hover:text-[var(--primary)] transition-colors"
         style={{ color: '#94a3b8' }} onClick={() => toggleSort(col)}>
-        <span className="inline-flex items-center justify-center gap-0.5">{label}<SortIcon active={sortKey === col} dir={sortKey === col ? sortDir : 'asc'} /></span>
+        <span className="inline-flex items-center justify-center gap-1">{label}<SortIcon active={sortKey === col} dir={sortKey === col ? sortDir : 'asc'} /></span>
       </th>
     )
   }
@@ -95,24 +95,25 @@ export default function AllPhoneNumbersPage() {
           <div className="relative">
             <svg className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: '#cbd5e1' }}><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
             <input type="text" value={search} onChange={e => setSearch(e.target.value)} placeholder="Search numbers, websites…"
-              className="w-full pl-9 pr-3 py-2 text-sm rounded-lg border focus:outline-none" style={{ borderColor: '#e2e8f0', background: 'white' }} />
+              className="w-full pl-9 pr-8 py-2 text-sm rounded-lg border focus:outline-none" style={{ borderColor: '#e2e8f0', background: 'white' }} />
+            {search && (
+              <button onClick={() => setSearch('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 flex items-center justify-center rounded-full hover:bg-slate-200 transition-colors" style={{ background: '#e2e8f0', color: '#64748b' }}>
+                <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+              </button>
+            )}
           </div>
         </div>
         <div>
           <label className="block text-[10px] font-medium mb-1" style={{ color: '#94a3b8' }}>Company</label>
           <div className="relative">
             <select value={filterCompany} onChange={e => setFilterCompany(e.target.value)}
-              className="px-3 py-2 text-sm rounded-lg border focus:outline-none cursor-pointer pr-9" style={{ borderColor: '#e2e8f0', appearance: 'none', WebkitAppearance: 'none', background: 'white', minWidth: '160px' }}>
+              className="px-3 py-2 text-sm rounded-lg border focus:outline-none cursor-pointer pr-9" style={{ borderColor: '#e2e8f0', appearance: 'none', WebkitAppearance: 'none', background: 'white', minWidth: '160px', color: '#64748b' }}>
               <option value="">All companies</option>
               {companyNames.map(c => <option key={c} value={c}>{c}</option>)}
             </select>
             <svg className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: '#94a3b8' }} strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
           </div>
         </div>
-        {(search || filterCompany) && (
-          <button onClick={() => { setSearch(''); setFilterCompany('') }}
-            className="px-3 py-2 text-xs font-medium rounded-lg border hover:bg-white transition-colors" style={{ borderColor: '#e2e8f0', color: '#64748b', background: 'white' }}>Clear filters</button>
-        )}
       </div>
 
       {loading ? (
