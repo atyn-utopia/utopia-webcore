@@ -490,15 +490,15 @@ export default function BlogListPage() {
                       <p className="text-[10px] mt-0.5" style={{ color: '#94a3b8' }}>/{post.slug}</p>
                     </div>
                   </td>
-                  <td className="px-2 py-3 align-middle text-center">
+                  <td className="px-2 py-3 align-middle">
                     <span className="inline-flex items-center gap-1 text-[10px] font-medium px-2 py-0.5 rounded-full" style={post.status === 'published' ? { background: '#dcfce7', color: '#16a34a' } : { background: '#f1f5f9', color: '#94a3b8' }}>
                       <span className="w-1.5 h-1.5 rounded-full" style={{ background: post.status === 'published' ? '#16a34a' : '#94a3b8' }} />
                       {post.status === 'published' ? 'Live' : 'Draft'}
                     </span>
                   </td>
-                  <td className="px-2 py-3 align-middle text-center text-[10px] sm:text-xs" style={{ color: '#475569' }}>{formatDate(post.updated_at)}</td>
+                  <td className="px-2 py-3 align-middle text-[10px] sm:text-xs" style={{ color: '#475569' }}>{formatDate(post.updated_at)}</td>
                   <td className="px-2 sm:px-4 py-3 align-middle">
-                    <div className="flex items-center gap-1 justify-center">
+                    <div className="flex items-center gap-1 justify-end">
                       <button onClick={() => router.push(`/blog/${post.id}/edit`)} className="w-8 h-8 flex items-center justify-center rounded-lg border transition-colors hover:text-[var(--primary)] hover:border-[var(--primary)]" style={{ borderColor: '#cbd5e1', color: '#475569' }} title="Edit">
                         <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
                       </button>
