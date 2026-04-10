@@ -98,7 +98,7 @@ export default function AdminShell({ userEmail, userName, userRole, children }: 
             <TopBar />
           </div>
 
-          <div className="hidden md:-mt-8 md:-mx-8 md:px-8 md:flex md:items-center md:justify-between md:h-16 md:border-b md:border-[#e2e8f0]">
+          <div className="hidden md:-mt-8 md:-mx-8 md:px-8 md:flex md:items-center md:justify-between md:h-16 md:border-b md:border-[#e2e8f0] md:sticky md:top-0 md:z-30 md:bg-white">
             <Breadcrumb />
             <TopBar />
           </div>
