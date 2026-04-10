@@ -44,11 +44,13 @@ interface ExistingNumber {
   phone_number: string
   location_slug: string
   is_active: boolean
-  whatsapp_text?: string
+  whatsapp_text: string
   percentage: number
   label: string | null
   type: string
 }
+
+const BAR_COLORS = ['#1e3a5f', '#2979d6', '#475569', '#64748b', '#94a3b8', '#cbd5e1']
 
 function makeId() { return Math.random().toString(36).slice(2, 9) }
 
@@ -87,6 +89,9 @@ export default function NewPhoneNumberPage() {
   const [serverError, setServerError] = useState('')
   const [existingNumbers, setExistingNumbers] = useState<ExistingNumber[]>([])
   const [existingTexts, setExistingTexts] = useState<string[]>([])
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const [editDraft, setEditDraft] = useState<Partial<ExistingNumber>>({})
+  const [savingEdit, setSavingEdit] = useState(false)
 
   // Current mode (from DB) and predicted mode (after adding new numbers)
   const currentMode = predictMode(existingNumbers, [])
@@ -143,6 +148,51 @@ export default function NewPhoneNumberPage() {
       percentage: String(i === 0 ? each + remainder : each),
     })))
   }, [rows.length, existingNumbers])
+
+  // Existing numbers sorted: default first, then by created order
+  const sortedExisting = [...existingNumbers].sort((a, b) => {
+    if (a.type === 'default' && b.type !== 'default') return -1
+    if (a.type !== 'default' && b.type === 'default') return 1
+    return 0
+  })
+
+  function startEdit(n: ExistingNumber) {
+    setEditingId(n.id)
+    setEditDraft({
+      phone_number: n.phone_number,
+      whatsapp_text: n.whatsapp_text,
+      location_slug: n.location_slug,
+      percentage: n.percentage,
+      label: n.label,
+      is_active: n.is_active,
+    })
+  }
+
+  function cancelEdit() {
+    setEditingId(null)
+    setEditDraft({})
+  }
+
+  async function saveEdit() {
+    if (!editingId) return
+    setSavingEdit(true)
+    const res = await fetch(`/api/phone-numbers/${editingId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(editDraft),
+    })
+    setSavingEdit(false)
+    if (res.ok) {
+      await fetchExisting(website)
+      cancelEdit()
+    }
+  }
+
+  async function deleteExisting(id: string) {
+    if (!confirm('Delete this phone number?')) return
+    const res = await fetch(`/api/phone-numbers/${id}`, { method: 'DELETE' })
+    if (res.ok) await fetchExisting(website)
+  }
 
   function updateRow(id: string, field: keyof NumberRow, value: string) {
     setRows(prev => prev.map(r => r.id === id ? { ...r, [field]: value } : r))
@@ -275,54 +325,56 @@ export default function NewPhoneNumberPage() {
                 </div>
               </div>
 
-              {/* Leads Mode Indicator */}
+              {/* Leads Mode Indicator — all 4 modes displayed */}
               {website && (
                 <div className="rounded-lg border p-4" style={{ borderColor: modeChanged ? '#fbbf24' : '#e2e8f0', background: modeChanged ? '#fffbeb' : '#f8fafc' }}>
-                  <div className="flex items-center justify-between flex-wrap gap-2">
-                    <div className="flex items-center gap-2">
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: modeChanged ? '#d97706' : '#64748b' }} strokeWidth="1.8">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                      <span className="text-xs font-medium" style={{ color: '#475569' }}>Leads Mode</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      {/* Current mode */}
-                      {currentMode && LEADS_MODE[currentMode] && (
-                        <span className="text-[10px] px-2 py-0.5 rounded-full font-medium" style={{ background: LEADS_MODE[currentMode].bg, color: LEADS_MODE[currentMode].color }}>
-                          {LEADS_MODE[currentMode].label}
-                        </span>
-                      )}
-                      {!currentMode && (
-                        <span className="text-[10px] px-2 py-0.5 rounded-full font-medium" style={{ background: '#f1f5f9', color: '#94a3b8' }}>
-                          No numbers yet
-                        </span>
-                      )}
-                      {/* Arrow + new mode if changed */}
-                      {modeChanged && predictedMode && LEADS_MODE[predictedMode] && (
-                        <>
-                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: '#d97706' }} strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
-                          <span className="text-[10px] px-2 py-0.5 rounded-full font-medium ring-2 ring-amber-400 ring-offset-1" style={{ background: LEADS_MODE[predictedMode].bg, color: LEADS_MODE[predictedMode].color }}>
-                            {LEADS_MODE[predictedMode].label}
-                          </span>
-                        </>
-                      )}
-                    </div>
+                  <div className="flex items-center gap-2 mb-3">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: modeChanged ? '#d97706' : '#64748b' }} strokeWidth="1.8">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span className="text-xs font-medium" style={{ color: '#475569' }}>Leads Mode</span>
+                    {modeChanged && (
+                      <span className="text-[10px] font-medium ml-auto" style={{ color: '#d97706' }}>
+                        Mode will change after save
+                      </span>
+                    )}
                   </div>
-                  {/* Description */}
-                  <p className="text-[10px] mt-2" style={{ color: modeChanged ? '#92400e' : '#94a3b8' }}>
-                    {modeChanged
-                      ? `Adding ${rows.length} number${rows.length > 1 ? 's' : ''} will change mode from ${LEADS_MODE[currentMode!]?.label} → ${LEADS_MODE[predictedMode!]?.label}. ${LEADS_MODE[predictedMode!]?.desc}.`
-                      : predictedMode && LEADS_MODE[predictedMode]
-                        ? LEADS_MODE[predictedMode].desc
-                        : 'Select a website to see the current leads mode.'
-                    }
+                  {/* All 4 mode pills */}
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                    {(['single', 'rotation', 'location', 'hybrid'] as const).map(mode => {
+                      const isCurrent = currentMode === mode
+                      const isPredicted = predictedMode === mode
+                      const m = LEADS_MODE[mode]
+                      return (
+                        <div
+                          key={mode}
+                          className="rounded-lg p-2 border transition-all relative"
+                          style={{
+                            background: isPredicted ? m.bg : 'white',
+                            borderColor: isPredicted ? m.color : '#e2e8f0',
+                            opacity: isPredicted || isCurrent ? 1 : 0.55,
+                          }}
+                        >
+                          <div className="flex items-center justify-between mb-0.5">
+                            <span className="text-[10px] font-semibold" style={{ color: isPredicted ? m.color : '#64748b' }}>{m.label}</span>
+                            {isCurrent && !isPredicted && (
+                              <span className="text-[8px] px-1 py-0.5 rounded font-medium" style={{ background: '#f1f5f9', color: '#64748b' }}>NOW</span>
+                            )}
+                            {isPredicted && (
+                              <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20" style={{ color: m.color }}><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"/></svg>
+                            )}
+                          </div>
+                          <p className="text-[9px] leading-tight" style={{ color: isPredicted ? m.color : '#94a3b8' }}>{m.desc}</p>
+                        </div>
+                      )
+                    })}
+                  </div>
+                  {/* Status line */}
+                  <p className="text-[10px] mt-3" style={{ color: '#64748b' }}>
+                    {!currentMode && existingNumbers.length === 0 && 'No numbers yet — adding new ones will set the initial mode.'}
+                    {currentMode && !modeChanged && `Currently on ${LEADS_MODE[currentMode].label} mode (${existingNumbers.filter(n => n.is_active).length} active / ${existingNumbers.length} total).`}
+                    {modeChanged && currentMode && predictedMode && `Adding ${rows.length} number${rows.length > 1 ? 's' : ''} will change mode from ${LEADS_MODE[currentMode].label} → ${LEADS_MODE[predictedMode].label}.`}
                   </p>
-                  {/* Existing number count */}
-                  {existingNumbers.length > 0 && (
-                    <p className="text-[10px] mt-1" style={{ color: '#94a3b8' }}>
-                      Currently {existingNumbers.filter(n => n.is_active).length} active / {existingNumbers.length} total numbers on this website
-                    </p>
-                  )}
                 </div>
               )}
 
@@ -335,34 +387,192 @@ export default function NewPhoneNumberPage() {
                       {existingNumbers.filter(n => n.is_active).length} active / {existingNumbers.length} total
                     </span>
                   </div>
-                  <div className="rounded-lg border overflow-hidden" style={{ borderColor: '#e2e8f0' }}>
-                    <table className="w-full text-xs">
-                      <thead>
-                        <tr style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
-                          <th className="px-3 py-2 text-left font-medium" style={{ color: '#94a3b8' }}>Number</th>
-                          <th className="px-3 py-2 text-left font-medium" style={{ color: '#94a3b8' }}>Location</th>
-                          <th className="px-3 py-2 text-left font-medium" style={{ color: '#94a3b8' }}>%</th>
-                          <th className="px-3 py-2 text-left font-medium" style={{ color: '#94a3b8' }}>Label</th>
-                          <th className="px-3 py-2 text-center font-medium" style={{ color: '#94a3b8' }}>Status</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {existingNumbers.map((n, i) => (
-                          <tr key={n.id} style={{ borderBottom: i < existingNumbers.length - 1 ? '1px solid #f1f5f9' : 'none' }}>
-                            <td className="px-3 py-2 font-mono font-medium" style={{ color: 'var(--foreground)' }}>{n.phone_number}</td>
-                            <td className="px-3 py-2" style={{ color: '#64748b' }}>{n.location_slug === 'all' ? 'All' : n.location_slug}</td>
-                            <td className="px-3 py-2 font-semibold" style={{ color: 'var(--foreground)' }}>{n.percentage}%</td>
-                            <td className="px-3 py-2" style={{ color: '#94a3b8' }}>{n.label || '—'}</td>
-                            <td className="px-3 py-2 text-center">
-                              <span className={`inline-flex items-center gap-1 text-[10px] font-medium px-1.5 py-0.5 rounded-full ${n.is_active ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-500'}`}>
-                                <span className="w-1 h-1 rounded-full" style={{ background: n.is_active ? '#16a34a' : '#94a3b8' }} />
-                                {n.is_active ? 'Active' : 'Off'}
-                              </span>
-                            </td>
-                          </tr>
+
+                  {/* Percentage distribution bar */}
+                  {existingNumbers.filter(n => n.is_active).length > 0 && (
+                    <div className="mb-3 rounded-lg border p-3" style={{ borderColor: '#e2e8f0', background: '#f8fafc' }}>
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-[10px] font-medium" style={{ color: '#475569' }}>Lead Distribution</span>
+                        <span className="text-[10px]" style={{ color: '#94a3b8' }}>
+                          Total: {sortedExisting.filter(n => n.is_active).reduce((s, n) => s + (n.percentage ?? 0), 0)}%
+                        </span>
+                      </div>
+                      <div className="flex h-3 rounded-full overflow-hidden" style={{ background: '#e2e8f0' }}>
+                        {sortedExisting.filter(n => n.is_active && n.percentage > 0).map((n, idx) => (
+                          <div key={n.id} style={{ width: `${n.percentage}%`, background: BAR_COLORS[idx % BAR_COLORS.length] }} title={`${n.phone_number}: ${n.percentage}%`} />
                         ))}
-                      </tbody>
-                    </table>
+                      </div>
+                      <div className="flex flex-wrap gap-x-3 gap-y-1 mt-2">
+                        {sortedExisting.filter(n => n.is_active).map((n, idx) => (
+                          <div key={n.id} className="flex items-center gap-1.5">
+                            <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: BAR_COLORS[idx % BAR_COLORS.length] }} />
+                            <span className="text-[10px]" style={{ color: '#475569' }}>
+                              {n.type === 'default' && <span className="font-bold" style={{ color: 'var(--primary)' }}>★ </span>}
+                              {n.phone_number.slice(-4)}: {n.percentage}%
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Numbers table */}
+                  <div className="rounded-lg border overflow-hidden" style={{ borderColor: '#e2e8f0' }}>
+                    {sortedExisting.map((n, i) => {
+                      const isDefault = n.type === 'default'
+                      const isEditing = editingId === n.id
+                      return (
+                        <div key={n.id} style={{
+                          borderBottom: i < sortedExisting.length - 1 ? '1px solid #f1f5f9' : 'none',
+                          background: isDefault ? '#fff9e6' : 'white',
+                        }}>
+                          {!isEditing ? (
+                            <div className="px-3 py-2.5 flex items-center gap-3 flex-wrap">
+                              {/* Default/label badge */}
+                              <div className="flex items-center gap-1.5 min-w-0 flex-1">
+                                {isDefault && (
+                                  <span className="text-[9px] px-1.5 py-0.5 rounded-full font-bold flex-shrink-0" style={{ background: 'var(--primary)', color: 'white' }}>★ DEFAULT</span>
+                                )}
+                                {!isDefault && n.label && (
+                                  <span className="text-[9px] px-1.5 py-0.5 rounded-full flex-shrink-0" style={{ background: '#f1f5f9', color: '#475569' }}>{n.label}</span>
+                                )}
+                                <span className="text-xs font-mono font-medium truncate" style={{ color: 'var(--foreground)' }}>{n.phone_number}</span>
+                                <span className="text-[10px]" style={{ color: '#94a3b8' }}>
+                                  {n.location_slug === 'all' ? 'All locations' : n.location_slug}
+                                </span>
+                              </div>
+                              {/* Percentage + status */}
+                              <div className="flex items-center gap-2 flex-shrink-0">
+                                <span className="text-xs font-semibold" style={{ color: 'var(--foreground)' }}>{n.percentage}%</span>
+                                <span className={`inline-flex items-center gap-1 text-[9px] font-medium px-1.5 py-0.5 rounded-full ${n.is_active ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-500'}`}>
+                                  <span className="w-1 h-1 rounded-full" style={{ background: n.is_active ? '#16a34a' : '#94a3b8' }} />
+                                  {n.is_active ? 'Active' : 'Off'}
+                                </span>
+                                {/* Edit button */}
+                                <button
+                                  type="button"
+                                  onClick={() => startEdit(n)}
+                                  className="text-[10px] px-2 py-1 rounded-md border transition-colors hover:border-[var(--primary)] hover:text-[var(--primary)]"
+                                  style={{ borderColor: '#e2e8f0', color: '#64748b' }}
+                                >
+                                  Edit
+                                </button>
+                                {/* Delete only for non-default */}
+                                {!isDefault && (
+                                  <button
+                                    type="button"
+                                    onClick={() => deleteExisting(n.id)}
+                                    className="text-[10px] px-2 py-1 rounded-md border transition-colors hover:border-red-400 hover:text-red-500"
+                                    style={{ borderColor: '#e2e8f0', color: '#94a3b8' }}
+                                  >
+                                    Delete
+                                  </button>
+                                )}
+                              </div>
+                            </div>
+                          ) : (
+                            /* Edit mode */
+                            <div className="p-3" style={{ background: '#fafbfc' }}>
+                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                <div>
+                                  <label className="block text-[10px] font-medium mb-1" style={{ color: '#64748b' }}>Phone Number</label>
+                                  <input
+                                    type="text"
+                                    value={editDraft.phone_number ?? ''}
+                                    onChange={e => setEditDraft(d => ({ ...d, phone_number: e.target.value }))}
+                                    className="w-full px-3 py-2 text-sm rounded-lg border focus:outline-none"
+                                    style={{ borderColor: '#cbd5e1', background: 'white' }}
+                                  />
+                                </div>
+                                <div>
+                                  <label className="block text-[10px] font-medium mb-1" style={{ color: '#64748b' }}>WhatsApp Text</label>
+                                  <input
+                                    type="text"
+                                    value={editDraft.whatsapp_text ?? ''}
+                                    onChange={e => setEditDraft(d => ({ ...d, whatsapp_text: e.target.value }))}
+                                    className="w-full px-3 py-2 text-sm rounded-lg border focus:outline-none"
+                                    style={{ borderColor: '#cbd5e1', background: 'white' }}
+                                  />
+                                </div>
+                                <div>
+                                  <label className="block text-[10px] font-medium mb-1" style={{ color: '#64748b' }}>Location</label>
+                                  <div className="relative">
+                                    <select
+                                      value={editDraft.location_slug ?? 'all'}
+                                      onChange={e => setEditDraft(d => ({ ...d, location_slug: e.target.value }))}
+                                      className="w-full px-3 py-2 text-sm rounded-lg border focus:outline-none cursor-pointer"
+                                      style={{ borderColor: '#cbd5e1', background: 'white', appearance: 'none', WebkitAppearance: 'none', paddingRight: '2.5rem' }}
+                                    >
+                                      <option value="all">All locations</option>
+                                      {MY_STATES.map(s => <option key={s.slug} value={s.slug}>{s.label}</option>)}
+                                    </select>
+                                    <svg className="w-3 h-3 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: '#94a3b8' }}><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+                                  </div>
+                                </div>
+                                <div className="flex gap-3">
+                                  <div className="w-20">
+                                    <label className="block text-[10px] font-medium mb-1" style={{ color: '#64748b' }}>%</label>
+                                    <input
+                                      type="number"
+                                      min="0"
+                                      max="100"
+                                      value={editDraft.percentage ?? 0}
+                                      onChange={e => setEditDraft(d => ({ ...d, percentage: parseInt(e.target.value) || 0 }))}
+                                      className="w-full px-3 py-2 text-sm rounded-lg border focus:outline-none"
+                                      style={{ borderColor: '#cbd5e1', background: 'white' }}
+                                    />
+                                  </div>
+                                  <div className="flex-1">
+                                    <label className="block text-[10px] font-medium mb-1" style={{ color: '#64748b' }}>Label</label>
+                                    <input
+                                      type="text"
+                                      value={editDraft.label ?? ''}
+                                      onChange={e => setEditDraft(d => ({ ...d, label: e.target.value }))}
+                                      disabled={isDefault}
+                                      className="w-full px-3 py-2 text-sm rounded-lg border focus:outline-none disabled:opacity-50"
+                                      style={{ borderColor: '#cbd5e1', background: 'white' }}
+                                    />
+                                  </div>
+                                </div>
+                              </div>
+                              {/* Active toggle + actions */}
+                              <div className="flex items-center justify-between mt-3 pt-3" style={{ borderTop: '1px solid #e2e8f0' }}>
+                                <label className="flex items-center gap-2 cursor-pointer">
+                                  <button
+                                    type="button"
+                                    onClick={() => setEditDraft(d => ({ ...d, is_active: !d.is_active }))}
+                                    className="relative w-9 h-5 rounded-full transition-colors"
+                                    style={{ background: editDraft.is_active ? '#16a34a' : '#cbd5e1' }}
+                                  >
+                                    <span className="absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full transition-transform" style={{ transform: editDraft.is_active ? 'translateX(16px)' : 'translateX(0)' }} />
+                                  </button>
+                                  <span className="text-[10px]" style={{ color: '#475569' }}>{editDraft.is_active ? 'Active' : 'Inactive'}</span>
+                                </label>
+                                <div className="flex items-center gap-2">
+                                  <button
+                                    type="button"
+                                    onClick={cancelEdit}
+                                    className="text-[10px] px-3 py-1.5 rounded-md border transition-colors"
+                                    style={{ borderColor: '#e2e8f0', color: '#64748b' }}
+                                  >
+                                    Cancel
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={saveEdit}
+                                    disabled={savingEdit}
+                                    className="text-[10px] font-medium px-3 py-1.5 rounded-md text-white transition-opacity disabled:opacity-50"
+                                    style={{ background: 'var(--primary)' }}
+                                  >
+                                    {savingEdit ? 'Saving…' : 'Save'}
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      )
+                    })}
                   </div>
                 </div>
               )}
