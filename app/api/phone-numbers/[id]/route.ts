@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/service'
 import { createClient } from '@/lib/supabase/server'
+import { updateLeadsMode } from '@/lib/updateLeadsMode'
 
 // PATCH /api/phone-numbers/[id]
 export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -12,6 +13,10 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
   const body = await request.json()
 
   const service = createServiceClient()
+
+  // Get website before update (for leads_mode recalc)
+  const { data: existing } = await service.from('phone_numbers').select('website').eq('id', id).single()
+
   const { data, error } = await service
     .from('phone_numbers')
     .update(body)
@@ -20,6 +25,10 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     .single()
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+
+  // Auto-update leads_mode
+  if (existing?.website) await updateLeadsMode(existing.website)
+
   return NextResponse.json(data)
 }
 
@@ -32,8 +41,16 @@ export async function DELETE(_request: Request, { params }: { params: Promise<{ 
   const { id } = await params
 
   const service = createServiceClient()
+
+  // Get website before delete (for leads_mode recalc)
+  const { data: existing } = await service.from('phone_numbers').select('website').eq('id', id).single()
+
   const { error } = await service.from('phone_numbers').delete().eq('id', id)
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+
+  // Auto-update leads_mode
+  if (existing?.website) await updateLeadsMode(existing.website)
+
   return NextResponse.json({ success: true })
 }

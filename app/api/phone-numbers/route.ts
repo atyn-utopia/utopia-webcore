@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/service'
 import { createClient } from '@/lib/supabase/server'
+import { updateLeadsMode } from '@/lib/updateLeadsMode'
 
 // GET /api/phone-numbers?website=
 export async function GET(request: Request) {
@@ -51,5 +52,9 @@ export async function POST(request: Request) {
     .single()
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+
+  // Auto-update leads_mode
+  await updateLeadsMode(website)
+
   return NextResponse.json(data, { status: 201 })
 }
