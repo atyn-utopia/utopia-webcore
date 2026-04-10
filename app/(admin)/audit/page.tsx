@@ -223,9 +223,13 @@ export default function AuditTrailPage() {
                     <div className="flex items-center gap-2 mt-1 text-[11px]" style={{ color: '#94a3b8' }}>
                       {log.website && <span className="truncate">{log.website}</span>}
                       {log.action === 'update' && changeCount > 0 && <span>· {changeCount} change{changeCount > 1 ? 's' : ''}</span>}
-                      <span>·</span>
-                      <span title={formatFull(log.created_at)}>{formatRelative(log.created_at)}</span>
                     </div>
+                  </div>
+
+                  {/* Date / time — right aligned */}
+                  <div className="flex-shrink-0 text-right" style={{ color: '#94a3b8' }}>
+                    <p className="text-xs font-medium" style={{ color: '#475569' }}>{formatFull(log.created_at)}</p>
+                    <p className="text-[10px] mt-0.5">{formatRelative(log.created_at)}</p>
                   </div>
                 </div>
 
