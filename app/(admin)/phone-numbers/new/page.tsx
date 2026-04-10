@@ -779,11 +779,11 @@ export default function NewPhoneNumberPage() {
             </div>
 
             {/* Footer */}
-            <div className="px-5 py-4 flex items-center justify-between" style={{ borderTop: '1px solid #cbd5e1', background: 'white' }}>
+            <div className="px-6 py-5 flex items-center justify-between gap-3" style={{ borderTop: '1px solid #e2e8f0', background: '#f8fafc' }}>
               <Link
                 href="/phone-numbers"
-                className="text-sm px-4 py-2 rounded-lg border transition-colors"
-                style={{ borderColor: '#cbd5e1', color: '#475569' }}
+                className="text-sm font-medium px-5 py-2.5 rounded-lg border transition-all hover:bg-white hover:border-slate-400"
+                style={{ borderColor: '#cbd5e1', color: '#475569', background: 'white' }}
               >
                 Cancel
               </Link>
@@ -791,12 +791,30 @@ export default function NewPhoneNumberPage() {
                 <button
                   type="submit"
                   disabled={saving || !website}
-                  className="text-sm font-semibold px-6 py-2.5 rounded-lg text-white transition-opacity disabled:opacity-40 disabled:cursor-not-allowed"
-                  style={{ background: 'var(--primary)', minWidth: '160px' }}
-                  onMouseEnter={e => { if (website) (e.currentTarget as HTMLElement).style.background = 'var(--primary-hover)' }}
+                  className="group/btn flex items-center gap-2 text-sm font-semibold px-6 py-3 rounded-lg text-white transition-all disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none shadow-md hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0 active:shadow-md"
+                  style={{ background: 'var(--primary)', minWidth: '200px', justifyContent: 'center' }}
+                  onMouseEnter={e => { if (website && !saving) (e.currentTarget as HTMLElement).style.background = 'var(--primary-hover)' }}
                   onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'var(--primary)'}
                 >
-                  {saving ? 'Saving…' : `Add ${rows.length} Number${rows.length > 1 ? 's' : ''}`}
+                  {saving ? (
+                    <>
+                      <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
+                      </svg>
+                      Saving…
+                    </>
+                  ) : (
+                    <>
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+                      </svg>
+                      Add {rows.length} Number{rows.length > 1 ? 's' : ''}
+                      <svg className="w-4 h-4 transition-transform group-hover/btn:translate-x-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                      </svg>
+                    </>
+                  )}
                 </button>
                 {!website && (
                   <div className="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-1.5 rounded-lg text-xs font-medium text-white whitespace-nowrap opacity-0 group-hover/submit:opacity-100 transition-opacity z-20" style={{ background: '#1e293b' }}>
