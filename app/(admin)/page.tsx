@@ -36,7 +36,7 @@ export default async function DashboardPage() {
 
       {/* Stats */}
       <div className={`grid grid-cols-1 ${isWriter ? 'sm:grid-cols-2' : 'sm:grid-cols-3'} gap-4 mb-8`}>
-        <Link href="/websites" className="group block rounded-xl border border-slate-200 bg-white p-5 hover:shadow-sm transition-shadow">
+        <Link href="/all/websites" className="group block rounded-xl border border-slate-200 bg-white p-5 hover:shadow-sm transition-shadow">
           <div className="flex items-center gap-3 mb-3">
             <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: '#f1f5f9' }}>
               <svg className="w-4.5 h-4.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8">
@@ -50,7 +50,7 @@ export default async function DashboardPage() {
         </Link>
 
         {!isWriter && (
-          <Link href="/phone-numbers" className="group block rounded-xl border border-slate-200 bg-white p-5 hover:shadow-sm transition-shadow">
+          <Link href="/all/phone-numbers" className="group block rounded-xl border border-slate-200 bg-white p-5 hover:shadow-sm transition-shadow">
             <div className="flex items-center gap-3 mb-3">
               <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: '#eff6ff' }}>
                 <svg className="w-4.5 h-4.5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8">
@@ -64,7 +64,7 @@ export default async function DashboardPage() {
           </Link>
         )}
 
-        <Link href="/blog" className="group block rounded-xl border border-slate-200 bg-white p-5 hover:shadow-sm transition-shadow">
+        <Link href="/all/blog" className="group block rounded-xl border border-slate-200 bg-white p-5 hover:shadow-sm transition-shadow">
           <div className="flex items-center gap-3 mb-3">
             <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: '#f0fdf4' }}>
               <svg className="w-4.5 h-4.5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8">

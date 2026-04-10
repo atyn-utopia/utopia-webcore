@@ -168,18 +168,13 @@ export default function PostForm({ mode, initialData = {}, postId }: PostFormPro
     <div>
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
-        <div className="flex items-center gap-3">
-          <Link href="/blog" className="w-8 h-8 flex items-center justify-center rounded-lg border border-slate-200 hover:bg-slate-50 transition-colors">
-            <svg className="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>
-          </Link>
-          <div>
-            <h1 className="text-xl font-bold" style={{ color: 'var(--foreground)' }}>{mode === 'new' ? 'New Post' : 'Edit Post'}</h1>
-            {mode === 'edit' && (
-              <span className={`inline-block mt-0.5 px-2 py-0.5 rounded-full text-[10px] font-medium ${status === 'published' ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-500'}`}>
-                {status}
-              </span>
-            )}
-          </div>
+        <div>
+          <h1 className="text-xl font-bold" style={{ color: 'var(--foreground)' }}>{mode === 'new' ? 'New Post' : 'Edit Post'}</h1>
+          {mode === 'edit' && (
+            <span className={`inline-block mt-0.5 px-2 py-0.5 rounded-full text-[10px] font-medium ${status === 'published' ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-500'}`}>
+              {status}
+            </span>
+          )}
         </div>
         <div className="flex items-center gap-2">
           {saved && <span className="text-xs text-green-600 font-medium">Saved</span>}

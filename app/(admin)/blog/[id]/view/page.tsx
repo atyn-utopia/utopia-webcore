@@ -55,14 +55,9 @@ export default function BlogViewPage() {
     <div>
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
-        <div className="flex items-center gap-3">
-          <Link href={`/blog/${id}/edit`} className="w-8 h-8 flex items-center justify-center rounded-lg border border-slate-200 hover:bg-slate-50 transition-colors">
-            <svg className="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>
-          </Link>
-          <div>
-            <h1 className="text-xl font-bold" style={{ color: 'var(--foreground)' }}>Preview</h1>
-            <p className="text-xs" style={{ color: '#94a3b8' }}>{post.website} / {post.slug}</p>
-          </div>
+        <div>
+          <h1 className="text-xl font-bold" style={{ color: 'var(--foreground)' }}>Preview</h1>
+          <p className="text-xs mt-1" style={{ color: '#94a3b8' }}>{post.website} / {post.slug}</p>
         </div>
         <div className="flex items-center gap-2">
           <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${post.status === 'published' ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-500'}`}>

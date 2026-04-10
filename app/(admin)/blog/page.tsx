@@ -181,14 +181,9 @@ export default function BlogListPage() {
     return (
       <div>
         <div className="sm:flex sm:items-center sm:justify-between gap-3 mb-6">
-          <div className="flex items-center gap-3">
-            <Link href="/blog" className="w-8 h-8 flex items-center justify-center rounded-lg border border-slate-200 hover:bg-slate-50 transition-colors">
-              <svg className="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>
-            </Link>
-            <div>
-              <h1 className="text-xl font-bold" style={{ color: 'var(--foreground)' }}>{openCompany}</h1>
-              <p className="text-xs" style={{ color: '#94a3b8' }}>Select a website to manage its blog posts</p>
-            </div>
+          <div>
+            <h1 className="text-xl font-bold" style={{ color: 'var(--foreground)' }}>{openCompany}</h1>
+            <p className="text-xs mt-1" style={{ color: '#94a3b8' }}>Select a website to manage its blog posts</p>
           </div>
           <Link href="/blog/new" className="inline-flex items-center gap-2 text-white text-sm font-medium px-4 py-2 rounded-lg transition-opacity mt-3 sm:mt-0" style={{ background: 'var(--primary)' }}>
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>

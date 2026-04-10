@@ -72,6 +72,11 @@ export default function Breadcrumb() {
     }
     if (pathname === '/blog') return [{ label: 'Blog Posts' }]
 
+    // All listing pages
+    if (pathname === '/all/websites') return [{ label: 'All Websites' }]
+    if (pathname === '/all/phone-numbers') return [{ label: 'All Phone Numbers' }]
+    if (pathname === '/all/blog') return [{ label: 'All Blog Posts' }]
+
     // Others
     if (pathname === '/users') return [{ label: 'Users' }]
     if (pathname === '/tickets') return [{ label: 'Tickets' }]

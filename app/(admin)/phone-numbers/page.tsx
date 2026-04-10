@@ -287,16 +287,9 @@ export default function PhoneNumbersPage() {
     <div>
       {/* Header */}
       <div className="sm:flex sm:items-center sm:justify-between gap-3 mb-6">
-        <div className="flex items-center gap-3">
-          {openCompany && (
-            <Link href="/phone-numbers" className="w-8 h-8 flex items-center justify-center rounded-lg border border-slate-200 hover:bg-slate-50 transition-colors">
-              <svg className="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>
-            </Link>
-          )}
-          <div>
-            <h1 className="text-xl font-bold" style={{ color: 'var(--foreground)' }}>{openCompany || 'Phone Numbers'}</h1>
-            <p className="text-xs sm:text-sm mt-1" style={{ color: '#475569' }}>{openCompany ? 'Phone numbers for this company' : 'Manage phone numbers per website and location.'}</p>
-          </div>
+        <div>
+          <h1 className="text-xl font-bold" style={{ color: 'var(--foreground)' }}>{openCompany || 'Phone Numbers'}</h1>
+          <p className="text-xs sm:text-sm mt-1" style={{ color: '#475569' }}>{openCompany ? 'Phone numbers for this company' : 'Manage phone numbers per website and location.'}</p>
         </div>
         <Link
           href={`/phone-numbers/new${openCompany ? `?company=${encodeURIComponent(openCompany)}` : ''}`}
