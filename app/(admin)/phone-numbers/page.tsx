@@ -344,7 +344,7 @@ export default function PhoneNumbersPage() {
                   </div>
                   <div className="flex items-center gap-1.5">
                     <Link
-                      href={`/phone-numbers/new?website=${encodeURIComponent(website)}${openCompany ? `&company=${encodeURIComponent(openCompany)}` : ''}`}
+                      href={`/phone-numbers/edit?website=${encodeURIComponent(website)}${openCompany ? `&company=${encodeURIComponent(openCompany)}` : ''}`}
                       className="inline-flex items-center gap-1 h-6 sm:h-7 text-[10px] sm:text-xs font-medium px-2.5 rounded-full transition-colors hover:bg-slate-200 whitespace-nowrap"
                       style={{ background: '#e2e8f0', color: '#475569' }}
                     >
