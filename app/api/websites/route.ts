@@ -16,9 +16,9 @@ export async function GET() {
     { data: blogData },
     { data: companyWebsites },
   ] = await Promise.all([
-    service.from('phone_numbers').select('website, is_active'),
+    service.from('phone_numbers').select('website, is_active, location_slug'),
     service.from('blog_posts').select('website, status'),
-    service.from('company_websites').select('domain, company_id, leads_mode, companies(id, name)'),
+    service.from('company_websites').select('domain, company_id, companies(id, name)'),
   ])
 
   const phoneRows = phoneData ?? []
@@ -38,6 +38,18 @@ export async function GET() {
     unique = unique.filter(d => allowed.has(d))
   }
 
+  // Compute leads_mode live from active phone numbers for each domain
+  function computeLeadsMode(phones: { is_active: boolean; location_slug: string }[]): string | null {
+    const active = phones.filter(p => p.is_active)
+    if (active.length === 0) return null
+    const allLoc = active.filter(p => p.location_slug === 'all')
+    const specificLoc = active.filter(p => p.location_slug !== 'all')
+    if (allLoc.length > 0 && specificLoc.length > 0) return 'hybrid'
+    if (specificLoc.length > 0 && allLoc.length === 0) return 'location'
+    if (allLoc.length === 1) return 'single'
+    return 'rotation'
+  }
+
   const result = unique.map(domain => {
     const phones = phoneRows.filter((r: { website: string }) => r.website === domain)
     const posts = blogRows.filter((r: { website: string }) => r.website === domain)
@@ -49,7 +61,7 @@ export async function GET() {
       company_id: cw?.company_id ?? null,
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       company_name: (cw as any)?.companies?.name ?? null,
-      leads_mode: (cw as any)?.leads_mode ?? null,
+      leads_mode: computeLeadsMode(phones as { is_active: boolean; location_slug: string }[]),
       phone_count: phones.length,
       active_phone_count: phones.filter((r: { is_active: boolean }) => r.is_active).length,
       blog_count: posts.length,
