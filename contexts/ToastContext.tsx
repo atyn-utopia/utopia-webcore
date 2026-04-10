@@ -101,7 +101,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
             <div
               key={t.id}
               role="status"
-              className="pointer-events-auto relative rounded-lg border py-2.5 pl-3 pr-9 shadow-md flex items-center gap-2.5 max-w-[420px]"
+              className="pointer-events-auto relative rounded-lg border py-2.5 pl-3 pr-9 shadow-md flex items-center gap-2.5 min-w-[420px] max-w-[640px]"
               style={{
                 background: styles.bg,
                 borderColor: styles.border,
