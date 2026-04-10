@@ -456,7 +456,7 @@ export default function BlogListPage() {
                 <button
                   onClick={e => { e.preventDefault(); deletePost(post.id, post.title) }}
                   disabled={deleting === post.id}
-                  className="w-6 h-6 flex items-center justify-center rounded-md border transition-colors flex-shrink-0 disabled:opacity-50 hover:bg-[#ef4444] hover:border-white hover:text-white"
+                  className="w-6 h-6 flex items-center justify-center rounded-md border transition-colors flex-shrink-0 disabled:opacity-50 hover:bg-[#ef4444] hover:text-white hover:shadow-[inset_0_0_0_2px_#ffffff]"
                   style={{ borderColor: '#e2e8f0', color: '#cbd5e1' }}
                   title="Delete"
                 >
@@ -568,7 +568,7 @@ export default function BlogListPage() {
                       <button
                         onClick={() => deletePost(post.id, post.title)}
                         disabled={deleting === post.id}
-                        className="w-8 h-8 flex items-center justify-center rounded-lg border transition-colors disabled:opacity-50 hover:bg-[#ef4444] hover:border-white hover:text-white"
+                        className="w-8 h-8 flex items-center justify-center rounded-lg border transition-colors disabled:opacity-50 hover:bg-[#ef4444] hover:text-white hover:shadow-[inset_0_0_0_2px_#ffffff]"
                         style={{ borderColor: '#e2e8f0', color: '#94a3b8' }}
                         title="Delete"
                       >
