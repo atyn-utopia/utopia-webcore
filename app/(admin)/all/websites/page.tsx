@@ -120,10 +120,10 @@ export default function AllWebsitesPage() {
         <div className="p-12 text-center text-sm rounded-xl border" style={{ borderColor: '#e2e8f0', color: '#94a3b8' }}>No websites found</div>
       ) : (
         <div className="rounded-xl border overflow-hidden bg-white" style={{ borderColor: '#e2e8f0' }}>
-          <div className="overflow-x-auto">
+          <div className="overflow-auto" style={{ maxHeight: '60vh' }}>
             <table className="w-full text-sm min-w-[800px]">
               <thead>
-                <tr style={{ borderBottom: '1px solid #e2e8f0', background: '#f8fafc' }}>
+                <tr className="sticky top-0 z-10" style={{ borderBottom: '1px solid #e2e8f0', background: '#f8fafc' }}>
                   <Th label="Website" col="domain" />
                   <Th label="Company" col="company_name" />
                   {!isWriter && <Th label="Leads Mode" />}

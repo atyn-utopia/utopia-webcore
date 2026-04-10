@@ -120,10 +120,10 @@ export default function AllPhoneNumbersPage() {
         <div className="p-12 text-center text-sm rounded-xl border" style={{ borderColor: '#e2e8f0', color: '#94a3b8' }}>Loading…</div>
       ) : (
         <div className="rounded-xl border overflow-hidden bg-white" style={{ borderColor: '#e2e8f0' }}>
-          <div className="overflow-x-auto">
+          <div className="overflow-auto" style={{ maxHeight: '60vh' }}>
             <table className="w-full text-sm min-w-[700px]">
               <thead>
-                <tr style={{ borderBottom: '1px solid #e2e8f0', background: '#f8fafc' }}>
+                <tr className="sticky top-0 z-10" style={{ borderBottom: '1px solid #e2e8f0', background: '#f8fafc' }}>
                   <ThSort label="Phone Number" col="phone_number" />
                   <ThSort label="Website" col="website" />
                   <th className="px-4 py-3 text-[10px] sm:text-xs font-medium whitespace-nowrap" style={{ color: '#94a3b8' }}>WhatsApp Text</th>
