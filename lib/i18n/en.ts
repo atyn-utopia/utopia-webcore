@@ -54,6 +54,7 @@ export const en = {
   'nav.phoneNumbers': 'Phone Numbers',
   'nav.blogPosts': 'Blog Analytics',
   'nav.users': 'Users',
+  'nav.products': 'Products',
   'nav.tickets': 'Tickets',
   'nav.audit': 'Audit Trail',
   'nav.help': 'Help',
@@ -133,6 +134,13 @@ export const en = {
   'button.newPost': 'New Post',
   'button.addUser': 'Add User',
   'button.newTicket': 'New Ticket',
+
+  // Products
+  'page.products.title': 'Products',
+  'page.products.description': 'Manage products and services across websites',
+  'page.products.new': 'New Product',
+  'page.products.edit': 'Edit Product',
+  'button.addProduct': 'Add Product',
 
   // Login
   'login.title': 'Utopia Webcore',

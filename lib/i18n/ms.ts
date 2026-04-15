@@ -56,6 +56,7 @@ export const ms: Record<TranslationKey, string> = {
   'nav.phoneNumbers': 'Nombor Telefon',
   'nav.blogPosts': 'Analitik Blog',
   'nav.users': 'Pengguna',
+  'nav.products': 'Produk',
   'nav.tickets': 'Tiket',
   'nav.audit': 'Jejak Audit',
   'nav.help': 'Bantuan',
@@ -135,6 +136,13 @@ export const ms: Record<TranslationKey, string> = {
   'button.newPost': 'Catatan Baru',
   'button.addUser': 'Tambah Pengguna',
   'button.newTicket': 'Tiket Baru',
+
+  // Products
+  'page.products.title': 'Produk',
+  'page.products.description': 'Urus produk dan perkhidmatan merentas laman web',
+  'page.products.new': 'Produk Baru',
+  'page.products.edit': 'Edit Produk',
+  'button.addProduct': 'Tambah Produk',
 
   // Login
   'login.title': 'Utopia Webcore',
