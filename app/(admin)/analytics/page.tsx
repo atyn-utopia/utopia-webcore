@@ -100,7 +100,7 @@ const INSIGHT_STYLES: Record<string, { border: string; bg: string }> = {
 
 function InsightsPanel({ insights }: { insights: Insight[] }) {
   return (
-    <div className="rounded-xl border bg-white p-5 flex flex-col" style={{ borderColor: '#e2e8f0' }}>
+    <div className="rounded-xl border bg-white p-5 flex flex-col h-[232px]" style={{ borderColor: '#e2e8f0' }}>
       <div className="flex items-center gap-2 mb-4">
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: '#f59e0b' }} strokeWidth="1.8">
           <path strokeLinecap="round" strokeLinejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
@@ -139,9 +139,9 @@ function SimpleChart({ data }: { data: DailyStat[] }) {
   if (data.length === 0) return null
   const maxVal = Math.max(...data.map(d => d.pageviews), 1)
   return (
-    <div className="rounded-xl border border-slate-200 bg-white p-5 h-full flex flex-col">
+    <div className="rounded-xl border border-slate-200 bg-white p-5">
       <h3 className="text-sm font-semibold mb-4" style={{ color: 'var(--foreground)' }}>Daily Pageviews</h3>
-      <div className="flex items-end gap-1 flex-1 min-h-[128px]">
+      <div className="flex items-end gap-1 h-32">
         {data.map(d => {
           const h = Math.max((d.pageviews / maxVal) * 100, 2)
           return (
@@ -252,8 +252,8 @@ export default function AnalyticsPage() {
 
         {/* Chart + Insights side by side on large screens */}
         {data && (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-6 items-stretch">
-            <div className="lg:col-span-2 flex"><SimpleChart data={data.dailyStats} /></div>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-6">
+            <div className="lg:col-span-2"><SimpleChart data={data.dailyStats} /></div>
             <InsightsPanel insights={data.insights} />
           </div>
         )}
@@ -364,8 +364,8 @@ export default function AnalyticsPage() {
         />
 
         {data && (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-6 items-stretch">
-            <div className="lg:col-span-2 flex"><SimpleChart data={data.dailyStats} /></div>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-6">
+            <div className="lg:col-span-2"><SimpleChart data={data.dailyStats} /></div>
             <InsightsPanel insights={data.insights} />
           </div>
         )}
@@ -468,8 +468,8 @@ export default function AnalyticsPage() {
           </div>
 
           {/* Chart + Insights */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-6 items-stretch">
-            <div className="lg:col-span-2 flex"><SimpleChart data={data.dailyStats} /></div>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-6">
+            <div className="lg:col-span-2"><SimpleChart data={data.dailyStats} /></div>
             <InsightsPanel insights={data.insights} />
           </div>
 
