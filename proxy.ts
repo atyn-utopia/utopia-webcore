@@ -42,8 +42,8 @@ export async function proxy(request: NextRequest) {
     return supabaseResponse
   }
 
-  // Skip PWA/static assets
-  if (pathname === '/sw.js' || pathname === '/manifest.webmanifest' || pathname.startsWith('/icon-') || pathname === '/icon.svg' || pathname === '/character.gif') {
+  // Skip PWA/static assets + tracking script
+  if (pathname === '/sw.js' || pathname === '/manifest.webmanifest' || pathname.startsWith('/icon-') || pathname === '/icon.svg' || pathname === '/character.gif' || pathname === '/t.js') {
     return supabaseResponse
   }
 
