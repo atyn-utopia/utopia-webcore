@@ -67,9 +67,28 @@ export default function WebsitesPage() {
 
   useEffect(() => {
     if (!openCompany && !openWebsite) { setRecentPosts([]); setRecentPhones([]); return }
-    const wp = openWebsite ? `?website=${encodeURIComponent(openWebsite)}` : ''
-    Promise.all([fetch(`/api/blog${wp}`).then(r => r.json()), fetch(`/api/phone-numbers${wp}`).then(r => r.json())]).then(([p, ph]) => { if (Array.isArray(p)) setRecentPosts(p.slice(0, 5)); if (Array.isArray(ph)) setRecentPhones(ph.slice(0, 5)) }).catch(() => {})
-  }, [openCompany, openWebsite])
+
+    if (openWebsite) {
+      // Level 3: single website
+      const wp = `?website=${encodeURIComponent(openWebsite)}`
+      Promise.all([fetch(`/api/blog${wp}`).then(r => r.json()), fetch(`/api/phone-numbers${wp}`).then(r => r.json())]).then(([p, ph]) => { if (Array.isArray(p)) setRecentPosts(p.slice(0, 5)); if (Array.isArray(ph)) setRecentPhones(ph.slice(0, 5)) }).catch(() => {})
+    } else if (openCompany && companies.length > 0) {
+      // Level 2: fetch for each website in this company, merge and take latest 5
+      const companyDomains = companies.find(c => c.name === openCompany)?.company_websites.map(w => w.domain) ?? []
+      if (companyDomains.length === 0) { setRecentPosts([]); setRecentPhones([]); return }
+      Promise.all(companyDomains.map(d =>
+        Promise.all([
+          fetch(`/api/blog?website=${encodeURIComponent(d)}`).then(r => r.json()),
+          fetch(`/api/phone-numbers?website=${encodeURIComponent(d)}`).then(r => r.json()),
+        ])
+      )).then(results => {
+        const allPosts = results.flatMap(([p]) => Array.isArray(p) ? p : []).sort((a, b) => (b.updated_at ?? '').localeCompare(a.updated_at ?? '')).slice(0, 5)
+        const allPhones = results.flatMap(([, ph]) => Array.isArray(ph) ? ph : []).slice(0, 5)
+        setRecentPosts(allPosts)
+        setRecentPhones(allPhones)
+      }).catch(() => {})
+    }
+  }, [openCompany, openWebsite, companies])
 
   const filteredSites = sites.filter(s => { if (!search) return true; const q = search.toLowerCase(); return s.domain.toLowerCase().includes(q) || (s.company_name ?? '').toLowerCase().includes(q) })
 
@@ -190,9 +209,10 @@ export default function WebsitesPage() {
             <th className="px-4 py-3 text-left text-xs font-medium" style={{ color: '#94a3b8' }}>Clicks</th>
             {!isWriter && <th className="px-4 py-3 text-left text-xs font-medium" style={{ color: '#94a3b8' }}>Phones</th>}
             <th className="px-4 py-3 text-left text-xs font-medium" style={{ color: '#94a3b8' }}>Blog</th>
+            <th className="px-4 py-3 text-center text-xs font-medium" style={{ color: '#94a3b8' }}>Actions</th>
           </tr></thead><tbody>
             {companySites.map((site, i) => { const ws = (analytics?.websiteStats ?? []).find(w => w.website === site.domain); const lm = site.leads_mode && LEADS_MODE[site.leads_mode] ? LEADS_MODE[site.leads_mode] : null; return (
-              <tr key={site.domain} className="hover:bg-[#f8fafc] transition-colors" style={{ borderBottom: i < companySites.length - 1 ? '1px solid #f1f5f9' : 'none' }}>
+              <tr key={site.domain} className="hover:bg-[#f8fafc] transition-colors relative hover:z-20" style={{ borderBottom: i < companySites.length - 1 ? '1px solid #f1f5f9' : 'none' }}>
                 <td className="px-4 py-3.5"><Link href={`/websites?website=${encodeURIComponent(site.domain)}&company=${encodeURIComponent(openCompany)}`} className="text-sm font-medium hover:text-[var(--primary)] transition-colors" style={{ color: 'var(--foreground)' }}>{site.domain}</Link></td>
                 {!isWriter && <td className="px-4 py-3.5">{lm ? <span className="text-[10px] px-2 py-0.5 rounded-full font-medium" style={{ background: lm.bg, color: lm.color }}>{lm.label}</span> : <span style={{ color: '#cbd5e1' }}>—</span>}</td>}
                 <td className="px-4 py-3.5"><span className="text-sm font-semibold" style={{ color: 'var(--foreground)' }}>{ws?.pageviews.toLocaleString() ?? '0'}</span></td>
@@ -200,6 +220,19 @@ export default function WebsitesPage() {
                 <td className="px-4 py-3.5"><span className="text-xs" style={{ color: '#f59e0b' }}>{ws?.clicks.toLocaleString() ?? '0'}</span></td>
                 {!isWriter && <td className="px-4 py-3.5"><span className="text-xs" style={{ color: '#64748b' }}>{site.phone_count}</span></td>}
                 <td className="px-4 py-3.5"><span className="text-xs" style={{ color: '#64748b' }}>{site.blog_count}</span></td>
+                <td className="px-4 py-3.5">
+                  <div className="flex items-center gap-1.5 justify-center">
+                    <a href={`https://${site.domain}`} target="_blank" rel="noopener noreferrer" className="group/tip relative w-7 h-7 flex items-center justify-center rounded-md border border-[#e2e8f0] text-[#94a3b8] transition-colors hover:border-[var(--primary)] hover:text-[var(--primary)]" title="Open website">
+                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8"><path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
+                    </a>
+                    {!isWriter && <Link href={`/phone-numbers?website=${encodeURIComponent(site.domain)}`} className="w-7 h-7 flex items-center justify-center rounded-md border border-[#e2e8f0] text-[#94a3b8] transition-colors hover:border-[var(--primary)] hover:text-[var(--primary)]" title="Phone numbers">
+                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8"><path strokeLinecap="round" strokeLinejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>
+                    </Link>}
+                    <Link href={`/blog?website=${encodeURIComponent(site.domain)}`} className="w-7 h-7 flex items-center justify-center rounded-md border border-[#e2e8f0] text-[#94a3b8] transition-colors hover:border-[var(--primary)] hover:text-[var(--primary)]" title="Blog posts">
+                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                    </Link>
+                  </div>
+                </td>
               </tr>) })}
           </tbody></table></div>
         </div>
