@@ -52,6 +52,7 @@ export const ms: Record<TranslationKey, string> = {
 
   // Sidebar nav
   'nav.dashboard': 'Papan Pemuka',
+  'nav.analytics': 'Analitik',
   'nav.websites': 'Laman Web',
   'nav.phoneNumbers': 'Nombor Telefon',
   'nav.blogPosts': 'Analitik Blog',

@@ -50,6 +50,7 @@ export const en = {
 
   // Sidebar nav
   'nav.dashboard': 'Dashboard',
+  'nav.analytics': 'Analytics',
   'nav.websites': 'Websites',
   'nav.phoneNumbers': 'Phone Numbers',
   'nav.blogPosts': 'Blog Analytics',
