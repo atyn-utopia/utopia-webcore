@@ -69,7 +69,7 @@ export default function BlogListPage() {
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc')
   const [blogStats, setBlogStats] = useState<{
     summary: { total_posts: number; published: number; drafts: number; total_views: number; prev_total_views: number; growing: number; declining: number; trend: string }
-    posts: { id: string; slug: string; views: number; prev_views: number; trend: string; change_pct: number }[]
+    posts: { id: string; slug: string; views: number; prev_views: number; clicks: number; impressions: number; trend: string; change_pct: number }[]
   } | null>(null)
 
   function toggleSort(key: SortKey) {
@@ -574,7 +574,9 @@ export default function BlogListPage() {
             <colgroup>
               <col />
               <col className="w-20 sm:w-24" />
-              <col className="w-28 sm:w-32" />
+              <col className="w-20" />
+              <col className="w-16" />
+              <col className="w-20" />
               <col className="w-24 sm:w-28" />
               <col className="w-20 sm:w-24" />
             </colgroup>
@@ -595,6 +597,8 @@ export default function BlogListPage() {
                   <span className="flex w-full items-center justify-between gap-1">Status<SortIcon active={sortKey === 'status'} dir={sortKey === 'status' ? sortDir : 'asc'} /></span>
                 </th>
                 <th className="px-2 py-3 text-left text-[10px] sm:text-xs font-medium whitespace-nowrap" style={{ color: '#94a3b8' }}>Views</th>
+                <th className="px-2 py-3 text-left text-[10px] sm:text-xs font-medium whitespace-nowrap" style={{ color: '#94a3b8' }}>Clicks</th>
+                <th className="px-2 py-3 text-left text-[10px] sm:text-xs font-medium whitespace-nowrap" style={{ color: '#94a3b8' }}>Impr.</th>
                 <th
                   className="px-2 py-3 text-left text-[10px] sm:text-xs font-medium cursor-pointer select-none hover:text-[var(--primary)] transition-colors whitespace-nowrap"
                   style={{ color: '#94a3b8' }}
@@ -610,7 +614,15 @@ export default function BlogListPage() {
                 <tr key={post.id} className="hover:bg-[#f1f5f9] transition-colors" style={{ borderBottom: i < filtered.length - 1 ? '1px solid #cbd5e1' : 'none' }}>
                   <td className="px-3 sm:px-4 py-3 align-middle overflow-hidden">
                     <div className="min-w-0">
-                      <Link href={`/blog/${post.id}/edit`} className="text-xs sm:text-sm font-medium hover:underline truncate block" style={{ color: 'var(--foreground)' }}>{post.title}</Link>
+                      <div className="flex items-center gap-1.5">
+                        {(() => {
+                          const stat = blogStats?.posts.find(p => p.id === post.id)
+                          if (stat && stat.trend === 'up') return <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="#16a34a" viewBox="0 0 24 24" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>
+                          if (stat && stat.trend === 'down') return <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="#dc2626" viewBox="0 0 24 24" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6" /></svg>
+                          return <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="#cbd5e1" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M5 12h14" /></svg>
+                        })()}
+                        <Link href={`/blog/${post.id}/edit`} className="text-xs sm:text-sm font-medium hover:underline truncate" style={{ color: 'var(--foreground)' }}>{post.title}</Link>
+                      </div>
                       {post.languages?.length > 0 && (
                         <div className="flex gap-1 mt-0.5">
                           {['en', 'ms', 'zh'].map(lang => (
@@ -645,6 +657,18 @@ export default function BlogListPage() {
                           )}
                         </div>
                       )
+                    })()}
+                  </td>
+                  <td className="px-2 py-3 align-middle">
+                    {(() => {
+                      const stat = blogStats?.posts.find(p => p.id === post.id)
+                      return <span className="text-xs" style={{ color: stat && stat.clicks > 0 ? '#475569' : '#cbd5e1' }}>{stat?.clicks ?? 0}</span>
+                    })()}
+                  </td>
+                  <td className="px-2 py-3 align-middle">
+                    {(() => {
+                      const stat = blogStats?.posts.find(p => p.id === post.id)
+                      return <span className="text-xs" style={{ color: stat && stat.impressions > 0 ? '#475569' : '#cbd5e1' }}>{stat?.impressions ?? 0}</span>
                     })()}
                   </td>
                   <td className="px-2 py-3 align-middle text-[10px] sm:text-xs" style={{ color: '#475569' }}>{formatDate(post.updated_at)}</td>

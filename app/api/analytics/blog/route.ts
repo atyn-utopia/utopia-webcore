@@ -20,12 +20,11 @@ export async function GET(request: Request) {
 
   const service = createServiceClient()
 
-  // Get all pageview events for this website with blog paths
+  // Get all events for this website
   const { data: events } = await service
     .from('page_events')
-    .select('path, session_id, created_at')
+    .select('path, event_type, label, session_id, created_at')
     .eq('website', website)
-    .eq('event_type', 'pageview')
     .gte('created_at', prevSince)
 
   const rows = events ?? []
@@ -39,14 +38,17 @@ export async function GET(request: Request) {
     .eq('website', website)
     .order('updated_at', { ascending: false })
 
-  // Match posts to pageviews by slug
+  // Match posts to events by slug
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const postStats = (posts ?? []).map((post: any) => {
-    const blogPath = `/blog/${post.slug}`
     const altPaths = [`/blog/${post.slug}`, `/${post.slug}`]
+    const matchPath = (e: { path: string }) => altPaths.some(p => e.path === p || e.path.startsWith(p + '/'))
+    const matchLabel = (e: { label?: string | null }) => e.label && (e.label.includes(post.slug) || e.label.includes(post.id))
 
-    const currentViews = currentRows.filter(e => altPaths.some(p => e.path === p || e.path.startsWith(p + '/'))).length
-    const prevViews = prevRows.filter(e => altPaths.some(p => e.path === p || e.path.startsWith(p + '/'))).length
+    const currentViews = currentRows.filter(e => e.event_type === 'pageview' && matchPath(e)).length
+    const prevViews = prevRows.filter(e => e.event_type === 'pageview' && matchPath(e)).length
+    const clicks = currentRows.filter(e => e.event_type === 'click' && (matchPath(e) || matchLabel(e))).length
+    const impressions = currentRows.filter(e => e.event_type === 'impression' && (matchPath(e) || matchLabel(e))).length
 
     const en = post.blog_translations?.find((t: { language: string }) => t.language === 'en') ?? post.blog_translations?.[0]
 
@@ -71,6 +73,8 @@ export async function GET(request: Request) {
       updated_at: post.updated_at,
       views: currentViews,
       prev_views: prevViews,
+      clicks,
+      impressions,
       trend,
       change_pct: changePct,
     }
