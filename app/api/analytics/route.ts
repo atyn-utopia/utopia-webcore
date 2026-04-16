@@ -53,6 +53,24 @@ export async function GET(request: Request) {
   const totalImpressions = rows.filter(e => e.event_type === 'impression').length
   const uniqueSessions = new Set(rows.map(e => e.session_id).filter(Boolean)).size
 
+  // Today vs yesterday
+  const todayStr = new Date().toISOString().slice(0, 10)
+  const yesterdayStr = new Date(Date.now() - 86400000).toISOString().slice(0, 10)
+  const todayRows = rows.filter(e => e.created_at.slice(0, 10) === todayStr)
+  const yesterdayRows = rows.filter(e => e.created_at.slice(0, 10) === yesterdayStr)
+  const todayStats = {
+    pageviews: todayRows.filter(e => e.event_type === 'pageview').length,
+    clicks: todayRows.filter(e => e.event_type === 'click').length,
+    impressions: todayRows.filter(e => e.event_type === 'impression').length,
+    sessions: new Set(todayRows.map(e => e.session_id).filter(Boolean)).size,
+  }
+  const yesterdayStats = {
+    pageviews: yesterdayRows.filter(e => e.event_type === 'pageview').length,
+    clicks: yesterdayRows.filter(e => e.event_type === 'click').length,
+    impressions: yesterdayRows.filter(e => e.event_type === 'impression').length,
+    sessions: new Set(yesterdayRows.map(e => e.session_id).filter(Boolean)).size,
+  }
+
   // Per-website breakdown
   const byWebsite: Record<string, { pageviews: number; clicks: number; impressions: number; sessions: Set<string> }> = {}
   for (const e of rows) {
@@ -140,6 +158,8 @@ export async function GET(request: Request) {
       impressions: totalImpressions,
       sessions: uniqueSessions,
     },
+    today: todayStats,
+    yesterday: yesterdayStats,
     websiteStats,
     dailyStats,
     topPages,

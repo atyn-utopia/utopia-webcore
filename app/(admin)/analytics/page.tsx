@@ -9,8 +9,11 @@ interface WebsiteStat { website: string; pageviews: number; clicks: number; impr
 interface DailyStat { date: string; pageviews: number; clicks: number; impressions: number }
 interface TopItem { path?: string; source?: string; label?: string; count: number }
 
+interface DayStats { pageviews: number; clicks: number; impressions: number; sessions: number }
 interface AnalyticsData {
   summary: { pageviews: number; clicks: number; impressions: number; sessions: number }
+  today: DayStats
+  yesterday: DayStats
   websiteStats: WebsiteStat[]
   dailyStats: DailyStat[]
   topPages: TopItem[]
@@ -28,7 +31,7 @@ function Tooltip({ text, children }: { text: string; children: React.ReactNode }
   return (
     <div className="group/tip relative inline-flex">
       {children}
-      <div className="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-1.5 rounded-lg text-[11px] font-medium text-white whitespace-nowrap opacity-0 group-hover/tip:opacity-100 transition-opacity z-20 max-w-[240px] text-center" style={{ background: '#1e293b' }}>
+      <div className="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 rounded-lg text-[11px] font-medium text-white opacity-0 group-hover/tip:opacity-100 transition-opacity z-30 w-48 text-center leading-relaxed" style={{ background: '#1e293b' }}>
         {text}
         <div className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0 border-x-4 border-x-transparent border-t-4" style={{ borderTopColor: '#1e293b' }} />
       </div>
@@ -36,23 +39,40 @@ function Tooltip({ text, children }: { text: string; children: React.ReactNode }
   )
 }
 
-function StatCard({ label, value, icon, color, hint }: { label: string; value: number; icon: React.ReactNode; color: string; hint?: string }) {
+function StatCard({ label, value, icon, color, hint, today, yesterday, trend }: {
+  label: string; value: number; icon: React.ReactNode; color: string; hint?: string
+  today?: number; yesterday?: number; trend?: 'up' | 'down' | 'flat'
+}) {
   return (
-    <div className="rounded-xl border border-slate-200 bg-white p-5">
-      <div className="flex items-center gap-3 mb-3">
-        <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: color + '15' }}>
-          <div style={{ color }}>{icon}</div>
+    <div className="rounded-xl border border-slate-200 bg-white p-4">
+      <div className="flex items-center justify-between mb-2">
+        <div className="flex items-center gap-2">
+          <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: color + '15' }}>
+            <div style={{ color }}>{icon}</div>
+          </div>
+          <span className="text-xs font-medium" style={{ color: '#64748b' }}>{label}</span>
+          {hint && (
+            <Tooltip text={hint}>
+              <svg className="w-3.5 h-3.5 cursor-help" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: '#cbd5e1' }} strokeWidth="2">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </Tooltip>
+          )}
         </div>
-        <span className="text-xs font-medium text-slate-400 uppercase tracking-wide">{label}</span>
-        {hint && (
-          <Tooltip text={hint}>
-            <svg className="w-3.5 h-3.5 cursor-help" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: '#cbd5e1' }} strokeWidth="2">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-          </Tooltip>
+        {trend && (
+          <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded ${trend === 'up' ? 'text-green-600 bg-green-50' : trend === 'down' ? 'text-red-500 bg-red-50' : 'text-slate-400 bg-slate-50'}`}>
+            {trend === 'up' ? '↑' : trend === 'down' ? '↓' : '→'}
+          </span>
         )}
       </div>
-      <p className="text-3xl font-bold text-slate-900">{value.toLocaleString()}</p>
+      <p className="text-2xl font-bold text-slate-900 mb-1">{value.toLocaleString()}</p>
+      {(today !== undefined || yesterday !== undefined) && (
+        <p className="text-[10px]" style={{ color: '#94a3b8' }}>
+          {today !== undefined && <span>{today.toLocaleString()} today</span>}
+          {today !== undefined && yesterday !== undefined && <span> · </span>}
+          {yesterday !== undefined && <span>{yesterday.toLocaleString()} yesterday</span>}
+        </p>
+      )}
     </div>
   )
 }
@@ -166,12 +186,20 @@ export default function AnalyticsPage() {
         {data && (
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
             <StatCard label="Pageviews" value={data.summary.pageviews} color="#2979d6" hint="Total number of pages viewed across all websites"
+              today={data.today.pageviews} yesterday={data.yesterday.pageviews}
+              trend={data.today.pageviews > data.yesterday.pageviews ? 'up' : data.today.pageviews < data.yesterday.pageviews ? 'down' : 'flat'}
               icon={<svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8"><path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>} />
             <StatCard label="Sessions" value={data.summary.sessions} color="#16a34a" hint="Unique visitor sessions (one session per browser tab)"
+              today={data.today.sessions} yesterday={data.yesterday.sessions}
+              trend={data.today.sessions > data.yesterday.sessions ? 'up' : data.today.sessions < data.yesterday.sessions ? 'down' : 'flat'}
               icon={<svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8"><path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" /></svg>} />
             <StatCard label="Clicks" value={data.summary.clicks} color="#f59e0b" hint="Button clicks tracked by your websites (e.g. WhatsApp, Call)"
+              today={data.today.clicks} yesterday={data.yesterday.clicks}
+              trend={data.today.clicks > data.yesterday.clicks ? 'up' : data.today.clicks < data.yesterday.clicks ? 'down' : 'flat'}
               icon={<svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8"><path strokeLinecap="round" strokeLinejoin="round" d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122" /></svg>} />
             <StatCard label="Impressions" value={data.summary.impressions} color="#7c3aed" hint="Product or content views tracked by your websites"
+              today={data.today.impressions} yesterday={data.yesterday.impressions}
+              trend={data.today.impressions > data.yesterday.impressions ? 'up' : data.today.impressions < data.yesterday.impressions ? 'down' : 'flat'}
               icon={<svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8"><path strokeLinecap="round" strokeLinejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>} />
           </div>
         )}
@@ -366,12 +394,20 @@ export default function AnalyticsPage() {
           {/* Summary cards */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
             <StatCard label="Pageviews" value={data.summary.pageviews} color="#2979d6" hint="Total pages viewed on this website"
+              today={data.today.pageviews} yesterday={data.yesterday.pageviews}
+              trend={data.today.pageviews > data.yesterday.pageviews ? 'up' : data.today.pageviews < data.yesterday.pageviews ? 'down' : 'flat'}
               icon={<svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8"><path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>} />
             <StatCard label="Sessions" value={data.summary.sessions} color="#16a34a" hint="Unique visitor sessions on this website"
+              today={data.today.sessions} yesterday={data.yesterday.sessions}
+              trend={data.today.sessions > data.yesterday.sessions ? 'up' : data.today.sessions < data.yesterday.sessions ? 'down' : 'flat'}
               icon={<svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8"><path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" /></svg>} />
             <StatCard label="Clicks" value={data.summary.clicks} color="#f59e0b" hint="WhatsApp, call, and other tracked button clicks"
+              today={data.today.clicks} yesterday={data.yesterday.clicks}
+              trend={data.today.clicks > data.yesterday.clicks ? 'up' : data.today.clicks < data.yesterday.clicks ? 'down' : 'flat'}
               icon={<svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8"><path strokeLinecap="round" strokeLinejoin="round" d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122" /></svg>} />
             <StatCard label="Impressions" value={data.summary.impressions} color="#7c3aed" hint="Product or content impression events"
+              today={data.today.impressions} yesterday={data.yesterday.impressions}
+              trend={data.today.impressions > data.yesterday.impressions ? 'up' : data.today.impressions < data.yesterday.impressions ? 'down' : 'flat'}
               icon={<svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8"><path strokeLinecap="round" strokeLinejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>} />
           </div>
 
