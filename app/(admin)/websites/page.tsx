@@ -201,15 +201,17 @@ export default function WebsitesPage() {
       <h2 className="text-sm font-semibold text-slate-700 mb-3">Websites</h2>
       {loading ? <div className="p-12 text-center text-sm rounded-xl border" style={{ borderColor: '#e2e8f0', color: '#94a3b8' }}>Loading…</div> : companySites.length === 0 ? <div className="p-12 text-center text-sm rounded-xl border" style={{ borderColor: '#e2e8f0', color: '#94a3b8' }}>No websites found.</div> : (
         <div className="rounded-xl border overflow-hidden bg-white mb-6" style={{ borderColor: '#e2e8f0' }}>
-          <div className="overflow-x-auto"><table className="w-full text-sm min-w-[800px]"><thead><tr style={{ borderBottom: '1px solid #e2e8f0', background: '#f8fafc' }}>
-            <th className="px-4 py-3 text-left text-xs font-medium" style={{ color: '#94a3b8' }}>Website</th>
-            {!isWriter && <th className="px-4 py-3 text-left text-xs font-medium" style={{ color: '#94a3b8' }}>Mode</th>}
-            <th className="px-4 py-3 text-left text-xs font-medium" style={{ color: '#94a3b8' }}>Views</th>
-            <th className="px-4 py-3 text-left text-xs font-medium" style={{ color: '#94a3b8' }}>Sessions</th>
-            <th className="px-4 py-3 text-left text-xs font-medium" style={{ color: '#94a3b8' }}>Clicks</th>
-            {!isWriter && <th className="px-4 py-3 text-left text-xs font-medium" style={{ color: '#94a3b8' }}>Phones</th>}
-            <th className="px-4 py-3 text-left text-xs font-medium" style={{ color: '#94a3b8' }}>Blog</th>
-            <th className="px-4 py-3 text-center text-xs font-medium" style={{ color: '#94a3b8' }}>Actions</th>
+          <div className="overflow-x-auto" style={{ maxHeight: '60vh' }}><table className="w-full text-sm min-w-[800px]"><thead><tr className="sticky top-0 z-10" style={{ borderBottom: '1px solid #e2e8f0', background: '#f8fafc' }}>
+            <th className="px-4 py-3 text-[10px] sm:text-xs font-medium whitespace-nowrap text-left" style={{ color: '#94a3b8' }}>Website</th>
+            {!isWriter && <th className="px-4 py-3 text-[10px] sm:text-xs font-medium whitespace-nowrap text-left" style={{ color: '#94a3b8' }}>Leads Mode</th>}
+            <th className="px-4 py-3 text-[10px] sm:text-xs font-medium whitespace-nowrap text-left" style={{ color: '#94a3b8' }}>Views</th>
+            <th className="px-4 py-3 text-[10px] sm:text-xs font-medium whitespace-nowrap text-left" style={{ color: '#94a3b8' }}>Sessions</th>
+            <th className="px-4 py-3 text-[10px] sm:text-xs font-medium whitespace-nowrap text-left" style={{ color: '#94a3b8' }}>Clicks</th>
+            {!isWriter && <th className="px-4 py-3 text-[10px] sm:text-xs font-medium whitespace-nowrap text-left" style={{ color: '#94a3b8' }}>Phones</th>}
+            {!isWriter && <th className="px-4 py-3 text-[10px] sm:text-xs font-medium whitespace-nowrap text-left" style={{ color: '#94a3b8' }}>Active</th>}
+            <th className="px-4 py-3 text-[10px] sm:text-xs font-medium whitespace-nowrap text-left" style={{ color: '#94a3b8' }}>Blog</th>
+            <th className="px-4 py-3 text-[10px] sm:text-xs font-medium whitespace-nowrap text-left" style={{ color: '#94a3b8' }}>Published</th>
+            <th className="px-4 py-3 text-[10px] sm:text-xs font-medium whitespace-nowrap text-center" style={{ color: '#94a3b8' }}></th>
           </tr></thead><tbody>
             {companySites.map((site, i) => { const ws = (analytics?.websiteStats ?? []).find(w => w.website === site.domain); const lm = site.leads_mode && LEADS_MODE[site.leads_mode] ? LEADS_MODE[site.leads_mode] : null; return (
               <tr key={site.domain} className="hover:bg-[#f8fafc] transition-colors relative hover:z-20" style={{ borderBottom: i < companySites.length - 1 ? '1px solid #f1f5f9' : 'none' }}>
@@ -218,8 +220,10 @@ export default function WebsitesPage() {
                 <td className="px-4 py-3.5"><span className="text-sm font-semibold" style={{ color: 'var(--foreground)' }}>{ws?.pageviews.toLocaleString() ?? '0'}</span></td>
                 <td className="px-4 py-3.5"><span className="text-xs" style={{ color: '#64748b' }}>{ws?.sessions.toLocaleString() ?? '0'}</span></td>
                 <td className="px-4 py-3.5"><span className="text-xs" style={{ color: '#f59e0b' }}>{ws?.clicks.toLocaleString() ?? '0'}</span></td>
-                {!isWriter && <td className="px-4 py-3.5"><span className="text-xs" style={{ color: '#64748b' }}>{site.phone_count}</span></td>}
-                <td className="px-4 py-3.5"><span className="text-xs" style={{ color: '#64748b' }}>{site.blog_count}</span></td>
+                {!isWriter && <td className="px-4 py-3.5"><span className="text-sm font-medium" style={{ color: 'var(--foreground)' }}>{site.phone_count}</span></td>}
+                {!isWriter && <td className="px-4 py-3.5"><span className="text-[10px] px-2 py-0.5 rounded-full font-medium" style={site.active_phone_count > 0 ? { background: '#dcfce7', color: '#16a34a' } : { background: '#f1f5f9', color: '#94a3b8' }}>{site.active_phone_count}</span></td>}
+                <td className="px-4 py-3.5"><span className="text-sm font-medium" style={{ color: 'var(--foreground)' }}>{site.blog_count}</span></td>
+                <td className="px-4 py-3.5"><span className="text-[10px] px-2 py-0.5 rounded-full font-medium" style={site.published_blog_count > 0 ? { background: '#e0f2fe', color: '#0369a1' } : { background: '#f1f5f9', color: '#94a3b8' }}>{site.published_blog_count}</span></td>
                 <td className="px-4 py-3.5">
                   <div className="flex items-center gap-1.5 justify-center">
                     <a href={`https://${site.domain}`} target="_blank" rel="noopener noreferrer" className="group/tip relative w-7 h-7 flex items-center justify-center rounded-md border border-[#e2e8f0] text-[#94a3b8] transition-colors hover:border-[var(--primary)] hover:text-[var(--primary)]" title="Open website">
