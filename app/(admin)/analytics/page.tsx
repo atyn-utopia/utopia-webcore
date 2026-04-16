@@ -9,11 +9,13 @@ interface WebsiteStat { website: string; pageviews: number; clicks: number; impr
 interface DailyStat { date: string; pageviews: number; clicks: number; impressions: number }
 interface TopItem { path?: string; source?: string; label?: string; count: number }
 
+interface Insight { icon: string; text: string; type: 'positive' | 'negative' | 'neutral' | 'warning' }
 interface DayStats { pageviews: number; clicks: number; impressions: number; sessions: number }
 interface AnalyticsData {
   summary: { pageviews: number; clicks: number; impressions: number; sessions: number }
   today: DayStats
   yesterday: DayStats
+  insights: Insight[]
   websiteStats: WebsiteStat[]
   dailyStats: DailyStat[]
   topPages: TopItem[]
@@ -85,6 +87,39 @@ function MiniBar({ value, max, color }: { value: number; max: number; color: str
         <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, background: color }} />
       </div>
       <span className="text-xs font-semibold w-12 text-right" style={{ color: '#475569' }}>{value.toLocaleString()}</span>
+    </div>
+  )
+}
+
+const INSIGHT_STYLES: Record<string, { border: string; bg: string }> = {
+  positive: { border: '#bbf7d0', bg: '#f0fdf4' },
+  negative: { border: '#fecaca', bg: '#fef2f2' },
+  warning: { border: '#fed7aa', bg: '#fffbeb' },
+  neutral: { border: '#e2e8f0', bg: '#f8fafc' },
+}
+
+function InsightsPanel({ insights }: { insights: Insight[] }) {
+  if (insights.length === 0) return null
+  return (
+    <div className="rounded-xl border bg-white p-5 mb-6" style={{ borderColor: '#e2e8f0' }}>
+      <div className="flex items-center gap-2 mb-4">
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: '#f59e0b' }} strokeWidth="1.8">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+        </svg>
+        <h3 className="text-sm font-semibold" style={{ color: 'var(--foreground)' }}>Daily Insights</h3>
+        <span className="text-[10px] font-medium px-1.5 py-0.5 rounded-full" style={{ background: '#fef3c7', color: '#92400e' }}>Auto-generated</span>
+      </div>
+      <div className="space-y-2">
+        {insights.map((insight, i) => {
+          const style = INSIGHT_STYLES[insight.type] ?? INSIGHT_STYLES.neutral
+          return (
+            <div key={i} className="flex items-start gap-3 p-3 rounded-lg border" style={{ borderColor: style.border, background: style.bg }}>
+              <span className="text-base flex-shrink-0 mt-0.5">{insight.icon}</span>
+              <p className="text-xs leading-relaxed" style={{ color: '#475569' }}>{insight.text}</p>
+            </div>
+          )
+        })}
+      </div>
     </div>
   )
 }
@@ -204,8 +239,13 @@ export default function AnalyticsPage() {
           </div>
         )}
 
-        {/* Chart */}
-        {data && <div className="mb-6"><SimpleChart data={data.dailyStats} /></div>}
+        {/* Chart + Insights side by side on large screens */}
+        {data && (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-6">
+            <div className="lg:col-span-2"><SimpleChart data={data.dailyStats} /></div>
+            <InsightsPanel insights={data.insights} />
+          </div>
+        )}
 
         {/* Company performance ranking */}
         <div className="flex items-center gap-2 mb-3">
@@ -312,7 +352,12 @@ export default function AnalyticsPage() {
           }
         />
 
-        {data && <div className="mb-6"><SimpleChart data={data.dailyStats} /></div>}
+        {data && (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-6">
+            <div className="lg:col-span-2"><SimpleChart data={data.dailyStats} /></div>
+            <InsightsPanel insights={data.insights} />
+          </div>
+        )}
 
         <div className="flex items-center gap-2 mb-3">
           <h2 className="text-sm font-semibold text-slate-700">Website Ranking</h2>
@@ -411,8 +456,11 @@ export default function AnalyticsPage() {
               icon={<svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8"><path strokeLinecap="round" strokeLinejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>} />
           </div>
 
-          {/* Chart */}
-          <div className="mb-6"><SimpleChart data={data.dailyStats} /></div>
+          {/* Chart + Insights */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-6">
+            <div className="lg:col-span-2"><SimpleChart data={data.dailyStats} /></div>
+            <InsightsPanel insights={data.insights} />
+          </div>
 
           {/* Detailed breakdowns */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">

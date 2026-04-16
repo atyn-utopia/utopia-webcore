@@ -150,6 +150,95 @@ export async function GET(request: Request) {
     .sort((a, b) => b.count - a.count)
     .slice(0, 10)
 
+  // ─── Generate insights ─────────────────────────────────────
+  const insights: { icon: string; text: string; type: 'positive' | 'negative' | 'neutral' | 'warning' }[] = []
+
+  // 1. Traffic spike/drop per website (today vs yesterday)
+  for (const ws of websiteStats.slice(0, 10)) {
+    const todayPv = todayRows.filter(e => e.website === ws.website && e.event_type === 'pageview').length
+    const yestPv = yesterdayRows.filter(e => e.website === ws.website && e.event_type === 'pageview').length
+    if (yestPv > 5 && todayPv > yestPv * 1.3) {
+      const pct = Math.round(((todayPv - yestPv) / yestPv) * 100)
+      insights.push({ icon: '🔥', text: `${ws.website} has ${pct}% more pageviews today vs yesterday`, type: 'positive' })
+    } else if (yestPv > 5 && todayPv < yestPv * 0.5) {
+      const pct = Math.round(((yestPv - todayPv) / yestPv) * 100)
+      insights.push({ icon: '📉', text: `${ws.website} traffic is down ${pct}% today vs yesterday`, type: 'negative' })
+    }
+  }
+
+  // 2. Zero traffic websites (no events in last 3 days)
+  const threeDaysAgo = new Date(Date.now() - 3 * 86400000).toISOString()
+  const recentWebsites = new Set(rows.filter(e => e.created_at > threeDaysAgo).map(e => e.website))
+  for (const ws of websiteStats) {
+    if (!recentWebsites.has(ws.website) && ws.pageviews > 0) {
+      insights.push({ icon: '⚠️', text: `${ws.website} has had no visitors in the last 3 days`, type: 'warning' })
+    }
+  }
+
+  // 3. Mobile percentage
+  const totalDevices = Object.values(deviceCounts).reduce((s, v) => s + v, 0)
+  const mobilePct = totalDevices > 0 ? Math.round(((deviceCounts['mobile'] ?? 0) / totalDevices) * 100) : 0
+  if (mobilePct > 70) {
+    insights.push({ icon: '📱', text: `${mobilePct}% of your visitors are on mobile devices`, type: 'neutral' })
+  }
+
+  // 4. Click-through rate
+  if (totalPageviews > 20 && totalClicks > 0) {
+    const ctr = ((totalClicks / totalPageviews) * 100).toFixed(1)
+    if (todayStats.clicks > yesterdayStats.clicks && yesterdayStats.clicks > 0) {
+      const pct = Math.round(((todayStats.clicks - yesterdayStats.clicks) / yesterdayStats.clicks) * 100)
+      insights.push({ icon: '🎯', text: `Clicks are up ${pct}% today. Overall click rate is ${ctr}%`, type: 'positive' })
+    } else {
+      insights.push({ icon: '🎯', text: `Your overall click-through rate is ${ctr}%`, type: 'neutral' })
+    }
+  }
+
+  // 5. Best day of the week
+  if (dailyStats.length >= 7) {
+    const dayTotals: Record<string, { total: number; count: number }> = {}
+    for (const d of dailyStats) {
+      const dayName = new Date(d.date + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'long' })
+      if (!dayTotals[dayName]) dayTotals[dayName] = { total: 0, count: 0 }
+      dayTotals[dayName].total += d.pageviews
+      dayTotals[dayName].count++
+    }
+    const avgByDay = Object.entries(dayTotals).map(([day, v]) => ({ day, avg: v.total / v.count }))
+    const overallAvg = avgByDay.reduce((s, d) => s + d.avg, 0) / avgByDay.length
+    const best = avgByDay.sort((a, b) => b.avg - a.avg)[0]
+    if (best && best.avg > overallAvg * 1.15) {
+      const pct = Math.round(((best.avg - overallAvg) / overallAvg) * 100)
+      insights.push({ icon: '📊', text: `${best.day} is your best performing day with ${pct}% more traffic than average`, type: 'neutral' })
+    }
+  }
+
+  // 6. Top referrer
+  if (topReferrers.length > 0) {
+    const topRef = topReferrers[0]
+    const refPct = totalPageviews > 0 ? Math.round((topRef.count / totalPageviews) * 100) : 0
+    if (refPct > 20) {
+      insights.push({ icon: '🔗', text: `${topRef.source} is your top referrer, driving ${refPct}% of traffic`, type: 'neutral' })
+    }
+  }
+
+  // 7. Fastest growing website (compare first half vs second half of period)
+  if (dailyStats.length >= 6 && websiteStats.length > 1) {
+    const mid = Math.floor(dailyStats.length / 2)
+    const firstHalfDates = new Set(dailyStats.slice(0, mid).map(d => d.date))
+    const secondHalfDates = new Set(dailyStats.slice(mid).map(d => d.date))
+    let bestGrowth = { website: '', pct: 0 }
+    for (const ws of websiteStats.slice(0, 5)) {
+      const first = rows.filter(e => e.website === ws.website && e.event_type === 'pageview' && firstHalfDates.has(e.created_at.slice(0, 10))).length
+      const second = rows.filter(e => e.website === ws.website && e.event_type === 'pageview' && secondHalfDates.has(e.created_at.slice(0, 10))).length
+      if (first > 3 && second > first * 1.2) {
+        const pct = Math.round(((second - first) / first) * 100)
+        if (pct > bestGrowth.pct) bestGrowth = { website: ws.website, pct }
+      }
+    }
+    if (bestGrowth.pct > 20) {
+      insights.push({ icon: '⭐', text: `${bestGrowth.website} is your fastest growing site — up ${bestGrowth.pct}% in recent days`, type: 'positive' })
+    }
+  }
+
   return NextResponse.json({
     period: { days, since },
     summary: {
@@ -160,6 +249,7 @@ export async function GET(request: Request) {
     },
     today: todayStats,
     yesterday: yesterdayStats,
+    insights: insights.slice(0, 6),
     websiteStats,
     dailyStats,
     topPages,
