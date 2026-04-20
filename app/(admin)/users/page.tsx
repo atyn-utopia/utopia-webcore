@@ -1,11 +1,12 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import Link from 'next/link'
 import PageHeader from '@/components/PageHeader'
 import { useLanguage } from '@/contexts/LanguageContext'
 import { useToast } from '@/contexts/ToastContext'
 
-type UserRole = 'admin' | 'designer' | 'writer' | 'indoor_sales' | 'manager'
+type UserRole = 'admin' | 'designer' | 'external_designer' | 'writer' | 'indoor_sales' | 'manager'
 
 interface CompanyRef { id: string; name: string }
 
@@ -20,14 +21,15 @@ interface UserProfile {
 interface Company { id: string; name: string }
 
 const ROLE_META: Record<UserRole, { label: string; color: string; bg: string; desc: string; access: string }> = {
-  admin:        { label: 'Admin',            color: '#1e3a5f', bg: '#e0ecf5', desc: 'Full access to everything',         access: 'All pages, all companies' },
-  designer:     { label: 'Designer',         color: '#7c3aed', bg: '#ede9fe', desc: 'Websites, phone numbers, blog',     access: 'All companies' },
-  writer:       { label: 'Writer',           color: '#0369a1', bg: '#e0f2fe', desc: 'Blog content creation',             access: 'All blog posts' },
-  indoor_sales: { label: 'Indoor Sales',     color: '#b45309', bg: '#fef3c7', desc: 'View websites & phone numbers',     access: 'Assigned companies only' },
-  manager:      { label: 'Manager',          color: '#15803d', bg: '#dcfce7', desc: 'View websites & phone numbers',     access: 'Assigned companies only' },
+  admin:             { label: 'Admin',             color: '#1e3a5f', bg: '#e0ecf5', desc: 'Full access to everything',          access: 'All pages, all companies' },
+  designer:          { label: 'Designer',          color: '#7c3aed', bg: '#ede9fe', desc: 'Internal — websites, phones, blog',  access: 'All companies' },
+  external_designer: { label: 'External Designer', color: '#c026d3', bg: '#fae8ff', desc: 'External — scoped to one company',   access: 'Assigned companies only' },
+  writer:            { label: 'Writer',            color: '#0369a1', bg: '#e0f2fe', desc: 'Blog content creation',              access: 'All blog posts' },
+  indoor_sales:      { label: 'Indoor Sales',      color: '#b45309', bg: '#fef3c7', desc: 'View websites & phone numbers',      access: 'Assigned companies only' },
+  manager:           { label: 'Manager',           color: '#15803d', bg: '#dcfce7', desc: 'View websites & phone numbers',      access: 'Assigned companies only' },
 }
 
-const SCOPED_ROLES: UserRole[] = ['indoor_sales', 'manager']
+const SCOPED_ROLES: UserRole[] = ['indoor_sales', 'manager', 'external_designer']
 
 function isScoped(r: UserRole) { return SCOPED_ROLES.includes(r) }
 
@@ -160,16 +162,27 @@ export default function UsersPage() {
         title={t('page.users.title')}
         description={t('page.users.description')}
         actions={
-          <button
-            onClick={() => { setShowForm(!showForm); setError(''); setSuccess('') }}
-            className="inline-flex items-center gap-2 text-white text-sm font-medium px-4 h-9 rounded-lg transition-opacity"
-            style={{ background: 'var(--primary)' }}
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-            </svg>
-            {t('button.addUser')}
-          </button>
+          <div className="flex items-center gap-2">
+            <Link href="/users/onboard"
+              className="inline-flex items-center gap-2 text-sm font-medium px-4 h-9 rounded-lg border transition-colors hover:bg-slate-50"
+              style={{ borderColor: '#cbd5e1', color: '#475569' }}
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+              </svg>
+              Onboard Designer
+            </Link>
+            <button
+              onClick={() => { setShowForm(!showForm); setError(''); setSuccess('') }}
+              className="inline-flex items-center gap-2 text-white text-sm font-medium px-4 h-9 rounded-lg transition-opacity"
+              style={{ background: 'var(--primary)' }}
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              </svg>
+              {t('button.addUser')}
+            </button>
+          </div>
         }
       />
 

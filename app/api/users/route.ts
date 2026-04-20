@@ -2,8 +2,9 @@ import { NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/service'
 import { createClient } from '@/lib/supabase/server'
 import { createClient as createAdminClient } from '@supabase/supabase-js'
+import { SCOPED_ROLES, type UserRole } from '@/lib/getUserScope'
 
-const VALID_ROLES = ['admin', 'designer', 'writer', 'indoor_sales', 'manager']
+const VALID_ROLES: UserRole[] = ['admin', 'designer', 'external_designer', 'writer', 'indoor_sales', 'manager']
 
 // GET /api/users — list all user profiles (admin only)
 export async function GET() {
@@ -54,7 +55,7 @@ export async function POST(request: Request) {
   }
 
   // Scoped roles require at least one company
-  if ((role === 'indoor_sales' || role === 'manager') && (!Array.isArray(company_ids) || company_ids.length === 0)) {
+  if (SCOPED_ROLES.includes(role) && (!Array.isArray(company_ids) || company_ids.length === 0)) {
     return NextResponse.json({ error: 'At least one company must be assigned for this role' }, { status: 400 })
   }
 

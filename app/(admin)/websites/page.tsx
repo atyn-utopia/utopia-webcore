@@ -7,6 +7,7 @@ import { useUser } from '@/contexts/UserContext'
 import { useLanguage } from '@/contexts/LanguageContext'
 import PageHeader from '@/components/PageHeader'
 import ViewToggle, { type ViewMode } from '@/components/ViewToggle'
+import AddWebsiteModal from '@/components/AddWebsiteModal'
 import StatCard from '@/components/analytics/StatCard'
 import SimpleChart from '@/components/analytics/SimpleChart'
 import InsightsPanel from '@/components/analytics/InsightsPanel'
@@ -42,6 +43,12 @@ export default function WebsitesPage() {
   const { role } = useUser()
   const { t } = useLanguage()
   const isWriter = role === 'writer'
+  const canAddWebsite = role === 'admin' || role === 'designer'
+  const [addOpen, setAddOpen] = useState(false)
+
+  function refreshSites() {
+    Promise.all([fetch('/api/websites').then(r => r.json()), fetch('/api/companies').then(r => r.json())]).then(([s, c]) => { if (Array.isArray(s)) setSites(s); if (Array.isArray(c)) setCompanies(c) }).catch(() => {})
+  }
   const searchParams = useSearchParams()
   const openCompany = searchParams.get('company') ?? ''
   const openWebsite = searchParams.get('website') ?? ''
@@ -160,7 +167,19 @@ export default function WebsitesPage() {
     const maxPv = Math.max(...filtered.map(c => c.pageviews), 1)
 
     return (<div>
-      <PageHeader title={t('page.websites.title')} description={t('page.websites.description')} actions={<><PeriodSelector value={period} onChange={setPeriod} /><ViewToggle value={viewMode} onChange={setViewMode} /></>} />
+      <PageHeader title={t('page.websites.title')} description={t('page.websites.description')} actions={<>
+        {canAddWebsite && (
+          <button onClick={() => setAddOpen(true)}
+            className="inline-flex items-center gap-2 text-white text-sm font-medium px-4 h-9 rounded-lg transition-opacity"
+            style={{ background: 'var(--primary)' }}>
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
+            Add Website
+          </button>
+        )}
+        <PeriodSelector value={period} onChange={setPeriod} />
+        <ViewToggle value={viewMode} onChange={setViewMode} />
+      </>} />
+      <AddWebsiteModal open={addOpen} onClose={() => setAddOpen(false)} onCreated={refreshSites} />
       <Stats />
       <Chart />
       <SearchBar placeholder="Search companies…" />
@@ -191,11 +210,23 @@ export default function WebsitesPage() {
 
   // ═══ LEVEL 2: Company websites ═══
   if (openCompany && !openWebsite) {
-    const companyDomains = new Set(companies.find(c => c.name === openCompany)?.company_websites.map(w => w.domain) ?? [])
+    const currentCompany = companies.find(c => c.name === openCompany)
+    const companyDomains = new Set(currentCompany?.company_websites.map(w => w.domain) ?? [])
     const companySites = filteredSites.filter(s => companyDomains.has(s.domain))
 
     return (<div>
-      <PageHeader title={openCompany} description={`${companySites.length} website${companySites.length !== 1 ? 's' : ''}`} actions={<PeriodSelector value={period} onChange={setPeriod} />} />
+      <PageHeader title={openCompany} description={`${companySites.length} website${companySites.length !== 1 ? 's' : ''}`} actions={<>
+        {canAddWebsite && currentCompany && (
+          <button onClick={() => setAddOpen(true)}
+            className="inline-flex items-center gap-2 text-white text-sm font-medium px-4 h-9 rounded-lg transition-opacity"
+            style={{ background: 'var(--primary)' }}>
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
+            Add Website
+          </button>
+        )}
+        <PeriodSelector value={period} onChange={setPeriod} />
+      </>} />
+      {currentCompany && <AddWebsiteModal open={addOpen} onClose={() => setAddOpen(false)} onCreated={refreshSites} presetCompany={{ id: currentCompany.id, name: currentCompany.name }} />}
       <Stats />
       <Chart />
       <h2 className="text-sm font-semibold text-slate-700 mb-3">Websites</h2>

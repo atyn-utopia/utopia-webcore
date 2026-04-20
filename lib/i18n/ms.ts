@@ -68,6 +68,7 @@ export const ms: Record<TranslationKey, string> = {
   // Roles
   'role.admin': 'Pentadbir',
   'role.designer': 'Pereka',
+  'role.external_designer': 'Pereka Luar',
   'role.writer': 'Penulis',
   'role.indoor_sales': 'Jualan Dalaman',
   'role.manager': 'Pengurus',
@@ -76,6 +77,7 @@ export const ms: Record<TranslationKey, string> = {
   'dashboard.welcome': 'Selamat kembali!',
   'dashboard.welcome.admin': 'Anda mempunyai akses penuh untuk mengurus laman web, nombor telefon, pengguna, dan kandungan blog.',
   'dashboard.welcome.designer': 'Urus laman web, nombor telefon, dan kandungan blog merentas semua syarikat.',
+  'dashboard.welcome.external_designer': 'Urus laman web, nombor telefon, dan kandungan blog untuk syarikat yang ditugaskan.',
   'dashboard.welcome.writer': 'Cipta dan terbitkan kandungan blog merentas semua laman web.',
   'dashboard.welcome.manager': 'Lihat laman web syarikat yang ditugaskan dan pantau prestasi nombor telefon.',
   'dashboard.welcome.indoor_sales': 'Pantau laman web dan nombor telefon untuk syarikat yang ditugaskan.',

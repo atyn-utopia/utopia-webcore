@@ -20,6 +20,7 @@ interface SidebarProps {
 const ROLE_KEY: Record<UserRole, TranslationKey> = {
   admin: 'role.admin',
   designer: 'role.designer',
+  external_designer: 'role.external_designer',
   writer: 'role.writer',
   indoor_sales: 'role.indoor_sales',
   manager: 'role.manager',
@@ -29,7 +30,7 @@ const navItems: { href: string; labelKey: TranslationKey; roles: UserRole[]; ico
   {
     href: '/',
     labelKey: 'nav.dashboard',
-    roles: ['admin', 'designer', 'writer', 'indoor_sales', 'manager'],
+    roles: ['admin', 'designer', 'external_designer', 'writer', 'indoor_sales', 'manager'],
     icon: (
       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8">
         <path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
@@ -39,7 +40,7 @@ const navItems: { href: string; labelKey: TranslationKey; roles: UserRole[]; ico
   {
     href: '/websites',
     labelKey: 'nav.websites',
-    roles: ['admin', 'designer', 'writer', 'indoor_sales', 'manager'],
+    roles: ['admin', 'designer', 'external_designer', 'writer', 'indoor_sales', 'manager'],
     icon: (
       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <rect x="2" y="3" width="20" height="14" rx="2" strokeWidth="1.8"/>
@@ -54,7 +55,7 @@ const navItems: { href: string; labelKey: TranslationKey; roles: UserRole[]; ico
   {
     href: '/phone-numbers',
     labelKey: 'nav.phoneNumbers',
-    roles: ['admin', 'designer', 'indoor_sales', 'manager'],
+    roles: ['admin', 'designer', 'external_designer', 'indoor_sales', 'manager'],
     icon: (
       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z" />
@@ -65,7 +66,7 @@ const navItems: { href: string; labelKey: TranslationKey; roles: UserRole[]; ico
   {
     href: '/products',
     labelKey: 'nav.products',
-    roles: ['admin', 'designer'],
+    roles: ['admin', 'designer', 'external_designer'],
     icon: (
       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
@@ -75,7 +76,7 @@ const navItems: { href: string; labelKey: TranslationKey; roles: UserRole[]; ico
   {
     href: '/blog',
     labelKey: 'nav.blogPosts',
-    roles: ['admin', 'designer', 'writer'],
+    roles: ['admin', 'designer', 'external_designer', 'writer'],
     icon: (
       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
@@ -96,7 +97,7 @@ const navItems: { href: string; labelKey: TranslationKey; roles: UserRole[]; ico
   {
     href: '/api-keys',
     labelKey: 'nav.apiKeys',
-    roles: ['admin'],
+    roles: ['admin', 'designer', 'external_designer'],
     icon: (
       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
@@ -126,7 +127,7 @@ const navItems: { href: string; labelKey: TranslationKey; roles: UserRole[]; ico
   {
     href: '/help',
     labelKey: 'nav.help',
-    roles: ['admin', 'designer', 'writer', 'indoor_sales', 'manager'],
+    roles: ['admin', 'designer', 'external_designer', 'writer', 'indoor_sales', 'manager'],
     icon: (
       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />

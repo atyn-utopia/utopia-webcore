@@ -9,7 +9,7 @@ interface AuditLog {
   user_id: string | null
   user_name: string
   user_role: string
-  entity_type: 'phone_number' | 'blog_post'
+  entity_type: 'phone_number' | 'blog_post' | 'product' | 'website'
   entity_id: string | null
   action: 'create' | 'update' | 'delete'
   website: string | null
@@ -43,6 +43,26 @@ const ENTITY_META: Record<string, { label: string; icon: React.ReactNode; color:
     icon: (
       <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8">
         <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+      </svg>
+    ),
+  },
+  product: {
+    label: 'Product',
+    color: '#b45309',
+    bg: '#fef3c7',
+    icon: (
+      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+      </svg>
+    ),
+  },
+  website: {
+    label: 'Website',
+    color: '#7c3aed',
+    bg: '#ede9fe',
+    icon: (
+      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8">
+        <rect x="2" y="3" width="20" height="14" rx="2" /><path strokeLinecap="round" d="M2 7h20M8 21h8M12 17v4" />
       </svg>
     ),
   },
@@ -85,7 +105,7 @@ export default function AuditTrailPage() {
   const [loading, setLoading] = useState(true)
   const [expanded, setExpanded] = useState<Set<string>>(new Set())
   const [search, setSearch] = useState('')
-  const [filterEntity, setFilterEntity] = useState<'' | 'phone_number' | 'blog_post'>('')
+  const [filterEntity, setFilterEntity] = useState<'' | 'phone_number' | 'blog_post' | 'product' | 'website'>('')
   const [filterAction, setFilterAction] = useState<'' | 'create' | 'update' | 'delete'>('')
 
   useEffect(() => {
@@ -127,7 +147,7 @@ export default function AuditTrailPage() {
 
   return (
     <div>
-      <PageHeader title="Audit Trail" description="All changes to phone numbers and blog posts across the system" />
+      <PageHeader title="Audit Trail" description="All changes across the system — phones, blog, products, websites" />
 
       {/* Filters */}
       <div className="rounded-xl border p-4 mb-5 flex flex-wrap gap-3 items-end" style={{ borderColor: '#e2e8f0', background: '#f8fafc' }}>
@@ -147,11 +167,13 @@ export default function AuditTrailPage() {
         <div>
           <label className="block text-[10px] font-medium mb-1" style={{ color: '#94a3b8' }}>Entity</label>
           <div className="relative">
-            <select value={filterEntity} onChange={e => setFilterEntity(e.target.value as '' | 'phone_number' | 'blog_post')}
+            <select value={filterEntity} onChange={e => setFilterEntity(e.target.value as '' | 'phone_number' | 'blog_post' | 'product' | 'website')}
               className="px-3 py-2 text-sm rounded-lg border focus:outline-none cursor-pointer pr-9" style={{ borderColor: '#e2e8f0', appearance: 'none', WebkitAppearance: 'none', background: 'white', minWidth: '140px', color: '#64748b' }}>
               <option value="">All entities</option>
               <option value="phone_number">Phone numbers</option>
               <option value="blog_post">Blog posts</option>
+              <option value="product">Products</option>
+              <option value="website">Websites</option>
             </select>
             <svg className="w-3.5 h-3.5 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: '#94a3b8' }} strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
           </div>

@@ -66,6 +66,7 @@ export const en = {
   // Roles
   'role.admin': 'Admin',
   'role.designer': 'Designer',
+  'role.external_designer': 'External Designer',
   'role.writer': 'Writer',
   'role.indoor_sales': 'Indoor Sales',
   'role.manager': 'Manager',
@@ -74,6 +75,7 @@ export const en = {
   'dashboard.welcome': 'Welcome back!',
   'dashboard.welcome.admin': 'You have full access to manage websites, phone numbers, users, and blog content.',
   'dashboard.welcome.designer': 'Manage websites, phone numbers, and blog content across all companies.',
+  'dashboard.welcome.external_designer': 'Manage websites, phone numbers, and blog content for your assigned company.',
   'dashboard.welcome.writer': 'Create and publish blog content across all websites.',
   'dashboard.welcome.manager': 'View your assigned company websites and track phone number performance.',
   'dashboard.welcome.indoor_sales': 'Monitor websites and phone numbers for your assigned companies.',

@@ -2,7 +2,7 @@
 
 import { createContext, useContext } from 'react'
 
-export type UserRole = 'admin' | 'designer' | 'writer' | 'indoor_sales' | 'manager'
+export type UserRole = 'admin' | 'designer' | 'external_designer' | 'writer' | 'indoor_sales' | 'manager'
 
 interface UserContextType {
   email: string

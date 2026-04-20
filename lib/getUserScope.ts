@@ -1,9 +1,9 @@
 import { createServiceClient } from '@/lib/supabase/service'
 
-export type UserRole = 'admin' | 'designer' | 'writer' | 'indoor_sales' | 'manager'
+export type UserRole = 'admin' | 'designer' | 'external_designer' | 'writer' | 'indoor_sales' | 'manager'
 
 /** Roles that are restricted to their assigned companies */
-export const SCOPED_ROLES: UserRole[] = ['indoor_sales', 'manager']
+export const SCOPED_ROLES: UserRole[] = ['indoor_sales', 'manager', 'external_designer']
 
 export interface UserScope {
   role: UserRole
@@ -19,7 +19,7 @@ export interface UserScope {
  * Resolve what a given user can access.
  *
  * - admin/designer/writer → global access (isScoped: false, companyIds/domains null)
- * - indoor_sales/manager → scoped to their assigned companies
+ * - indoor_sales/manager/external_designer → scoped to their assigned companies
  */
 export async function getUserScope(userId: string): Promise<UserScope> {
   const service = createServiceClient()

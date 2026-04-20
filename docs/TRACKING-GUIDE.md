@@ -223,6 +223,105 @@ The Webcore proxy may be blocking `/t.js`. Ensure `proxy.ts` has `/t.js` in its 
 
 ---
 
+## Fetching Data From Webcore
+
+Besides tracking, your website can **pull data** from Webcore so that admins can manage things in one place and your site reflects updates automatically.
+
+### Phone Numbers (list all)
+
+```js
+// From any website, anytime
+fetch('https://utopia-webcore.vercel.app/api/public/phone-numbers?website=your-domain.vercel.app')
+  .then(r => r.json())
+  .then(phones => {
+    // [{ phone_number, whatsapp_text, type, label, location_slug }, ...]
+  })
+```
+
+Optional filter by location:
+```
+?website=your-domain.vercel.app&location=shah-alam
+```
+
+### Phone Numbers (resolve one — respects rotation)
+
+If your site uses rotation/hybrid mode, let the server pick the right number for you:
+
+```js
+fetch('https://utopia-webcore.vercel.app/api/public/phone-numbers/resolve?website=your-domain.vercel.app&location=shah-alam')
+  .then(r => r.json())
+  .then(({ phone_number, whatsapp_text }) => {
+    // One chosen number, weighted by percentage
+  })
+```
+
+Without `location`, it picks from numbers scoped to `all` locations.
+
+### Blog Posts
+
+```js
+// List published posts (light payload)
+fetch('https://utopia-webcore.vercel.app/api/public/blog?website=your-domain.vercel.app&language=en')
+  .then(r => r.json())
+  .then(posts => {
+    // [{ id, slug, title, excerpt, cover_image_url, published_at, languages }, ...]
+  })
+
+// Single post with full content
+fetch('https://utopia-webcore.vercel.app/api/public/blog?website=your-domain.vercel.app&slug=wheelchair-guide&language=en')
+  .then(r => r.json())
+  .then(post => {
+    // { slug, title, content, excerpt, meta_title, meta_description, cover_image_url }
+  })
+```
+
+Omit `language` on single-post fetch to get **all translations** nested under `translations: { en: {...}, ms: {...} }`.
+
+### Products
+
+```js
+fetch('https://utopia-webcore.vercel.app/api/public/products?website=your-domain.vercel.app')
+  .then(r => r.json())
+  .then(products => {
+    // Main products with nested sub_products and photos
+  })
+```
+
+Single product by slug:
+```
+?website=your-domain.vercel.app&slug=electric-wheelchair
+```
+
+Flat list (no nesting):
+```
+?website=your-domain.vercel.app&type=all
+```
+
+### Pushing Products (requires API key)
+
+Designers/admins can push product updates from their builder into Webcore:
+
+```js
+fetch('https://utopia-webcore.vercel.app/api/public/products', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    'X-API-Key': 'uwc_...',
+  },
+  body: JSON.stringify({
+    website: 'your-domain.vercel.app',
+    name: 'Electric Wheelchair',
+    slug: 'electric-wheelchair',
+    sale_price: 2500,
+    photos: [{ url: 'https://...', alt_text: 'Side view' }],
+  }),
+})
+```
+
+Request an API key from your Webcore admin (scoped to one website, read/write).
+
+---
+
 ## Need Help?
 
 Contact your admin at the Utopia Webcore dashboard or submit a ticket at `/help`.
