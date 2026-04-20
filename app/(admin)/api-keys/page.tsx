@@ -288,9 +288,9 @@ export default function ApiKeysPage() {
             const dimmed = k.status === 'revoked' || k.status === 'expired_unused'
             const showFullKey = k.status === 'grace' && k.full_key
             return (
-              <div key={k.id} className="px-5 py-4 flex items-center gap-4 hover:bg-[#f8fafc] transition-colors"
+              <div key={k.id} className="px-5 py-4 flex items-start gap-4 hover:bg-[#f8fafc] transition-colors"
                 style={{ borderBottom: i < keys.length - 1 ? '1px solid #f1f5f9' : 'none', opacity: dimmed ? 0.65 : 1 }}>
-                <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: '#f1f5f9' }}>
+                <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5" style={{ background: '#f1f5f9' }}>
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: dimmed ? '#94a3b8' : 'var(--primary)' }} strokeWidth="1.5">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
                   </svg>
@@ -358,7 +358,11 @@ export default function ApiKeysPage() {
                 </div>
                 {k.is_active && (
                   <button type="button" onClick={() => revokeKey(k.id, k.name)}
-                    className="text-xs font-medium px-3 py-1.5 rounded-md border border-[#e2e8f0] text-[#94a3b8] transition-colors hover:bg-[#ef4444] hover:border-white hover:text-white flex-shrink-0">
+                    className="inline-flex items-center gap-1.5 text-[11px] font-medium px-2.5 py-1.5 rounded-md transition-all flex-shrink-0 mt-0.5"
+                    style={{ background: 'white', border: '1px solid #e2e8f0', color: '#64748b' }}
+                    onMouseEnter={e => { e.currentTarget.style.background = '#fef2f2'; e.currentTarget.style.borderColor = '#fca5a5'; e.currentTarget.style.color = '#b91c1c' }}
+                    onMouseLeave={e => { e.currentTarget.style.background = 'white'; e.currentTarget.style.borderColor = '#e2e8f0'; e.currentTarget.style.color = '#64748b' }}>
+                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M1 7h22M9 7V4a1 1 0 011-1h4a1 1 0 011 1v3" /></svg>
                     Revoke
                   </button>
                 )}
