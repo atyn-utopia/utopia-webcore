@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import PageHeader from '@/components/PageHeader'
@@ -27,12 +27,16 @@ const MY_STATES = [
   { label: 'Terengganu', slug: 'terengganu' },
 ]
 
+const LOCATION_LABEL: Record<string, string> = Object.fromEntries(MY_STATES.map(s => [s.slug, s.label]))
+
 const LEADS_MODE: Record<string, { label: string; color: string; bg: string; desc: string }> = {
   single: { label: 'Single', color: '#475569', bg: '#f1f5f9', desc: '1 active number, all locations' },
   rotation: { label: 'Rotation', color: '#0369a1', bg: '#e0f2fe', desc: 'Multiple numbers rotate for all locations' },
   location: { label: 'Location', color: '#7c3aed', bg: '#ede9fe', desc: 'Each number targets a specific location' },
   hybrid: { label: 'Hybrid', color: '#b45309', bg: '#fef3c7', desc: 'Mix of all-location and specific-location numbers' },
 }
+
+const BAR_COLORS = ['#1e3a5f', '#2979d6', '#475569', '#64748b', '#94a3b8', '#cbd5e1']
 
 interface ExistingNumber {
   id: string
@@ -45,19 +49,55 @@ interface ExistingNumber {
   type: string
 }
 
-interface NewRow {
+interface WorkingRow {
+  key: string            // stable: id for existing, tempId for new
+  id?: string            // set for existing rows
   phone_number: string
   whatsapp_text: string
   location_slug: string
-  percentage: string
+  percentage: number
   label: string
+  is_active: boolean
+  type: string           // 'default' | 'custom'
+  isNew: boolean
+  markedForDelete: boolean
+  dirty: boolean
 }
 
-const emptyNewRow = (): NewRow => ({ phone_number: '', whatsapp_text: '', location_slug: '', percentage: '', label: '' })
+function toWorkingRow(n: ExistingNumber): WorkingRow {
+  return {
+    key: n.id,
+    id: n.id,
+    phone_number: n.phone_number,
+    whatsapp_text: n.whatsapp_text,
+    location_slug: n.location_slug || 'all',
+    percentage: n.percentage,
+    label: n.label ?? '',
+    is_active: n.is_active,
+    type: n.type,
+    isNew: false,
+    markedForDelete: false,
+    dirty: false,
+  }
+}
 
-const BAR_COLORS = ['#1e3a5f', '#2979d6', '#475569', '#64748b', '#94a3b8', '#cbd5e1']
+function emptyNewRow(): WorkingRow {
+  return {
+    key: `new-${Math.random().toString(36).slice(2, 10)}`,
+    phone_number: '',
+    whatsapp_text: '',
+    location_slug: 'all',
+    percentage: 0,
+    label: '',
+    is_active: true,
+    type: 'custom',
+    isNew: true,
+    markedForDelete: false,
+    dirty: false,
+  }
+}
 
-function computeMode(active: ExistingNumber[]): string | null {
+function computeMode(active: WorkingRow[]): string | null {
   if (active.length === 0) return null
   const allLoc = active.filter(n => n.location_slug === 'all')
   const specificLoc = active.filter(n => n.location_slug !== 'all')
@@ -67,7 +107,52 @@ function computeMode(active: ExistingNumber[]): string | null {
   return 'rotation'
 }
 
-export default function EditPhoneNumbersPage() {
+/**
+ * Redistribute percentages across active, non-deleted rows so the total = 100.
+ * Scales the other rows proportionally to absorb the change; integers only.
+ * Uses largest-remainder rounding so totals stay exact.
+ */
+function rebalancePercentages(rows: WorkingRow[], editedKey: string, rawValue: number): WorkingRow[] {
+  const newValue = Math.max(0, Math.min(100, Math.round(rawValue)))
+  const next = rows.map(r => r.key === editedKey ? { ...r, percentage: newValue, dirty: r.dirty || !r.isNew } : r)
+
+  const othersIdx: number[] = []
+  next.forEach((r, i) => {
+    if (r.key === editedKey) return
+    if (!r.is_active || r.markedForDelete) return
+    othersIdx.push(i)
+  })
+  if (othersIdx.length === 0) return next
+
+  const targetOthers = 100 - newValue
+  if (targetOthers <= 0) {
+    othersIdx.forEach(i => { next[i] = { ...next[i], percentage: 0, dirty: next[i].dirty || !next[i].isNew } })
+    return next
+  }
+
+  const oldOthersSum = othersIdx.reduce((s, i) => s + next[i].percentage, 0)
+  const floats = othersIdx.map(i =>
+    oldOthersSum > 0 ? next[i].percentage * targetOthers / oldOthersSum : targetOthers / othersIdx.length,
+  )
+  const floors = floats.map(Math.floor)
+  let remainder = targetOthers - floors.reduce((s, f) => s + f, 0)
+  const residuals = floats.map((f, k) => ({ r: f - floors[k], k })).sort((a, b) => b.r - a.r)
+  for (let j = 0; j < remainder && j < residuals.length; j++) floors[residuals[j].k] += 1
+
+  othersIdx.forEach((i, k) => {
+    if (next[i].percentage !== floors[k]) {
+      next[i] = { ...next[i], percentage: floors[k], dirty: next[i].dirty || !next[i].isNew }
+    }
+  })
+  return next
+}
+
+function buildWhatsAppPreview(domain: string, locationSlug: string, text: string): string {
+  const loc = locationSlug && locationSlug !== 'all' ? ` ${LOCATION_LABEL[locationSlug] ?? locationSlug}` : ''
+  return `Hi ${domain}${loc}, ${text}`.trim()
+}
+
+export default function ManagePhoneNumbersPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const confirm = useConfirm()
@@ -78,33 +163,29 @@ export default function EditPhoneNumbersPage() {
   const [companies, setCompanies] = useState<{ id: string; name: string; company_websites: { domain: string }[] }[]>([])
   const [selectedCompany, setSelectedCompany] = useState('')
   const [website, setWebsite] = useState(prefillWebsite)
-  const [existingNumbers, setExistingNumbers] = useState<ExistingNumber[]>([])
-  const [existingTexts, setExistingTexts] = useState<string[]>([])
-  const [editingId, setEditingId] = useState<string | null>(null)
-  const [editDraft, setEditDraft] = useState<Partial<ExistingNumber>>({})
-  const [savingEdit, setSavingEdit] = useState(false)
-  const [newRow, setNewRow] = useState<NewRow>(emptyNewRow())
-  const [addingNew, setAddingNew] = useState(false)
-  const [newError, setNewError] = useState('')
-  const [newWaOpen, setNewWaOpen] = useState(false)
-  const [editWaOpen, setEditWaOpen] = useState(false)
 
-  // Fetch companies
+  const [rows, setRows] = useState<WorkingRow[]>([])
+  const [addDrafts, setAddDrafts] = useState<WorkingRow[]>([emptyNewRow()])
+  const [selectedMode, setSelectedMode] = useState<string | null>(null)
+  const [existingTexts, setExistingTexts] = useState<string[]>([])
+  const [loading, setLoading] = useState(false)
+  const [saving, setSaving] = useState(false)
+  const [waOpenKey, setWaOpenKey] = useState<string | null>(null)
+
   useEffect(() => {
     fetch('/api/companies')
       .then(r => r.json())
       .then(data => {
-        if (Array.isArray(data)) {
-          setCompanies(data)
-          if (prefillCompany) {
-            const match = data.find((c: { name: string }) => c.name === prefillCompany)
-            if (match) setSelectedCompany(match.id)
-          } else if (prefillWebsite) {
-            const match = data.find((c: { company_websites: { domain: string }[] }) =>
-              c.company_websites.some(w => w.domain === prefillWebsite)
-            )
-            if (match) setSelectedCompany(match.id)
-          }
+        if (!Array.isArray(data)) return
+        setCompanies(data)
+        if (prefillCompany) {
+          const match = data.find((c: { name: string }) => c.name === prefillCompany)
+          if (match) setSelectedCompany(match.id)
+        } else if (prefillWebsite) {
+          const match = data.find((c: { company_websites: { domain: string }[] }) =>
+            c.company_websites.some(w => w.domain === prefillWebsite),
+          )
+          if (match) setSelectedCompany(match.id)
         }
       })
       .catch(() => {})
@@ -113,13 +194,22 @@ export default function EditPhoneNumbersPage() {
   const companyWebsites = companies.find(c => c.id === selectedCompany)?.company_websites ?? []
 
   const fetchExisting = useCallback(async (ws: string) => {
-    if (!ws.trim()) { setExistingNumbers([]); setExistingTexts([]); return }
-    const res = await fetch(`/api/phone-numbers?website=${encodeURIComponent(ws.trim())}`)
-    const data = await res.json()
-    if (Array.isArray(data)) {
-      setExistingNumbers(data)
-      const texts = [...new Set(data.map((n: { whatsapp_text?: string }) => n.whatsapp_text).filter(Boolean))] as string[]
-      setExistingTexts(texts)
+    if (!ws.trim()) { setRows([]); setExistingTexts([]); return }
+    setLoading(true)
+    try {
+      const res = await fetch(`/api/phone-numbers?website=${encodeURIComponent(ws.trim())}`)
+      const data = await res.json()
+      if (Array.isArray(data)) {
+        const sorted: ExistingNumber[] = [...data].sort((a, b) => {
+          if (a.type === 'default' && b.type !== 'default') return -1
+          if (a.type !== 'default' && b.type === 'default') return 1
+          return 0
+        })
+        setRows(sorted.map(toWorkingRow))
+        setExistingTexts([...new Set(sorted.map(n => n.whatsapp_text).filter(Boolean))])
+      }
+    } finally {
+      setLoading(false)
     }
   }, [])
 
@@ -128,120 +218,141 @@ export default function EditPhoneNumbersPage() {
     return () => clearTimeout(timeout)
   }, [website, fetchExisting])
 
-  // Sort with default first
-  const sortedExisting = [...existingNumbers].sort((a, b) => {
-    if (a.type === 'default' && b.type !== 'default') return -1
-    if (a.type !== 'default' && b.type === 'default') return 1
-    return 0
-  })
+  useEffect(() => {
+    const active = rows.filter(r => r.is_active && !r.markedForDelete)
+    setSelectedMode(prev => prev ?? computeMode(active))
+  }, [rows])
 
-  const currentMode = computeMode(existingNumbers.filter(n => n.is_active))
+  const currentMode = useMemo(() => computeMode(rows.filter(r => r.is_active && !r.markedForDelete)), [rows])
 
-  // ─── Inline edit existing ─────────────────────────────────────
-  function startEdit(n: ExistingNumber) {
-    setEditingId(n.id)
-    setEditError('')
-    setEditDraft({
-      phone_number: n.phone_number,
-      whatsapp_text: n.whatsapp_text,
-      location_slug: n.location_slug,
-      percentage: n.percentage,
-      label: n.label,
-      is_active: n.is_active,
-    })
+  const allActiveForPct = useMemo(
+    () => [...rows, ...addDrafts.filter(d => d.phone_number.trim())].filter(r => r.is_active && !r.markedForDelete),
+    [rows, addDrafts],
+  )
+  const pctTotal = allActiveForPct.reduce((s, r) => s + (r.percentage || 0), 0)
+
+  function patchRow(key: string, patch: Partial<WorkingRow>) {
+    setRows(prev => prev.map(r => r.key === key ? { ...r, ...patch, dirty: true } : r))
   }
 
-  function cancelEdit() {
-    setEditingId(null)
-    setEditDraft({})
-    setEditError('')
+  function patchDraft(key: string, patch: Partial<WorkingRow>) {
+    setAddDrafts(prev => prev.map(d => d.key === key ? { ...d, ...patch } : d))
   }
 
-  const [editError, setEditError] = useState('')
+  function onChangePercentage(key: string, value: number, isDraft: boolean) {
+    const combined = [...rows, ...addDrafts]
+    const rebalanced = rebalancePercentages(combined, key, value)
+    setRows(rebalanced.filter(r => !r.isNew))
+    setAddDrafts(rebalanced.filter(r => r.isNew))
+    void isDraft
+  }
 
-  async function saveEdit() {
-    if (!editingId) return
-    setEditError('')
-    const phoneErr = validatePhoneNumber(editDraft.phone_number ?? '')
-    if (phoneErr) { setEditError(phoneErr); return }
-    if (isDuplicatePhone(editDraft.phone_number ?? '', existingNumbers, editingId)) {
-      setEditError('Another number with this value already exists for this website')
+  function toggleDelete(key: string) {
+    setRows(prev => prev.map(r => r.key === key ? { ...r, markedForDelete: !r.markedForDelete } : r))
+  }
+
+  function addBlankDraft() {
+    setAddDrafts(prev => [...prev, emptyNewRow()])
+  }
+
+  function removeDraft(key: string) {
+    setAddDrafts(prev => prev.length === 1 ? [emptyNewRow()] : prev.filter(d => d.key !== key))
+  }
+
+  const deletingCount = rows.filter(r => r.markedForDelete).length
+  const dirtyCount = rows.filter(r => r.dirty && !r.markedForDelete).length
+  const newCount = addDrafts.filter(d => d.phone_number.trim()).length
+  const hasChanges = deletingCount > 0 || dirtyCount > 0 || newCount > 0
+
+  async function doSave() {
+    if (!website) { toast.error('Pick a website first', 'Missing website'); return }
+
+    // Validate inputs
+    const allNumbers = [...rows.filter(r => !r.markedForDelete), ...addDrafts.filter(d => d.phone_number.trim())]
+    for (const r of allNumbers) {
+      if (!r.is_active) continue
+      const err = validatePhoneNumber(r.phone_number)
+      if (err) { toast.error(`${r.phone_number || '(empty)'}: ${err}`, 'Invalid phone'); return }
+      if (!r.whatsapp_text.trim()) { toast.error(`${r.phone_number}: WhatsApp text is required`, 'Missing text'); return }
+    }
+
+    // Duplicate check (within final list)
+    const seen = new Set<string>()
+    for (const r of allNumbers) {
+      const n = r.phone_number.trim()
+      if (seen.has(n)) { toast.error(`Duplicate number: ${n}`, 'Duplicate'); return }
+      seen.add(n)
+    }
+
+    // Percentage check
+    if (pctTotal !== 100) {
+      toast.error(`Active percentages total ${pctTotal}% — must be exactly 100% before saving`, 'Percentage invalid')
       return
     }
-    if (!(editDraft.whatsapp_text ?? '').trim()) {
-      setEditError('WhatsApp text is required')
-      return
-    }
-    setSavingEdit(true)
-    const res = await fetch(`/api/phone-numbers/${editingId}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(editDraft),
-    })
-    setSavingEdit(false)
-    if (res.ok) {
-      await fetchExisting(website)
-      cancelEdit()
-      toast.success('Phone number updated', 'Saved')
-    } else {
-      const d = await res.json()
-      setEditError(d.error ?? 'Save failed')
-      toast.error(d.error ?? 'Save failed', 'Update failed')
-    }
-  }
 
-  async function deleteExisting(id: string) {
     const ok = await confirm({
-      title: 'Delete phone number',
-      message: 'This number will be permanently removed from the rotation pool. This action cannot be undone.',
-      confirmLabel: 'Delete',
-      variant: 'danger',
+      title: 'Save changes?',
+      message: `${dirtyCount} updated · ${newCount} added · ${deletingCount} deleted. This cannot be undone.`,
+      confirmLabel: 'Save',
+      variant: 'default',
     })
     if (!ok) return
-    const res = await fetch(`/api/phone-numbers/${id}`, { method: 'DELETE' })
-    if (res.ok) {
-      await fetchExisting(website)
-      toast.success('Phone number deleted', 'Deleted')
-    } else {
-      toast.error('Failed to delete number', 'Delete failed')
-    }
-  }
 
-  // ─── Add new number (immediate) ───────────────────────────────
-  async function addNewNumber() {
-    setNewError('')
-    if (!website.trim()) { setNewError('Please select a website first'); return }
-    const phoneErr = validatePhoneNumber(newRow.phone_number)
-    if (phoneErr) { setNewError(phoneErr); return }
-    if (isDuplicatePhone(newRow.phone_number, existingNumbers)) {
-      setNewError('This number already exists for this website')
-      return
-    }
-    if (!newRow.whatsapp_text.trim()) { setNewError('WhatsApp text is required'); return }
-
-    setAddingNew(true)
-    const res = await fetch('/api/phone-numbers', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        website: website.trim(),
-        location_slug: newRow.location_slug || 'all',
-        phone_number: newRow.phone_number.trim(),
-        type: 'custom',
-        whatsapp_text: newRow.whatsapp_text.trim(),
-        percentage: parseInt(newRow.percentage) || 0,
-        label: newRow.label.trim() || null,
-      }),
-    })
-    setAddingNew(false)
-    if (res.ok) {
-      setNewRow(emptyNewRow())
+    setSaving(true)
+    try {
+      // Deletes first
+      for (const r of rows.filter(x => x.markedForDelete && x.id)) {
+        const res = await fetch(`/api/phone-numbers/${r.id}`, { method: 'DELETE' })
+        if (!res.ok) throw new Error(`Delete failed for ${r.phone_number}`)
+      }
+      // Patches
+      for (const r of rows.filter(x => x.dirty && !x.markedForDelete && x.id)) {
+        const body = {
+          phone_number: r.phone_number.trim(),
+          whatsapp_text: r.whatsapp_text.trim(),
+          location_slug: r.location_slug || 'all',
+          percentage: r.percentage,
+          label: r.label.trim() || null,
+          is_active: r.is_active,
+        }
+        const res = await fetch(`/api/phone-numbers/${r.id}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body),
+        })
+        if (!res.ok) {
+          const d = await res.json().catch(() => ({}))
+          throw new Error(d.error ?? `Update failed for ${r.phone_number}`)
+        }
+      }
+      // Posts
+      for (const d of addDrafts.filter(x => x.phone_number.trim())) {
+        const body = {
+          website: website.trim(),
+          location_slug: d.location_slug || 'all',
+          phone_number: d.phone_number.trim(),
+          type: 'custom',
+          whatsapp_text: d.whatsapp_text.trim(),
+          percentage: d.percentage,
+          label: d.label.trim() || null,
+        }
+        const res = await fetch('/api/phone-numbers', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body),
+        })
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}))
+          throw new Error(err.error ?? `Add failed for ${d.phone_number}`)
+        }
+      }
+      toast.success('All changes saved', 'Saved')
+      setAddDrafts([emptyNewRow()])
       await fetchExisting(website)
-      toast.success('Phone number added to the pool', 'Added')
-    } else {
-      const d = await res.json()
-      setNewError(d.error ?? 'Failed to add number')
-      toast.error(d.error ?? 'Failed to add number', 'Add failed')
+    } catch (e) {
+      toast.error((e as Error).message, 'Save failed')
+    } finally {
+      setSaving(false)
     }
   }
 
@@ -251,482 +362,407 @@ export default function EditPhoneNumbersPage() {
 
   return (
     <div>
-      <div className="max-w-5xl mx-auto w-full">
-        <PageHeader title="Edit Phone Numbers" description="Modify existing numbers or add new ones to this website's rotation pool." />
+      <div className="max-w-6xl mx-auto w-full">
+        <PageHeader title="Manage Phone Numbers" description="Edit numbers inline, stage new ones, and pick the lead-distribution mode." />
 
         <div className="rounded-2xl border overflow-hidden shadow-sm" style={{ borderColor: '#e2e8f0', background: 'white' }}>
-          {/* Card header */}
-          <div className="px-6 py-5 flex items-center gap-3" style={{ borderBottom: '1px solid #e2e8f0' }}>
-            <div className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: '#e0f2fe' }}>
-              <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: 'var(--primary)' }}>
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-              </svg>
+          {/* Company / Website */}
+          <div className="p-6 grid grid-cols-1 sm:grid-cols-2 gap-4" style={{ borderBottom: '1px solid #e2e8f0' }}>
+            <div>
+              <label className="block text-xs font-medium mb-1.5" style={{ color: 'var(--foreground)' }}>Company<span className="text-red-500 ml-0.5">*</span></label>
+              <div className="relative">
+                <select value={selectedCompany}
+                  onChange={e => { setSelectedCompany(e.target.value); setWebsite(''); setSelectedMode(null) }}
+                  className="w-full px-3 py-2.5 text-sm rounded-lg border cursor-pointer focus:outline-none"
+                  style={{ borderColor: '#cbd5e1', background: 'white', appearance: 'none', WebkitAppearance: 'none', paddingRight: '2.5rem' }}>
+                  <option value="">Select company…</option>
+                  {companies.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                </select>
+                <svg className="w-3.5 h-3.5 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: '#94a3b8' }}><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+              </div>
             </div>
             <div>
-              <h2 className="text-base font-semibold" style={{ color: 'var(--foreground)' }}>Phone Number Details</h2>
-              <p className="text-xs" style={{ color: '#94a3b8' }}>Edits save individually. New numbers are inserted on confirm.</p>
+              <label className="block text-xs font-medium mb-1.5" style={{ color: 'var(--foreground)' }}>Website<span className="text-red-500 ml-0.5">*</span></label>
+              <div className="relative">
+                <select value={website} onChange={e => { setWebsite(e.target.value); setSelectedMode(null); setAddDrafts([emptyNewRow()]) }}
+                  disabled={!selectedCompany}
+                  className="w-full px-3 py-2.5 text-sm rounded-lg border cursor-pointer focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
+                  style={{ borderColor: '#cbd5e1', background: 'white', appearance: 'none', WebkitAppearance: 'none', paddingRight: '2.5rem' }}>
+                  <option value="">{selectedCompany ? 'Select website…' : 'Select a company first'}</option>
+                  {companyWebsites.map(w => <option key={w.domain} value={w.domain}>{w.domain}</option>)}
+                </select>
+                <svg className="w-3.5 h-3.5 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: '#94a3b8' }}><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+              </div>
             </div>
           </div>
 
-          <div className="p-6 space-y-6" style={{ background: 'white' }}>
-            {/* Company & Website */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-xs font-medium mb-1.5" style={{ color: 'var(--foreground)' }}>Company<span className="text-red-500 ml-0.5">*</span></label>
-                <div className="relative">
-                  <select
-                    value={selectedCompany}
-                    onChange={e => { setSelectedCompany(e.target.value); setWebsite('') }}
-                    className="w-full px-3 py-2.5 text-sm rounded-lg border focus:outline-none transition-colors cursor-pointer"
-                    style={{ borderColor: '#cbd5e1', background: 'white', appearance: 'none', WebkitAppearance: 'none', paddingRight: '2.5rem' }}
-                  >
-                    <option value="">Select company…</option>
-                    {companies.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-                  </select>
-                  <svg className="w-3.5 h-3.5 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: '#94a3b8' }}><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
-                </div>
-              </div>
-              <div>
-                <label className="block text-xs font-medium mb-1.5" style={{ color: 'var(--foreground)' }}>Website<span className="text-red-500 ml-0.5">*</span></label>
-                <div className="relative">
-                  <select
-                    value={website}
-                    onChange={e => setWebsite(e.target.value)}
-                    disabled={!selectedCompany}
-                    className="w-full px-3 py-2.5 text-sm rounded-lg border focus:outline-none transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-                    style={{ borderColor: '#cbd5e1', background: 'white', appearance: 'none', WebkitAppearance: 'none', paddingRight: '2.5rem' }}
-                  >
-                    <option value="">{selectedCompany ? 'Select website…' : 'Select a company first'}</option>
-                    {companyWebsites.map(w => <option key={w.domain} value={w.domain}>{w.domain}</option>)}
-                  </select>
-                  <svg className="w-3.5 h-3.5 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: '#94a3b8' }}><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
-                </div>
-              </div>
-            </div>
-
-            {/* Leads Mode Indicator — all 4 modes displayed */}
-            {website && (
-              <div className="rounded-xl border p-5" style={{ borderColor: '#e2e8f0', background: '#f8fafc' }}>
-                <div className="flex items-center gap-2 mb-4">
+          {!website ? (
+            <div className="p-10 text-center text-sm" style={{ color: '#94a3b8' }}>Select a company and website to manage phone numbers.</div>
+          ) : (
+            <>
+              {/* Mode selector */}
+              <div className="px-6 pt-6">
+                <div className="flex items-center gap-2 mb-3">
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: '#64748b' }} strokeWidth="1.8">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                   <span className="text-sm font-semibold" style={{ color: 'var(--foreground)' }}>Leads Mode</span>
+                  {currentMode && <span className="text-[10px] font-medium px-1.5 py-0.5 rounded" style={{ background: '#f1f5f9', color: '#64748b' }}>Auto-detected: {LEADS_MODE[currentMode].label}</span>}
                 </div>
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
                   {(['single', 'rotation', 'location', 'hybrid'] as const).map(mode => {
-                    const isCurrent = currentMode === mode
+                    const isSelected = selectedMode === mode
+                    const isDetected = currentMode === mode
                     const m = LEADS_MODE[mode]
                     return (
-                      <div
-                        key={mode}
-                        className="rounded-xl p-3 border-2 transition-all relative"
+                      <button type="button" key={mode} onClick={() => setSelectedMode(mode)}
+                        className="text-left rounded-xl p-3 border-2 transition-all relative"
                         style={{
-                          background: isCurrent ? m.bg : 'white',
-                          borderColor: isCurrent ? m.color : '#e2e8f0',
-                          opacity: isCurrent ? 1 : 0.5,
-                        }}
-                      >
+                          background: isSelected ? m.bg : 'white',
+                          borderColor: isSelected ? m.color : '#e2e8f0',
+                          opacity: isSelected ? 1 : 0.7,
+                        }}>
                         <div className="flex items-center justify-between mb-1">
-                          <span className="text-sm font-bold" style={{ color: isCurrent ? m.color : '#64748b' }}>{m.label}</span>
-                          {isCurrent && (
-                            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20" style={{ color: m.color }}><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"/></svg>
+                          <span className="text-sm font-bold" style={{ color: isSelected ? m.color : '#64748b' }}>{m.label}</span>
+                          {isDetected && (
+                            <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded" style={{ background: m.bg, color: m.color, border: `1px solid ${m.color}` }}>CURRENT</span>
                           )}
                         </div>
-                        <p className="text-xs leading-snug" style={{ color: isCurrent ? m.color : '#94a3b8' }}>{m.desc}</p>
-                      </div>
+                        <p className="text-xs leading-snug" style={{ color: isSelected ? m.color : '#94a3b8' }}>{m.desc}</p>
+                      </button>
                     )
                   })}
                 </div>
-                <div className="text-sm mt-4 flex items-center gap-2 flex-wrap" style={{ color: '#475569' }}>
-                  {!currentMode && existingNumbers.length === 0 && (
-                    <span className="flex items-center gap-1.5">
-                      <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" style={{ color: '#94a3b8' }}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                      This website has no numbers yet. The mode will be set once you add one.
+              </div>
+
+              {/* Distribution bar */}
+              <div className="px-6 pt-5">
+                <div className="rounded-xl border p-4" style={{ borderColor: pctTotal === 100 ? '#e2e8f0' : '#fca5a5', background: pctTotal === 100 ? '#f8fafc' : '#fef2f2' }}>
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-sm font-semibold" style={{ color: '#475569' }}>Lead Distribution</span>
+                    <span className="text-xs font-semibold" style={{ color: pctTotal === 100 ? '#16a34a' : '#b91c1c' }}>
+                      Total: {pctTotal}% {pctTotal === 100 ? '✓' : '(must be 100%)'}
                     </span>
-                  )}
-                  {currentMode && (
-                    <>
-                      <span>This website is currently operating in</span>
-                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold" style={{ background: LEADS_MODE[currentMode].bg, color: LEADS_MODE[currentMode].color }}>
-                        {LEADS_MODE[currentMode].label}
-                      </span>
-                      <span>mode with</span>
-                      <span className="font-semibold" style={{ color: 'var(--foreground)' }}>{existingNumbers.filter(n => n.is_active).length}</span>
-                      <span>of</span>
-                      <span className="font-semibold" style={{ color: 'var(--foreground)' }}>{existingNumbers.length}</span>
-                      <span>number{existingNumbers.length !== 1 ? 's' : ''} active.</span>
-                    </>
-                  )}
+                  </div>
+                  <div className="flex h-3 rounded-full overflow-hidden" style={{ background: '#e2e8f0' }}>
+                    {allActiveForPct.filter(r => r.percentage > 0).map((r, idx) => (
+                      <div key={r.key} style={{ width: `${r.percentage}%`, background: BAR_COLORS[idx % BAR_COLORS.length] }} title={`${r.phone_number || 'new'}: ${r.percentage}%`} />
+                    ))}
+                  </div>
                 </div>
               </div>
-            )}
 
-            {/* Current Numbers table */}
-            {website && existingNumbers.length > 0 && (
-              <div>
+              {/* Table */}
+              <div className="p-6">
                 <div className="flex items-center justify-between mb-3">
-                  <div>
-                    <h3 className="text-base font-semibold" style={{ color: 'var(--foreground)' }}>Current Numbers</h3>
-                    <p className="text-xs mt-0.5" style={{ color: '#94a3b8' }}>Default number is pinned to top. Click Edit to modify any number.</p>
+                  <h3 className="text-base font-semibold" style={{ color: 'var(--foreground)' }}>Phone Numbers</h3>
+                  <div className="flex items-center gap-2 text-xs" style={{ color: '#64748b' }}>
+                    {loading && <span>Loading…</span>}
+                    {deletingCount > 0 && <span className="px-2 py-0.5 rounded bg-red-50 text-red-700 font-medium">{deletingCount} marked to delete</span>}
+                    {dirtyCount > 0 && <span className="px-2 py-0.5 rounded bg-amber-50 text-amber-700 font-medium">{dirtyCount} edited</span>}
+                    {newCount > 0 && <span className="px-2 py-0.5 rounded bg-green-50 text-green-700 font-medium">{newCount} new</span>}
                   </div>
-                  <span className="text-xs px-2.5 py-1 rounded-full font-semibold" style={{ background: '#f1f5f9', color: '#475569' }}>
-                    {existingNumbers.filter(n => n.is_active).length} active / {existingNumbers.length} total
-                  </span>
                 </div>
 
-                {/* Distribution bar */}
-                {existingNumbers.filter(n => n.is_active).length > 0 && (
-                  <div className="mb-4 rounded-xl border p-4" style={{ borderColor: '#e2e8f0', background: '#f8fafc' }}>
-                    <div className="flex items-center justify-between mb-3">
-                      <span className="text-sm font-semibold" style={{ color: '#475569' }}>Lead Distribution</span>
-                      <span className="text-xs font-medium" style={{ color: '#94a3b8' }}>
-                        Total: {sortedExisting.filter(n => n.is_active).reduce((s, n) => s + (n.percentage ?? 0), 0)}%
-                      </span>
-                    </div>
-                    <div className="flex h-4 rounded-full overflow-hidden" style={{ background: '#e2e8f0' }}>
-                      {sortedExisting.filter(n => n.is_active && n.percentage > 0).map((n, idx) => (
-                        <div key={n.id} style={{ width: `${n.percentage}%`, background: BAR_COLORS[idx % BAR_COLORS.length] }} title={`${n.phone_number}: ${n.percentage}%`} />
+                <div className="rounded-xl border overflow-x-auto" style={{ borderColor: '#e2e8f0' }}>
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
+                        <Th>Phone Number</Th>
+                        <Th>WhatsApp Text</Th>
+                        <Th>Location</Th>
+                        <Th className="w-20">%</Th>
+                        <Th>Label</Th>
+                        <Th className="w-24 text-center">Active</Th>
+                        <Th className="w-12 text-center">Del</Th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {rows.map(r => (
+                        <RowEditor key={r.key} r={r} existingTexts={existingTexts}
+                          waOpenKey={waOpenKey} setWaOpenKey={setWaOpenKey}
+                          onPatch={patch => patchRow(r.key, patch)}
+                          onPercentage={val => onChangePercentage(r.key, val, false)}
+                          onToggleDelete={() => toggleDelete(r.key)}
+                        />
                       ))}
-                    </div>
-                    <div className="flex flex-wrap gap-x-4 gap-y-1.5 mt-3">
-                      {sortedExisting.filter(n => n.is_active).map((n, idx) => (
-                        <div key={n.id} className="flex items-center gap-2">
-                          <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: BAR_COLORS[idx % BAR_COLORS.length] }} />
-                          <span className="text-xs" style={{ color: '#475569' }}>
-                            {n.type === 'default' && <span className="font-bold" style={{ color: 'var(--primary)' }}>★ </span>}
-                            <span className="font-mono">{n.phone_number.slice(-4)}</span>: <span className="font-semibold">{n.percentage}%</span>
-                          </span>
-                        </div>
+                      {addDrafts.map((d, idx) => (
+                        <DraftRowEditor key={d.key} d={d} existingTexts={existingTexts}
+                          waOpenKey={waOpenKey} setWaOpenKey={setWaOpenKey}
+                          showAdd={idx === addDrafts.length - 1}
+                          onPatch={patch => patchDraft(d.key, patch)}
+                          onPercentage={val => onChangePercentage(d.key, val, true)}
+                          onRemove={() => removeDraft(d.key)}
+                          onAdd={addBlankDraft}
+                        />
                       ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Rows */}
-                <div className="rounded-xl border overflow-hidden" style={{ borderColor: '#e2e8f0' }}>
-                  {sortedExisting.map((n, i) => {
-                    const isDefault = n.type === 'default'
-                    const isEditing = editingId === n.id
-                    return (
-                      <div key={n.id} style={{
-                        borderBottom: i < sortedExisting.length - 1 ? '1px solid #f1f5f9' : 'none',
-                        background: isDefault ? '#fff9e6' : 'white',
-                      }}>
-                        {!isEditing ? (
-                          <div className="px-4 py-3.5 flex items-center gap-3 flex-wrap">
-                            <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                              {isDefault && <span className="text-xs px-2 py-1 rounded-full font-bold flex-shrink-0" style={{ background: 'var(--primary)', color: 'white' }}>★ DEFAULT</span>}
-                              {!isDefault && n.label && <span className="text-xs px-2 py-0.5 rounded-full flex-shrink-0" style={{ background: '#f1f5f9', color: '#475569' }}>{n.label}</span>}
-                              <span className="text-sm font-mono font-semibold truncate" style={{ color: 'var(--foreground)' }}>{n.phone_number}</span>
-                              <span className="text-xs px-2 py-0.5 rounded" style={{ background: '#f8fafc', color: '#64748b' }}>
-                                {n.location_slug === 'all' ? 'All locations' : n.location_slug}
-                              </span>
-                            </div>
-                            <div className="flex items-center gap-2.5 flex-shrink-0">
-                              <span className="text-sm font-bold" style={{ color: 'var(--foreground)' }}>{n.percentage}%</span>
-                              <span className={`inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full ${n.is_active ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-500'}`}>
-                                <span className="w-1.5 h-1.5 rounded-full" style={{ background: n.is_active ? '#16a34a' : '#94a3b8' }} />
-                                {n.is_active ? 'Active' : 'Off'}
-                              </span>
-                              <button type="button" onClick={() => startEdit(n)}
-                                className="text-xs font-medium px-3 py-1.5 rounded-md border transition-colors hover:border-[var(--primary)] hover:text-[var(--primary)]"
-                                style={{ borderColor: '#e2e8f0', color: '#64748b' }}>
-                                Edit
-                              </button>
-                              {!isDefault ? (
-                                <button type="button" onClick={() => deleteExisting(n.id)}
-                                  className="text-xs font-medium px-3 py-1.5 rounded-md border border-[#e2e8f0] text-[#94a3b8] transition-colors hover:bg-[#ef4444] hover:border-white hover:text-white">
-                                  Delete
-                                </button>
-                              ) : (
-                                <span className="text-xs font-medium px-3 py-1.5 rounded-md border invisible" aria-hidden="true">Delete</span>
-                              )}
-                            </div>
-                          </div>
-                        ) : (
-                          <div className="p-4" style={{ background: '#fafbfc' }}>
-                            {editError && (
-                              <div className="mb-3 p-3 rounded-lg border text-sm" style={{ background: '#fef2f2', borderColor: '#fca5a5', color: '#dc2626' }}>
-                                {editError}
-                              </div>
-                            )}
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                              <div>
-                                <label className="block text-xs font-medium mb-1.5" style={{ color: '#64748b' }}>Phone Number</label>
-                                <input type="text" value={editDraft.phone_number ?? ''} onChange={e => setEditDraft(d => ({ ...d, phone_number: e.target.value }))}
-                                  className="w-full px-3 py-2 text-sm rounded-lg border focus:outline-none" style={{ borderColor: editError ? '#fca5a5' : '#cbd5e1', background: 'white' }} />
-                              </div>
-                              <div className="relative">
-                                <label className="block text-xs font-medium mb-1.5" style={{ color: '#64748b' }}>WhatsApp Text</label>
-                                <input type="text" value={editDraft.whatsapp_text ?? ''} onChange={e => setEditDraft(d => ({ ...d, whatsapp_text: e.target.value }))}
-                                  className="w-full px-3 py-2 text-sm rounded-lg border focus:outline-none" style={{ borderColor: '#cbd5e1', background: 'white' }}
-                                  onFocus={() => setEditWaOpen(true)}
-                                  onBlur={() => setTimeout(() => setEditWaOpen(false), 150)} />
-                                {editWaOpen && existingTexts.filter(t => t.toLowerCase().includes((editDraft.whatsapp_text ?? '').toLowerCase())).length > 0 && (
-                                  <div className="absolute left-0 right-0 top-full mt-1 rounded-lg border shadow-lg z-20 max-h-52 overflow-y-auto" style={{ background: 'white', borderColor: '#e2e8f0' }}>
-                                    <div className="px-3 py-1.5 text-[10px] font-semibold uppercase tracking-wider sticky top-0 bg-white" style={{ color: '#94a3b8', borderBottom: '1px solid #f1f5f9' }}>Existing texts</div>
-                                    {existingTexts.filter(t => t.toLowerCase().includes((editDraft.whatsapp_text ?? '').toLowerCase())).map((text, ti) => (
-                                      <button
-                                        key={ti}
-                                        type="button"
-                                        onMouseDown={e => e.preventDefault()}
-                                        onClick={() => { setEditDraft(d => ({ ...d, whatsapp_text: text })); setEditWaOpen(false) }}
-                                        className="w-full text-left px-3 py-2 text-xs hover:bg-slate-50 transition-colors block truncate"
-                                        style={{ color: '#475569' }}
-                                      >
-                                        {text}
-                                      </button>
-                                    ))}
-                                  </div>
-                                )}
-                              </div>
-                              <div>
-                                <label className="block text-xs font-medium mb-1.5" style={{ color: '#64748b' }}>Location</label>
-                                <div className="relative">
-                                  <select value={editDraft.location_slug ?? 'all'} onChange={e => setEditDraft(d => ({ ...d, location_slug: e.target.value }))}
-                                    className="w-full px-3 py-2 text-sm rounded-lg border focus:outline-none cursor-pointer"
-                                    style={{ borderColor: '#cbd5e1', background: 'white', appearance: 'none', WebkitAppearance: 'none', paddingRight: '2.5rem' }}>
-                                    <option value="all">All locations</option>
-                                    {MY_STATES.map(s => <option key={s.slug} value={s.slug}>{s.label}</option>)}
-                                  </select>
-                                  <svg className="w-3 h-3 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: '#94a3b8' }}><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
-                                </div>
-                              </div>
-                              <div className="flex gap-3">
-                                <div className="w-20">
-                                  <label className="block text-xs font-medium mb-1.5" style={{ color: '#64748b' }}>%</label>
-                                  <input type="number" min="0" max="100" value={editDraft.percentage ?? 0}
-                                    onChange={e => setEditDraft(d => ({ ...d, percentage: parseInt(e.target.value) || 0 }))}
-                                    className="w-full px-3 py-2 text-sm rounded-lg border focus:outline-none" style={{ borderColor: '#cbd5e1', background: 'white' }} />
-                                </div>
-                                <div className="flex-1">
-                                  <label className="block text-xs font-medium mb-1.5" style={{ color: '#64748b' }}>Label</label>
-                                  <input type="text" value={editDraft.label ?? ''} onChange={e => setEditDraft(d => ({ ...d, label: e.target.value }))}
-                                    disabled={isDefault}
-                                    className="w-full px-3 py-2 text-sm rounded-lg border focus:outline-none disabled:opacity-50" style={{ borderColor: '#cbd5e1', background: 'white' }} />
-                                </div>
-                              </div>
-                            </div>
-                            <div className="flex items-center justify-between mt-3 pt-3" style={{ borderTop: '1px solid #e2e8f0' }}>
-                              <label className="flex items-center gap-2 cursor-pointer">
-                                <button type="button" onClick={() => setEditDraft(d => ({ ...d, is_active: !d.is_active }))}
-                                  className="relative w-9 h-5 rounded-full transition-colors"
-                                  style={{ background: editDraft.is_active ? '#16a34a' : '#cbd5e1' }}>
-                                  <span className="absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full transition-transform" style={{ transform: editDraft.is_active ? 'translateX(16px)' : 'translateX(0)' }} />
-                                </button>
-                                <span className="text-xs" style={{ color: '#475569' }}>{editDraft.is_active ? 'Active' : 'Inactive'}</span>
-                              </label>
-                              <div className="flex items-center gap-2">
-                                <button type="button" onClick={cancelEdit}
-                                  className="text-xs px-3 py-1.5 rounded-md border transition-colors"
-                                  style={{ borderColor: '#e2e8f0', color: '#64748b' }}>
-                                  Cancel
-                                </button>
-                                <button type="button" onClick={saveEdit} disabled={savingEdit}
-                                  className="text-xs font-medium px-3 py-1.5 rounded-md text-white transition-opacity disabled:opacity-50"
-                                  style={{ background: 'var(--primary)' }}>
-                                  {savingEdit ? 'Saving…' : 'Save'}
-                                </button>
-                              </div>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    )
-                  })}
+                    </tbody>
+                  </table>
                 </div>
               </div>
-            )}
 
-            {website && existingNumbers.length === 0 && (
-              <div className="rounded-lg border p-4 text-center" style={{ borderColor: '#e2e8f0', background: '#f8fafc' }}>
-                <p className="text-xs" style={{ color: '#94a3b8' }}>No phone numbers exist for this website yet. Add the first one below.</p>
-              </div>
-            )}
-
-            {/* Add New Number — matches /new row styling */}
-            <div>
-              <div className="mb-3">
-                <h3 className="text-base font-semibold" style={{ color: 'var(--foreground)' }}>Add New Number</h3>
-                <p className="text-xs mt-0.5" style={{ color: '#94a3b8' }}>Fill in the details and click &ldquo;Add to pool&rdquo; — the number will appear in the table above immediately.</p>
-              </div>
-
-              <div className="space-y-4">
-                <div className="rounded-xl border p-5" style={{ borderColor: '#e2e8f0', background: '#fafbfc' }}>
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center gap-2">
-                      <div className="w-7 h-7 rounded-full flex items-center justify-center" style={{ background: 'var(--primary)', color: 'white' }}>
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
-                        </svg>
-                      </div>
-                      <span className="text-sm font-semibold" style={{ color: '#475569' }}>
-                        New Number
-                      </span>
-                    </div>
+              {/* Preview */}
+              <div className="px-6 pb-6">
+                <div className="rounded-xl border p-5" style={{ borderColor: '#e2e8f0', background: '#f8fafc' }}>
+                  <div className="flex items-center gap-2 mb-3">
+                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24" style={{ color: '#16a34a' }}>
+                      <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.67-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.693.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+                    </svg>
+                    <span className="text-sm font-semibold" style={{ color: 'var(--foreground)' }}>WhatsApp Preview</span>
+                    <span className="text-[10px] font-medium px-1.5 py-0.5 rounded" style={{ background: 'white', color: '#64748b', border: '1px solid #e2e8f0' }}>
+                      Hi &lt;domain&gt;[ &lt;location&gt;], &lt;text&gt;
+                    </span>
                   </div>
-
-                  {newError && (
-                    <div className="mb-3 p-3 rounded-lg border text-sm" style={{ background: '#fef2f2', borderColor: '#fca5a5', color: '#dc2626' }}>
-                      {newError}
-                    </div>
-                  )}
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div>
-                      <label className="block text-xs font-medium mb-1.5" style={{ color: '#64748b' }}>Phone Number</label>
-                      <input type="text" value={newRow.phone_number}
-                        onChange={e => setNewRow(r => ({ ...r, phone_number: e.target.value }))}
-                        placeholder="e.g. 60123456789"
-                        className="w-full px-3 py-2 text-sm rounded-lg border focus:outline-none transition-colors"
-                        style={{ borderColor: '#cbd5e1', background: 'white' }}
-                        onFocus={e => e.currentTarget.style.borderColor = 'var(--primary)'}
-                        onBlur={e => e.currentTarget.style.borderColor = '#cbd5e1'} />
-                    </div>
-                    <div className="relative">
-                      <label className="block text-xs font-medium mb-1.5" style={{ color: '#64748b' }}>WhatsApp Text</label>
-                      <input type="text" value={newRow.whatsapp_text}
-                        onChange={e => setNewRow(r => ({ ...r, whatsapp_text: e.target.value }))}
-                        placeholder="e.g. Hi, I'd like to enquire…"
-                        className="w-full px-3 py-2 text-sm rounded-lg border focus:outline-none transition-colors"
-                        style={{ borderColor: '#cbd5e1', background: 'white' }}
-                        onFocus={e => { e.currentTarget.style.borderColor = 'var(--primary)'; setNewWaOpen(true) }}
-                        onBlur={e => { e.currentTarget.style.borderColor = '#cbd5e1'; setTimeout(() => setNewWaOpen(false), 150) }} />
-                      {newWaOpen && existingTexts.filter(t => t.toLowerCase().includes(newRow.whatsapp_text.toLowerCase())).length > 0 && (
-                        <div className="absolute left-0 right-0 top-full mt-1 rounded-lg border shadow-lg z-20 max-h-52 overflow-y-auto" style={{ background: 'white', borderColor: '#e2e8f0' }}>
-                          <div className="px-3 py-1.5 text-[10px] font-semibold uppercase tracking-wider sticky top-0 bg-white" style={{ color: '#94a3b8', borderBottom: '1px solid #f1f5f9' }}>Existing texts</div>
-                          {existingTexts.filter(t => t.toLowerCase().includes(newRow.whatsapp_text.toLowerCase())).map((text, ti) => (
-                            <button
-                              key={ti}
-                              type="button"
-                              onMouseDown={e => e.preventDefault()}
-                              onClick={() => { setNewRow(r => ({ ...r, whatsapp_text: text })); setNewWaOpen(false) }}
-                              className="w-full text-left px-3 py-2 text-xs hover:bg-slate-50 transition-colors block truncate"
-                              style={{ color: '#475569' }}
-                            >
-                              {text}
-                            </button>
-                          ))}
+                  <div className="space-y-2">
+                    {allActiveForPct.length === 0 ? (
+                      <p className="text-xs" style={{ color: '#94a3b8' }}>No active rows to preview yet.</p>
+                    ) : allActiveForPct.map(r => {
+                      const preview = buildWhatsAppPreview(website, r.location_slug, r.whatsapp_text || '…')
+                      const testUrl = `https://wa.me/${r.phone_number.replace(/\D/g, '')}?text=${encodeURIComponent(preview)}`
+                      return (
+                        <div key={r.key} className="flex items-start gap-3 rounded-lg bg-white border p-3" style={{ borderColor: '#e2e8f0' }}>
+                          <div className="min-w-0 flex-1">
+                            <div className="text-[11px] font-medium mb-1" style={{ color: '#64748b' }}>
+                              <span className="font-mono">{r.phone_number || '(no number)'}</span>
+                              {r.location_slug !== 'all' && <span className="ml-2 px-1.5 py-0.5 rounded" style={{ background: '#ede9fe', color: '#7c3aed' }}>{LOCATION_LABEL[r.location_slug] ?? r.location_slug}</span>}
+                            </div>
+                            <div className="text-sm" style={{ color: '#0f172a' }}>{preview}</div>
+                          </div>
+                          {r.phone_number.replace(/\D/g, '').length >= 8 && (
+                            <a href={testUrl} target="_blank" rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1 text-[11px] font-medium px-2.5 py-1.5 rounded-md border transition-colors hover:border-green-500 hover:text-green-700 flex-shrink-0"
+                              style={{ borderColor: '#e2e8f0', color: '#16a34a' }}>
+                              Test
+                              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8"><path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
+                            </a>
+                          )}
                         </div>
-                      )}
-                    </div>
-                    <div>
-                      <label className="block text-xs font-medium mb-1.5" style={{ color: '#64748b' }}>Location</label>
-                      <div className="relative">
-                        <select value={newRow.location_slug}
-                          onChange={e => setNewRow(r => ({ ...r, location_slug: e.target.value }))}
-                          className="w-full px-3 py-2 text-sm rounded-lg border focus:outline-none cursor-pointer"
-                          style={{ borderColor: '#cbd5e1', background: 'white', appearance: 'none', WebkitAppearance: 'none', paddingRight: '2.5rem' }}>
-                          <option value="">All locations</option>
-                          {MY_STATES.map(s => <option key={s.slug} value={s.slug}>{s.label}</option>)}
-                        </select>
-                        <svg className="w-3 h-3 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: '#94a3b8' }}><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
-                      </div>
-                    </div>
-                    <div className="flex gap-3">
-                      <div className="w-20">
-                        <label className="block text-xs font-medium mb-1.5" style={{ color: '#64748b' }}>%</label>
-                        <input type="number" min="0" max="100" value={newRow.percentage}
-                          onChange={e => setNewRow(r => ({ ...r, percentage: e.target.value }))}
-                          placeholder="0"
-                          className="w-full px-3 py-2 text-sm rounded-lg border focus:outline-none transition-colors"
-                          style={{ borderColor: '#cbd5e1', background: 'white' }} />
-                      </div>
-                      <div className="flex-1">
-                        <label className="block text-xs font-medium mb-1.5" style={{ color: '#64748b' }}>Label <span className="font-normal" style={{ color: '#94a3b8' }}>(optional)</span></label>
-                        <input type="text" value={newRow.label}
-                          onChange={e => setNewRow(r => ({ ...r, label: e.target.value }))}
-                          placeholder="e.g. Agent A"
-                          className="w-full px-3 py-2 text-sm rounded-lg border focus:outline-none transition-colors"
-                          style={{ borderColor: '#cbd5e1', background: 'white' }} />
-                      </div>
-                    </div>
-                  </div>
-
-{/* Add to pool button — full width, prominent */}
-                  <div className="mt-5 pt-4" style={{ borderTop: '1px solid #e2e8f0' }}>
-                    <button type="button" onClick={addNewNumber} disabled={addingNew || !website}
-                      className="group/btn w-full flex items-center justify-center gap-2 text-sm font-semibold px-6 py-3 rounded-lg text-white transition-all disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none shadow-sm hover:shadow-md"
-                      style={{ background: 'var(--primary)' }}
-                      onMouseEnter={e => { if (website && !addingNew) (e.currentTarget as HTMLElement).style.background = 'var(--primary-hover)' }}
-                      onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'var(--primary)'}>
-                      {addingNew ? (
-                        <>
-                          <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
-                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" />
-                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
-                          </svg>
-                          Adding…
-                        </>
-                      ) : (
-                        <>
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
-                          </svg>
-                          Add to Pool
-                          <svg className="w-4 h-4 transition-transform group-hover/btn:translate-x-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                          </svg>
-                        </>
-                      )}
-                    </button>
+                      )
+                    })}
                   </div>
                 </div>
               </div>
-            </div>
-
-            {/* Info boxes */}
-            <div className="grid grid-cols-2 gap-3">
-              <div className="rounded-lg border p-3" style={{ background: '#fff7ed', borderColor: '#fed7aa' }}>
-                <div className="flex items-center gap-1.5 mb-2">
-                  <svg className="w-3.5 h-3.5 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
-                  </svg>
-                  <span className="text-xs font-semibold text-orange-700">Important</span>
-                </div>
-                <ul className="space-y-1">
-                  {['Domain must match exactly', 'Include country code (60…)', 'No spaces or dashes'].map(t => (
-                    <li key={t} className="text-xs text-orange-700 flex items-start gap-1"><span className="mt-0.5">•</span>{t}</li>
-                  ))}
-                </ul>
-              </div>
-              <div className="rounded-lg border p-3" style={{ background: '#f0fdf4', borderColor: '#bbf7d0' }}>
-                <div className="flex items-center gap-1.5 mb-2">
-                  <svg className="w-3.5 h-3.5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  <span className="text-xs font-semibold text-green-700">How it works</span>
-                </div>
-                <ul className="space-y-1">
-                  {['Edits save individually on each row', 'New numbers commit on Add to Pool', 'Mode updates automatically'].map(t => (
-                    <li key={t} className="text-xs text-green-700 flex items-start gap-1"><span className="mt-0.5">•</span>{t}</li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-          </div>
+            </>
+          )}
 
           {/* Footer */}
-          <div className="px-6 py-5 flex items-center justify-between gap-3" style={{ borderTop: '1px solid #e2e8f0', background: '#f8fafc' }}>
+          <div className="px-6 py-5 flex items-center justify-between gap-3 flex-wrap" style={{ borderTop: '1px solid #e2e8f0', background: '#f8fafc' }}>
             <Link href={`/phone-numbers${website ? `?website=${encodeURIComponent(website)}` : ''}`}
-              className="text-sm font-medium px-5 py-2.5 rounded-lg border transition-all hover:bg-white hover:border-slate-400"
+              className="text-sm font-medium px-5 py-2.5 rounded-lg border transition-all hover:bg-white"
               style={{ borderColor: '#cbd5e1', color: '#475569', background: 'white' }}>
               Cancel
             </Link>
-            <button type="button" onClick={handleDone}
-              className="flex items-center gap-2 text-sm font-semibold px-6 py-3 rounded-lg text-white transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0 active:shadow-md"
-              style={{ background: 'var(--primary)', minWidth: '180px', justifyContent: 'center' }}>
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-              </svg>
-              Save Changes
-            </button>
+            <div className="flex items-center gap-3 flex-wrap">
+              {hasChanges && <span className="text-xs" style={{ color: '#64748b' }}>Unsaved changes</span>}
+              <button type="button" onClick={handleDone}
+                className="text-sm font-medium px-4 py-2.5 rounded-lg border transition-colors"
+                style={{ borderColor: '#e2e8f0', color: '#475569', background: 'white' }}>
+                Back to website
+              </button>
+              <button type="button" onClick={doSave} disabled={saving || !website || !hasChanges}
+                className="flex items-center gap-2 text-sm font-semibold px-6 py-2.5 rounded-lg text-white transition-all disabled:opacity-40 disabled:cursor-not-allowed shadow-sm hover:shadow-md"
+                style={{ background: 'var(--primary)' }}>
+                {saving ? (
+                  <>
+                    <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
+                    </svg>
+                    Saving…
+                  </>
+                ) : (
+                  <>
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                    </svg>
+                    Save Changes
+                  </>
+                )}
+              </button>
+            </div>
           </div>
         </div>
       </div>
     </div>
+  )
+}
+
+function Th({ children, className = '' }: { children: React.ReactNode; className?: string }) {
+  return <th className={`text-left text-[10px] font-semibold uppercase tracking-wider px-3 py-2.5 ${className}`} style={{ color: '#64748b' }}>{children}</th>
+}
+
+function TextAutocomplete({ value, onChange, texts, openKey, myKey, setOpenKey }: {
+  value: string; onChange: (v: string) => void; texts: string[]
+  openKey: string | null; myKey: string; setOpenKey: (k: string | null) => void
+}) {
+  const matches = texts.filter(t => t.toLowerCase().includes(value.toLowerCase()) && t !== value).slice(0, 6)
+  const open = openKey === myKey && matches.length > 0
+  return (
+    <div className="relative">
+      <input type="text" value={value} onChange={e => onChange(e.target.value)}
+        onFocus={() => setOpenKey(myKey)}
+        onBlur={() => setTimeout(() => setOpenKey(null), 150)}
+        className="w-full px-2 py-1.5 text-sm rounded border focus:outline-none"
+        style={{ borderColor: '#e2e8f0', background: 'white' }} />
+      {open && (
+        <div className="absolute left-0 right-0 top-full mt-1 rounded-lg border shadow-lg z-20 max-h-44 overflow-y-auto" style={{ background: 'white', borderColor: '#e2e8f0' }}>
+          {matches.map((t, i) => (
+            <button key={i} type="button" onMouseDown={e => e.preventDefault()}
+              onClick={() => { onChange(t); setOpenKey(null) }}
+              className="w-full text-left px-3 py-2 text-xs hover:bg-slate-50 block truncate"
+              style={{ color: '#475569' }}>
+              {t}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+function LocationSelect({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  return (
+    <div className="relative">
+      <select value={value} onChange={e => onChange(e.target.value)}
+        className="w-full px-2 py-1.5 text-sm rounded border cursor-pointer focus:outline-none"
+        style={{ borderColor: '#e2e8f0', background: 'white', appearance: 'none', WebkitAppearance: 'none', paddingRight: '1.5rem' }}>
+        <option value="all">All locations</option>
+        {MY_STATES.map(s => <option key={s.slug} value={s.slug}>{s.label}</option>)}
+      </select>
+      <svg className="w-3 h-3 absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: '#94a3b8' }}><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+    </div>
+  )
+}
+
+function ActiveToggle({ on, onChange, dimmed = false }: { on: boolean; onChange: (v: boolean) => void; dimmed?: boolean }) {
+  return (
+    <button type="button" onClick={() => onChange(!on)}
+      className="relative w-9 h-5 rounded-full transition-colors"
+      style={{ background: on ? '#16a34a' : '#cbd5e1', opacity: dimmed ? 0.5 : 1 }}>
+      <span className="absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full transition-transform"
+        style={{ transform: on ? 'translateX(16px)' : 'translateX(0)' }} />
+    </button>
+  )
+}
+
+function RowEditor({ r, existingTexts, waOpenKey, setWaOpenKey, onPatch, onPercentage, onToggleDelete }: {
+  r: WorkingRow
+  existingTexts: string[]
+  waOpenKey: string | null
+  setWaOpenKey: (k: string | null) => void
+  onPatch: (patch: Partial<WorkingRow>) => void
+  onPercentage: (value: number) => void
+  onToggleDelete: () => void
+}) {
+  const isDefault = r.type === 'default'
+  const bg = r.markedForDelete ? '#fef2f2' : isDefault ? '#fff9e6' : r.dirty ? '#fffbeb' : 'white'
+  return (
+    <tr style={{ background: bg, borderBottom: '1px solid #f1f5f9', textDecoration: r.markedForDelete ? 'line-through' : 'none' }}>
+      <td className="px-3 py-2">
+        <div className="flex items-center gap-1.5">
+          {isDefault && <span className="text-[9px] font-bold px-1.5 py-0.5 rounded" style={{ background: 'var(--primary)', color: 'white' }}>★</span>}
+          <input type="text" value={r.phone_number}
+            onChange={e => onPatch({ phone_number: e.target.value })}
+            className="flex-1 min-w-0 px-2 py-1.5 text-sm font-mono rounded border focus:outline-none"
+            style={{ borderColor: '#e2e8f0', background: 'white' }} />
+        </div>
+      </td>
+      <td className="px-3 py-2 min-w-[200px]">
+        <TextAutocomplete value={r.whatsapp_text} onChange={v => onPatch({ whatsapp_text: v })}
+          texts={existingTexts} openKey={waOpenKey} myKey={`wa-${r.key}`} setOpenKey={setWaOpenKey} />
+      </td>
+      <td className="px-3 py-2 min-w-[140px]">
+        <LocationSelect value={r.location_slug} onChange={v => onPatch({ location_slug: v })} />
+      </td>
+      <td className="px-3 py-2">
+        <input type="number" min="0" max="100" value={r.percentage}
+          onChange={e => onPercentage(parseInt(e.target.value) || 0)}
+          className="w-full px-2 py-1.5 text-sm rounded border focus:outline-none text-right tabular-nums"
+          style={{ borderColor: '#e2e8f0', background: 'white' }} />
+      </td>
+      <td className="px-3 py-2">
+        <input type="text" value={r.label} onChange={e => onPatch({ label: e.target.value })}
+          disabled={isDefault}
+          placeholder={isDefault ? 'Default' : 'optional'}
+          className="w-full px-2 py-1.5 text-sm rounded border focus:outline-none disabled:opacity-60"
+          style={{ borderColor: '#e2e8f0', background: 'white' }} />
+      </td>
+      <td className="px-3 py-2 text-center">
+        <ActiveToggle on={r.is_active} onChange={v => onPatch({ is_active: v })} />
+      </td>
+      <td className="px-3 py-2 text-center">
+        {isDefault ? (
+          <span className="text-[10px]" style={{ color: '#cbd5e1' }}>—</span>
+        ) : (
+          <input type="checkbox" checked={r.markedForDelete} onChange={onToggleDelete}
+            className="w-4 h-4 cursor-pointer accent-red-600" />
+        )}
+      </td>
+    </tr>
+  )
+}
+
+function DraftRowEditor({ d, existingTexts, waOpenKey, setWaOpenKey, showAdd, onPatch, onPercentage, onRemove, onAdd }: {
+  d: WorkingRow
+  existingTexts: string[]
+  waOpenKey: string | null
+  setWaOpenKey: (k: string | null) => void
+  showAdd: boolean
+  onPatch: (patch: Partial<WorkingRow>) => void
+  onPercentage: (value: number) => void
+  onRemove: () => void
+  onAdd: () => void
+}) {
+  return (
+    <tr style={{ background: '#f0fdf4', borderBottom: '1px solid #f1f5f9' }}>
+      <td className="px-3 py-2">
+        <div className="flex items-center gap-1.5">
+          <span className="text-[9px] font-bold px-1.5 py-0.5 rounded" style={{ background: '#16a34a', color: 'white' }}>NEW</span>
+          <input type="text" value={d.phone_number}
+            onChange={e => onPatch({ phone_number: e.target.value })}
+            placeholder="60123456789"
+            className="flex-1 min-w-0 px-2 py-1.5 text-sm font-mono rounded border focus:outline-none"
+            style={{ borderColor: '#bbf7d0', background: 'white' }} />
+        </div>
+      </td>
+      <td className="px-3 py-2 min-w-[200px]">
+        <TextAutocomplete value={d.whatsapp_text} onChange={v => onPatch({ whatsapp_text: v })}
+          texts={existingTexts} openKey={waOpenKey} myKey={`wa-${d.key}`} setOpenKey={setWaOpenKey} />
+      </td>
+      <td className="px-3 py-2 min-w-[140px]">
+        <LocationSelect value={d.location_slug} onChange={v => onPatch({ location_slug: v })} />
+      </td>
+      <td className="px-3 py-2">
+        <input type="number" min="0" max="100" value={d.percentage}
+          onChange={e => onPercentage(parseInt(e.target.value) || 0)}
+          className="w-full px-2 py-1.5 text-sm rounded border focus:outline-none text-right tabular-nums"
+          style={{ borderColor: '#bbf7d0', background: 'white' }} />
+      </td>
+      <td className="px-3 py-2">
+        <input type="text" value={d.label} onChange={e => onPatch({ label: e.target.value })}
+          placeholder="optional"
+          className="w-full px-2 py-1.5 text-sm rounded border focus:outline-none"
+          style={{ borderColor: '#bbf7d0', background: 'white' }} />
+      </td>
+      <td className="px-3 py-2 text-center">
+        <ActiveToggle on={d.is_active} onChange={v => onPatch({ is_active: v })} />
+      </td>
+      <td className="px-3 py-2">
+        <div className="flex items-center justify-center gap-1">
+          <button type="button" onClick={onRemove} title="Remove this row"
+            className="w-6 h-6 inline-flex items-center justify-center rounded-md border transition-colors hover:border-red-400 hover:text-red-600"
+            style={{ borderColor: '#e2e8f0', color: '#94a3b8' }}>
+            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M20 12H4" /></svg>
+          </button>
+          {showAdd && (
+            <button type="button" onClick={onAdd} title="Add another new row"
+              className="w-6 h-6 inline-flex items-center justify-center rounded-md border transition-colors hover:border-[var(--primary)] hover:text-[var(--primary)]"
+              style={{ borderColor: '#e2e8f0', color: '#64748b' }}>
+              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" /></svg>
+            </button>
+          )}
+        </div>
+      </td>
+    </tr>
   )
 }
