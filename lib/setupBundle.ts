@@ -7,6 +7,25 @@ interface BundleInput {
 }
 
 /**
+ * The paste-ready prompt designers give to their Claude agent after unzipping
+ * the setup bundle. Kept in sync with the file list in downloadSetupBundle.
+ */
+export function kickoffPrompt(domain: string): string {
+  return `I've added webcore-setup-${domain} files to this project (AGENTS.md at the root, plus lib/webcore.ts, components/WebcoreTracker.tsx, .env.local.example, and TRACKING-GUIDE.md).
+
+Please:
+
+1. Read AGENTS.md — it has the full integration spec.
+2. Rename .env.local.example to .env.local. The WEBCORE_API_KEY is already filled in; make sure .env.local is in .gitignore.
+3. Add <WebcoreTracker /> to the root layout's <head>.
+4. Audit the codebase for hardcoded phone numbers, WhatsApp/call buttons, products, or blog content. Replace them with calls from lib/webcore.ts (resolvePhone, fetchProducts, fetchBlog, pushProduct, etc.).
+5. Wire up window.uwc() tracking on every CTA — WhatsApp, call, product cards (impression via IntersectionObserver, fire once), blog article links. Use the label conventions in AGENTS.md: whatsapp-{phone}, call-{phone}, product-{slug}, blog-{slug}.
+6. When done, confirm pageviews and clicks appear in the webcore admin Analytics tab for domain "${domain}".
+
+If anything is ambiguous, re-read AGENTS.md and TRACKING-GUIDE.md before asking me.`
+}
+
+/**
  * Build and trigger a download of a "webcore-setup-{domain}.zip" containing
  * everything a designer needs to hand off to their Claude Code agent for
  * integration work:
