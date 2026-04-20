@@ -388,7 +388,16 @@ export default function WebsitesPage() {
   // ═══ LEVEL 3: Website detail ═══
   const siteInfo = sites.find(s => s.domain === openWebsite)
   return (<div>
-    <PageHeader title={openWebsite} description={`Detailed overview · last ${period === '7d' ? '7 days' : period === '30d' ? '30 days' : '90 days'}`} actions={<PeriodSelector value={period} onChange={setPeriod} />} />
+    <PageHeader title={openWebsite} description={
+      <a href={`https://${openWebsite}`} target="_blank" rel="noopener noreferrer"
+        className="inline-flex items-center gap-1 text-xs font-light underline underline-offset-2 transition-colors hover:text-[var(--primary)]"
+        style={{ color: '#94a3b8' }}>
+        Visit {openWebsite}
+        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+        </svg>
+      </a>
+    } actions={<PeriodSelector value={period} onChange={setPeriod} />} />
     <Stats />
     <Chart />
 
