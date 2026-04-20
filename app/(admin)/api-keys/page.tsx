@@ -61,6 +61,8 @@ export default function ApiKeysPage() {
   const [form, setForm] = useState({ name: '', website: '', permissions: ['read', 'write'] as string[] })
   const [websites, setWebsites] = useState<string[]>([])
   const [copiedId, setCopiedId] = useState<string | null>(null)
+  const [copiedSnippetId, setCopiedSnippetId] = useState<string | null>(null)
+  const [expandedSnippets, setExpandedSnippets] = useState<Set<string>>(new Set())
   const [nowMs, setNowMs] = useState(() => Date.now())
 
   useEffect(() => {
@@ -81,6 +83,26 @@ export default function ApiKeysPage() {
     setCopiedId(id)
     toast.success('Copied to clipboard')
     setTimeout(() => setCopiedId(null), 2000)
+  }
+
+  function copySnippet(value: string, id: string) {
+    navigator.clipboard.writeText(value)
+    setCopiedSnippetId(id)
+    toast.success('Tracking snippet copied')
+    setTimeout(() => setCopiedSnippetId(null), 2000)
+  }
+
+  function toggleSnippet(id: string) {
+    setExpandedSnippets(prev => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }
+
+  function trackingSnippetFor(domain: string): string {
+    return `<script defer src="https://utopia-webcore.vercel.app/t.js" data-website="${domain}"></script>`
   }
 
   async function fetchKeys() {
@@ -306,6 +328,32 @@ export default function ApiKeysPage() {
                   </div>
                   {k.status === 'expired_unused' && (
                     <p className="text-[11px] mt-1.5" style={{ color: '#dc2626' }}>This key was never used within 5 hours and was auto-disabled. Generate a new key to replace it.</p>
+                  )}
+                  {k.website !== '*' && (
+                    <div className="mt-2">
+                      <button type="button" onClick={() => toggleSnippet(k.id)}
+                        className="inline-flex items-center gap-1 text-[11px] font-medium transition-colors hover:underline"
+                        style={{ color: '#64748b' }}>
+                        <svg className={`w-3 h-3 transition-transform ${expandedSnippets.has(k.id) ? 'rotate-90' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></svg>
+                        {expandedSnippets.has(k.id) ? 'Hide' : 'Show'} tracking snippet
+                      </button>
+                      {expandedSnippets.has(k.id) && (
+                        <div className="mt-2 flex items-center gap-2">
+                          <code className="flex-1 text-[11px] px-2.5 py-1.5 rounded-md font-mono break-all select-all" style={{ background: '#f8fafc', border: '1px solid #e2e8f0', color: '#334155' }}>
+                            {trackingSnippetFor(k.website)}
+                          </code>
+                          <button onClick={() => copySnippet(trackingSnippetFor(k.website), k.id)}
+                            className="flex-shrink-0 inline-flex items-center gap-1.5 px-2.5 py-1.5 text-[11px] font-medium rounded-md transition-all"
+                            style={{
+                              background: copiedSnippetId === k.id ? '#dcfce7' : 'white',
+                              border: `1px solid ${copiedSnippetId === k.id ? '#86efac' : '#e2e8f0'}`,
+                              color: copiedSnippetId === k.id ? '#16a34a' : '#475569',
+                            }}>
+                            {copiedSnippetId === k.id ? 'Copied' : 'Copy'}
+                          </button>
+                        </div>
+                      )}
+                    </div>
                   )}
                 </div>
                 {k.is_active && (

@@ -34,7 +34,6 @@ export default function AddWebsiteModal({ open, onClose, onCreated, presetCompan
   const [error, setError] = useState('')
   const [result, setResult] = useState<AddWebsiteResult | null>(null)
   const [copied, setCopied] = useState<string | null>(null)
-  const [acked, setAcked] = useState(false)
 
   useEffect(() => {
     if (!open) return
@@ -47,22 +46,20 @@ export default function AddWebsiteModal({ open, onClose, onCreated, presetCompan
     if (!open) {
       setResult(null)
       setError('')
-      setAcked(false)
       setForm({ company_id: '', company_name: '', domain: '', create_api_key: true, permissions: ['read', 'write'] })
       setMode('existing')
       return
     }
-    // Pre-fill company when a preset is given
     if (presetCompany) {
       setMode('existing')
       setForm(f => ({ ...f, company_id: presetCompany.id }))
     }
   }, [open, presetCompany])
 
-  function copy(value: string, key: string) {
+  function copyValue(value: string, key: string) {
     navigator.clipboard.writeText(value)
     setCopied(key)
-    toast.success('Copied to clipboard')
+    toast.success('Copied')
     setTimeout(() => setCopied(null), 2000)
   }
 
@@ -107,169 +104,90 @@ export default function AddWebsiteModal({ open, onClose, onCreated, presetCompan
 
   if (!open) return null
 
-  const keyLocked = !!(result?.api_key) && !acked
-
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center p-4 sm:p-8 overflow-y-auto" style={{ background: 'rgba(15, 23, 42, 0.5)' }}>
-      <div className="w-full max-w-2xl rounded-2xl bg-white shadow-xl my-4 overflow-hidden" style={{ border: '1px solid #e2e8f0' }}>
+    <div className="fixed inset-0 z-50 flex items-start justify-center p-4 sm:p-8 overflow-y-auto backdrop-blur-sm" style={{ background: 'rgba(15, 23, 42, 0.45)' }}>
+      <div className="w-full max-w-xl rounded-2xl bg-white shadow-2xl my-4 overflow-hidden" style={{ border: '1px solid #e2e8f0' }}>
         {/* Header */}
-        <div className="px-6 py-4 flex items-center justify-between" style={{ borderBottom: '1px solid #e2e8f0' }}>
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: '#ede9fe' }}>
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: '#7c3aed' }} strokeWidth="1.8">
-                <rect x="2" y="3" width="20" height="14" rx="2" /><path strokeLinecap="round" d="M2 7h20M8 21h8M12 17v4" />
-              </svg>
-            </div>
-            <div>
-              <h2 className="text-base font-semibold" style={{ color: 'var(--foreground)' }}>{result ? 'Website connected' : 'Connect a new website'}</h2>
-              <p className="text-xs" style={{ color: '#94a3b8' }}>{result ? (keyLocked ? 'Copy the API key before closing' : 'Save these details now') : 'Link a domain to a company and optionally generate an API key'}</p>
-            </div>
+        <div className="px-6 pt-6 pb-4 flex items-start justify-between gap-4">
+          <div>
+            <h2 className="text-lg font-semibold tracking-tight" style={{ color: 'var(--foreground)' }}>
+              {result ? 'Website connected' : 'Connect a new website'}
+            </h2>
+            <p className="text-sm mt-0.5" style={{ color: '#64748b' }}>
+              {result
+                ? 'Copy the details below. You can retrieve the API key later from /api-keys.'
+                : 'Link a domain to a company and generate access credentials.'}
+            </p>
           </div>
-          {!keyLocked && (
-            <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-slate-100 transition-colors" style={{ color: '#64748b' }}>
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
-            </button>
-          )}
+          <button onClick={onClose} aria-label="Close"
+            className="flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-lg hover:bg-slate-100 transition-colors"
+            style={{ color: '#64748b' }}>
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+          </button>
         </div>
 
         {result ? (
-          /* Result view */
-          <div className="p-6 space-y-4">
-            <div className="rounded-xl border p-4" style={{ background: '#f0fdf4', borderColor: '#bbf7d0' }}>
-              <p className="text-sm font-medium" style={{ color: '#16a34a' }}>
-                {result.website.domain} is now linked to {result.company.name}
-              </p>
-            </div>
-
-            {result.api_key && (
-              <div className="rounded-xl border p-4" style={{ background: '#fff7ed', borderColor: '#fed7aa' }}>
-                <p className="text-xs font-bold mb-1" style={{ color: '#92400e' }}>API key</p>
-                <p className="text-[11px] mb-2" style={{ color: '#92400e' }}>
-                  You can still copy this from the API Keys page for the next 5 hours. After that, if it&apos;s never been used, it auto-expires and you&apos;ll need to generate a new one.
-                </p>
-                <div className="flex items-center gap-2">
-                  <code className="flex-1 text-xs bg-white px-3 py-2 rounded-lg border font-mono break-all select-all" style={{ borderColor: '#fed7aa', color: '#92400e' }}>
-                    {result.api_key}
-                  </code>
-                  <button onClick={() => copy(result.api_key!, 'key')}
-                    className="flex-shrink-0 px-3 py-2 text-xs font-medium rounded-lg text-white"
-                    style={{ background: copied === 'key' ? '#16a34a' : 'var(--primary)' }}>
-                    {copied === 'key' ? 'Copied!' : 'Copy'}
-                  </button>
-                </div>
-                <p className="text-[11px] mt-2" style={{ color: '#92400e' }}>Permissions: {result.api_key_permissions.join(', ')}</p>
-              </div>
-            )}
-
-            <div className="rounded-xl border" style={{ borderColor: '#e2e8f0' }}>
-              <div className="px-4 py-2.5" style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
-                <p className="text-xs font-semibold" style={{ color: '#475569' }}>Tracking snippet — paste in &lt;head&gt;</p>
-              </div>
-              <div className="p-4 flex items-center gap-2">
-                <code className="flex-1 text-xs bg-slate-50 px-3 py-2 rounded-lg border font-mono break-all" style={{ borderColor: '#e2e8f0', color: '#334155' }}>
-                  {result.tracking_snippet}
-                </code>
-                <button onClick={() => copy(result.tracking_snippet, 'snip')}
-                  className="flex-shrink-0 px-3 py-2 text-xs font-medium rounded-lg text-white"
-                  style={{ background: copied === 'snip' ? '#16a34a' : 'var(--primary)' }}>
-                  {copied === 'snip' ? 'Copied!' : 'Copy'}
-                </button>
-              </div>
-            </div>
-
-            {result.api_key && (
-              <label className="flex items-start gap-2.5 p-3 rounded-lg border cursor-pointer" style={{ borderColor: acked ? '#16a34a' : '#fed7aa', background: acked ? '#f0fdf4' : '#fff7ed' }}>
-                <input type="checkbox" checked={acked} onChange={e => setAcked(e.target.checked)}
-                  className="mt-0.5 w-4 h-4 flex-shrink-0" />
-                <span className="text-xs" style={{ color: acked ? '#16a34a' : '#92400e' }}>
-                  I&apos;ve copied the API key and tracking snippet. I know I can still retrieve the key from the API Keys page for 5 hours.
-                </span>
-              </label>
-            )}
-
-            <div className="flex items-center justify-end gap-2 pt-2">
-              <button onClick={() => { setResult(null); setAcked(false); setForm({ company_id: '', company_name: '', domain: '', create_api_key: true, permissions: ['read', 'write'] }) }}
-                disabled={keyLocked}
-                className="px-4 py-2 text-sm rounded-lg border hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                style={{ borderColor: '#cbd5e1', color: '#475569' }}>Add another</button>
-              <button onClick={onClose}
-                disabled={keyLocked}
-                className="px-4 py-2 text-sm font-medium text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
-                style={{ background: 'var(--primary)' }}>Done</button>
-            </div>
-          </div>
+          <ResultBody result={result} copied={copied} onCopy={copyValue}
+            onAddAnother={() => { setResult(null); setForm({ company_id: '', company_name: '', domain: '', create_api_key: true, permissions: ['read', 'write'] }) }}
+            onClose={onClose} />
         ) : (
-          /* Form view */
           <form onSubmit={handleSubmit}>
-            <div className="p-6 space-y-5">
+            <div className="px-6 pb-2 space-y-5">
               {error && (
-                <div className="p-3 rounded-lg border text-sm" style={{ background: '#fef2f2', borderColor: '#fca5a5', color: '#dc2626' }}>{error}</div>
+                <div className="px-3 py-2.5 rounded-lg text-sm flex items-start gap-2"
+                  style={{ background: '#fef2f2', color: '#b91c1c', border: '1px solid #fecaca' }}>
+                  <svg className="w-4 h-4 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><circle cx="12" cy="12" r="9" /><path strokeLinecap="round" d="M12 8v4m0 4h.01" /></svg>
+                  <span>{error}</span>
+                </div>
               )}
 
-              <div>
-                <label className="block text-xs font-medium mb-2" style={{ color: '#475569' }}>Company</label>
-                <div className="flex gap-2 mb-3">
-                  {(['existing', 'new'] as const).map(m => (
-                    <button key={m} type="button" onClick={() => setMode(m)}
-                      className="text-xs font-medium px-3 py-1.5 rounded-full border transition-all"
-                      style={{
-                        background: mode === m ? 'var(--primary)' : 'white',
-                        borderColor: mode === m ? 'var(--primary)' : '#cbd5e1',
-                        color: mode === m ? 'white' : '#475569',
-                      }}>
-                      {m === 'existing' ? 'Use existing' : 'Create new'}
-                    </button>
-                  ))}
+              <Field label="Company">
+                <SegmentedToggle
+                  value={mode}
+                  options={[{ v: 'existing', l: 'Existing' }, { v: 'new', l: 'New' }]}
+                  onChange={v => setMode(v as 'existing' | 'new')}
+                />
+                <div className="mt-2.5">
+                  {mode === 'existing' ? (
+                    <SelectField value={form.company_id} onChange={v => setForm(f => ({ ...f, company_id: v }))}
+                      placeholder="Select a company…"
+                      options={companies.map(c => ({ value: c.id, label: c.name }))} />
+                  ) : (
+                    <TextField value={form.company_name} onChange={v => setForm(f => ({ ...f, company_name: v }))}
+                      placeholder="e.g. ABC Wheelchairs Sdn Bhd" />
+                  )}
                 </div>
-                {mode === 'existing' ? (
-                  <div className="relative">
-                    <select value={form.company_id} onChange={e => setForm(f => ({ ...f, company_id: e.target.value }))}
-                      className="w-full px-3 py-2.5 border rounded-lg text-sm outline-none cursor-pointer pr-9"
-                      style={{ borderColor: '#cbd5e1', appearance: 'none', WebkitAppearance: 'none' }}>
-                      <option value="">Select company…</option>
-                      {companies.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-                    </select>
-                    <svg className="w-3.5 h-3.5 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: '#94a3b8' }}><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+              </Field>
+
+              <Field label="Website domain" hint="No https:// or trailing slash — must match exactly what the designer uses">
+                <TextField value={form.domain} onChange={v => setForm(f => ({ ...f, domain: v }))}
+                  placeholder="abc-wheelchairs.com" autoComplete="off" spellCheck={false} mono />
+              </Field>
+
+              <div className="rounded-xl p-4" style={{ background: '#f8fafc', border: '1px solid #e2e8f0' }}>
+                <label className="flex items-center gap-3 cursor-pointer">
+                  <Toggle checked={form.create_api_key} onChange={v => setForm(f => ({ ...f, create_api_key: v }))} />
+                  <div className="flex-1">
+                    <div className="text-sm font-medium" style={{ color: 'var(--foreground)' }}>Generate an API key</div>
+                    <div className="text-xs mt-0.5" style={{ color: '#94a3b8' }}>Required if the designer will fetch or push data from their builder</div>
                   </div>
-                ) : (
-                  <input type="text" value={form.company_name} onChange={e => setForm(f => ({ ...f, company_name: e.target.value }))}
-                    placeholder="e.g. ABC Wheelchairs Sdn Bhd"
-                    className="w-full px-3 py-2.5 border rounded-lg text-sm outline-none"
-                    style={{ borderColor: '#cbd5e1' }} />
-                )}
-              </div>
-
-              <div>
-                <label className="block text-xs font-medium mb-1.5" style={{ color: '#475569' }}>Domain</label>
-                <input type="text" value={form.domain} onChange={e => setForm(f => ({ ...f, domain: e.target.value }))}
-                  placeholder="abc-wheelchairs.com"
-                  className="w-full px-3 py-2.5 border rounded-lg text-sm outline-none"
-                  style={{ borderColor: '#cbd5e1' }} />
-                <p className="text-[11px] mt-1.5" style={{ color: '#94a3b8' }}>Without https:// or trailing slash.</p>
-              </div>
-
-              <div>
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input type="checkbox" checked={form.create_api_key} onChange={e => setForm(f => ({ ...f, create_api_key: e.target.checked }))}
-                    className="w-4 h-4 rounded" />
-                  <span className="text-sm" style={{ color: 'var(--foreground)' }}>Also generate an API key for this domain</span>
                 </label>
 
                 {form.create_api_key && (
-                  <div className="mt-3 pl-6">
-                    <p className="text-xs mb-2" style={{ color: '#64748b' }}>Permissions:</p>
+                  <div className="mt-4 pt-4" style={{ borderTop: '1px solid #e2e8f0' }}>
+                    <div className="text-xs font-medium mb-2" style={{ color: '#475569' }}>Permissions</div>
                     <div className="flex gap-2">
                       {['read', 'write'].map(perm => {
                         const active = form.permissions.includes(perm)
                         return (
                           <button key={perm} type="button" onClick={() => togglePerm(perm)}
-                            className="text-xs font-medium px-3 py-1.5 rounded-full border transition-all"
+                            className="text-xs font-medium px-3 py-1.5 rounded-full transition-all flex items-center gap-1.5"
                             style={{
                               background: active ? 'var(--primary)' : 'white',
-                              borderColor: active ? 'var(--primary)' : '#cbd5e1',
+                              border: `1px solid ${active ? 'var(--primary)' : '#e2e8f0'}`,
                               color: active ? 'white' : '#475569',
                             }}>
-                            {active && <span className="mr-1">✓</span>}
+                            {active && <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>}
                             {perm.charAt(0).toUpperCase() + perm.slice(1)}
                           </button>
                         )
@@ -280,19 +198,171 @@ export default function AddWebsiteModal({ open, onClose, onCreated, presetCompan
               </div>
             </div>
 
-            <div className="px-6 py-4 flex items-center justify-end gap-2" style={{ borderTop: '1px solid #e2e8f0', background: '#f8fafc' }}>
+            <div className="px-6 py-4 mt-4 flex items-center justify-end gap-2" style={{ borderTop: '1px solid #f1f5f9', background: '#fafbfc' }}>
               <button type="button" onClick={onClose}
-                className="px-4 py-2 text-sm rounded-lg border hover:bg-white transition-colors"
-                style={{ borderColor: '#cbd5e1', color: '#475569' }}>Cancel</button>
+                className="px-4 py-2 text-sm font-medium rounded-lg transition-colors hover:bg-slate-100"
+                style={{ color: '#475569' }}>Cancel</button>
               <button type="submit" disabled={saving}
-                className="px-4 py-2 text-sm font-medium text-white rounded-lg disabled:opacity-50"
+                className="px-4 py-2 text-sm font-medium text-white rounded-lg disabled:opacity-50 transition-opacity"
                 style={{ background: 'var(--primary)' }}>
-                {saving ? 'Connecting…' : 'Connect Website'}
+                {saving ? 'Connecting…' : 'Connect'}
               </button>
             </div>
           </form>
         )}
       </div>
     </div>
+  )
+}
+
+/* ─── Result view ───────────────────────────────────────────── */
+
+function ResultBody({ result, copied, onCopy, onAddAnother, onClose }: {
+  result: AddWebsiteResult
+  copied: string | null
+  onCopy: (value: string, key: string) => void
+  onAddAnother: () => void
+  onClose: () => void
+}) {
+  return (
+    <div>
+      <div className="px-6 pb-6 space-y-3">
+        <InfoRow label="Domain" value={result.website.domain} mono copyKey="dom" onCopy={onCopy} copied={copied} />
+        <InfoRow label="Company" value={result.company.name} />
+        {result.api_key && (
+          <InfoRow label="API Key" value={result.api_key} mono copyKey="key" onCopy={onCopy} copied={copied}
+            hint={`${result.api_key_permissions.join(' + ')} · retrievable for 5 hours`} />
+        )}
+        <InfoRow label="Tracking snippet" value={result.tracking_snippet} mono small copyKey="snip" onCopy={onCopy} copied={copied}
+          hint="Paste into the <head> of every page" />
+      </div>
+
+      <div className="px-6 py-4 flex items-center justify-end gap-2" style={{ borderTop: '1px solid #f1f5f9', background: '#fafbfc' }}>
+        <button onClick={onAddAnother}
+          className="px-4 py-2 text-sm font-medium rounded-lg transition-colors hover:bg-slate-100"
+          style={{ color: '#475569' }}>Add another</button>
+        <button onClick={onClose}
+          className="px-4 py-2 text-sm font-medium text-white rounded-lg transition-opacity"
+          style={{ background: 'var(--primary)' }}>Done</button>
+      </div>
+    </div>
+  )
+}
+
+function InfoRow({ label, value, mono, small, hint, copyKey, onCopy, copied }: {
+  label: string
+  value: string
+  mono?: boolean
+  small?: boolean
+  hint?: string
+  copyKey?: string
+  onCopy?: (value: string, key: string) => void
+  copied?: string | null
+}) {
+  const isCopied = copyKey && copied === copyKey
+  return (
+    <div className="rounded-lg" style={{ border: '1px solid #e2e8f0' }}>
+      <div className="px-3.5 py-2.5 flex items-center justify-between gap-3" style={{ background: '#fafbfc', borderBottom: hint ? '1px solid #f1f5f9' : undefined }}>
+        <div>
+          <div className="text-[11px] font-medium uppercase tracking-wider" style={{ color: '#94a3b8' }}>{label}</div>
+          {hint && <div className="text-[11px] mt-0.5" style={{ color: '#64748b' }}>{hint}</div>}
+        </div>
+        {copyKey && onCopy && (
+          <button onClick={() => onCopy(value, copyKey)}
+            className="flex-shrink-0 inline-flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-medium rounded-md transition-all"
+            style={{
+              background: isCopied ? '#dcfce7' : 'white',
+              border: `1px solid ${isCopied ? '#86efac' : '#e2e8f0'}`,
+              color: isCopied ? '#16a34a' : '#475569',
+            }}>
+            {isCopied ? (
+              <><svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>Copied</>
+            ) : (
+              <><svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><rect x="8" y="8" width="12" height="12" rx="2" /><path d="M16 8V5a2 2 0 00-2-2H5a2 2 0 00-2 2v9a2 2 0 002 2h3" strokeLinecap="round" strokeLinejoin="round" /></svg>Copy</>
+            )}
+          </button>
+        )}
+      </div>
+      <div className={`px-3.5 py-2.5 ${small ? 'text-[11px]' : 'text-sm'} ${mono ? 'font-mono' : ''} break-all select-all`}
+        style={{ color: mono ? '#334155' : 'var(--foreground)' }}>
+        {value}
+      </div>
+    </div>
+  )
+}
+
+/* ─── Form primitives ───────────────────────────────────────── */
+
+function Field({ label, hint, children }: { label: string; hint?: string; children: React.ReactNode }) {
+  return (
+    <div>
+      <label className="block text-xs font-semibold mb-1.5" style={{ color: '#334155' }}>{label}</label>
+      {children}
+      {hint && <p className="text-[11px] mt-1.5" style={{ color: '#94a3b8' }}>{hint}</p>}
+    </div>
+  )
+}
+
+function SegmentedToggle({ value, options, onChange }: { value: string; options: { v: string; l: string }[]; onChange: (v: string) => void }) {
+  return (
+    <div className="inline-flex p-0.5 rounded-lg" style={{ background: '#f1f5f9' }}>
+      {options.map(o => (
+        <button key={o.v} type="button" onClick={() => onChange(o.v)}
+          className="text-xs font-medium px-3 py-1.5 rounded-md transition-all"
+          style={{
+            background: value === o.v ? 'white' : 'transparent',
+            color: value === o.v ? 'var(--foreground)' : '#64748b',
+            boxShadow: value === o.v ? '0 1px 2px rgba(0,0,0,0.05)' : undefined,
+          }}>
+          {o.l}
+        </button>
+      ))}
+    </div>
+  )
+}
+
+function TextField({ value, onChange, placeholder, autoComplete, spellCheck, mono }: {
+  value: string
+  onChange: (v: string) => void
+  placeholder?: string
+  autoComplete?: string
+  spellCheck?: boolean
+  mono?: boolean
+}) {
+  return (
+    <input type="text" value={value} onChange={e => onChange(e.target.value)}
+      placeholder={placeholder} autoComplete={autoComplete} spellCheck={spellCheck}
+      className={`w-full px-3 py-2.5 border rounded-lg text-sm outline-none transition-colors focus:border-[var(--primary)] ${mono ? 'font-mono' : ''}`}
+      style={{ borderColor: '#e2e8f0', background: 'white' }} />
+  )
+}
+
+function SelectField({ value, onChange, placeholder, options }: {
+  value: string
+  onChange: (v: string) => void
+  placeholder?: string
+  options: { value: string; label: string }[]
+}) {
+  return (
+    <div className="relative">
+      <select value={value} onChange={e => onChange(e.target.value)}
+        className="w-full px-3 py-2.5 border rounded-lg text-sm outline-none cursor-pointer pr-9 transition-colors focus:border-[var(--primary)]"
+        style={{ borderColor: '#e2e8f0', appearance: 'none', WebkitAppearance: 'none', background: 'white' }}>
+        {placeholder && <option value="">{placeholder}</option>}
+        {options.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+      </select>
+      <svg className="w-3.5 h-3.5 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: '#94a3b8' }}><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+    </div>
+  )
+}
+
+function Toggle({ checked, onChange }: { checked: boolean; onChange: (v: boolean) => void }) {
+  return (
+    <button type="button" role="switch" aria-checked={checked} onClick={() => onChange(!checked)}
+      className="relative w-9 h-5 rounded-full transition-colors flex-shrink-0"
+      style={{ background: checked ? 'var(--primary)' : '#cbd5e1' }}>
+      <span className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
+        style={{ left: checked ? 'calc(100% - 18px)' : '2px' }} />
+    </button>
   )
 }
