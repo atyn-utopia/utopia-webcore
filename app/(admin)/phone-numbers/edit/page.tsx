@@ -294,7 +294,7 @@ export default function ManagePhoneNumbersPage() {
       title: 'Save changes?',
       message: `${dirtyCount} updated · ${newCount} added · ${deletingCount} deleted. This cannot be undone.`,
       confirmLabel: 'Save',
-      variant: 'default',
+      variant: 'info',
     })
     if (!ok) return
 
