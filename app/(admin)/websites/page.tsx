@@ -360,9 +360,11 @@ export default function WebsitesPage() {
                 <td className="px-4 py-3.5">
                   <div className="flex items-center gap-1.5 justify-center">
                     <Link href={`/websites?website=${encodeURIComponent(site.domain)}&company=${encodeURIComponent(openCompany)}`}
-                      className="inline-flex items-center gap-1 text-[11px] font-medium px-2.5 h-7 rounded-md text-white transition-opacity hover:opacity-90"
+                      className="inline-flex items-center gap-1.5 text-[11px] font-medium px-2.5 h-7 rounded-md text-white transition-opacity hover:opacity-90"
                       style={{ background: 'var(--primary)' }} title="Open site dashboard">
-                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a1 1 0 011-1h4a1 1 0 011 1v6m-7 0H5a2 2 0 01-2-2V7a2 2 0 012-2h14a2 2 0 012 2v10a2 2 0 01-2 2h-3" /></svg>
+                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M3 20h18M7 20V13m5 7V8m5 12v-5" />
+                      </svg>
                       Dashboard
                     </Link>
                     <a href={`https://${site.domain}`} target="_blank" rel="noopener noreferrer" className="group/tip relative w-7 h-7 flex items-center justify-center rounded-md border border-[#e2e8f0] text-[#94a3b8] transition-colors hover:border-[var(--primary)] hover:text-[var(--primary)]" title="Open website">
