@@ -229,28 +229,10 @@ export default function ManagePhoneNumbersPage() {
     setRows(prev => prev.map(r => r.key === key ? { ...r, markedForDelete: !r.markedForDelete } : r))
   }
 
+  // Mode is UI-only. Changing it just filters/reshapes the display;
+  // no row data is touched until the user edits a cell and hits Save.
   function applyMode(m: Mode) {
     setSelectedMode(m)
-    setRows(prev => prev.map(r => {
-      if (m === 'single') {
-        // Deactivate all non-default rows so the computed mode becomes 'single'.
-        if (r.type !== 'default' && r.is_active) return { ...r, is_active: false, dirty: true }
-        if (r.type === 'default' && !r.is_active) return { ...r, is_active: true, dirty: true }
-        return r
-      }
-      if (m === 'rotation') {
-        // Push every active row to 'all' locations; activate default if off.
-        const patch: Partial<WorkingRow> = {}
-        if (r.type === 'default' && !r.is_active) patch.is_active = true
-        if (r.is_active && r.location_slug !== 'all') patch.location_slug = 'all'
-        return Object.keys(patch).length ? { ...r, ...patch, dirty: true } : r
-      }
-      // location / hybrid: let the user shape the data by hand.
-      return r
-    }))
-    setAddDrafts(prev => m === 'rotation'
-      ? prev.map(d => d.location_slug !== 'all' ? { ...d, location_slug: 'all' } : d)
-      : prev)
   }
 
   const deletableRows = visibleRows.filter(r => r.type !== 'default')
@@ -531,7 +513,7 @@ export default function ManagePhoneNumbersPage() {
               <table className="w-full text-sm">
                 <thead>
                   <tr style={{ background: '#fafbfc', borderBottom: '1px solid #e2e8f0' }}>
-                    <Th style={{ width: 76, paddingLeft: '1rem' }}>&nbsp;</Th>
+                    <Th style={{ width: 44, paddingLeft: '1rem' }}>&nbsp;</Th>
                     <Th>Phone Number</Th>
                     <Th>WhatsApp Text</Th>
                     {showLocationColumn && <Th style={{ width: 180 }}>Location</Th>}
@@ -858,10 +840,7 @@ function RowEditor({ r, existingTexts, waOpenKey, setWaOpenKey, showLocationColu
   return (
     <tr style={{ background: bg, borderBottom: '1px solid #f1f5f9', textDecoration: r.markedForDelete ? 'line-through' : 'none' }}>
       <td className="py-2" style={{ paddingLeft: '1rem', paddingRight: '0.5rem' }}>
-        <div className="flex items-center gap-1.5">
-          <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: rowColor ?? '#e2e8f0', opacity: r.is_active && !r.markedForDelete ? 1 : 0.3 }} />
-          {isDefault && <span className="text-[9px] font-bold px-1.5 py-0.5 rounded flex-shrink-0" style={{ background: 'var(--primary)', color: 'white' }}>★</span>}
-        </div>
+        <span className="block w-2.5 h-2.5 rounded-full" style={{ background: rowColor ?? '#e2e8f0', opacity: r.is_active && !r.markedForDelete ? 1 : 0.3 }} />
       </td>
       <td className="px-3 py-2">
         <input type="text" value={r.phone_number}
@@ -886,11 +865,18 @@ function RowEditor({ r, existingTexts, waOpenKey, setWaOpenKey, showLocationColu
           style={{ borderColor: '#e2e8f0', background: 'white' }} />
       </td>
       <td className="px-3 py-2">
-        <input type="text" value={r.label} onChange={e => onPatch({ label: e.target.value })}
-          disabled={isDefault}
-          placeholder={isDefault ? 'Default' : 'optional'}
-          className="w-full px-2 py-1.5 text-sm rounded border focus:outline-none focus:border-[var(--primary)] disabled:opacity-60"
-          style={{ borderColor: '#e2e8f0', background: 'white' }} />
+        {isDefault ? (
+          <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2 py-1 rounded-md"
+            style={{ background: 'var(--primary)', color: 'white', boxShadow: '0 0 0 2px rgba(41,121,214,0.15)' }}>
+            <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.286 3.963a1 1 0 00.95.69h4.167c.969 0 1.371 1.24.588 1.81l-3.371 2.449a1 1 0 00-.364 1.118l1.287 3.963c.3.922-.755 1.688-1.54 1.118l-3.37-2.449a1 1 0 00-1.176 0l-3.371 2.449c-.784.57-1.838-.196-1.539-1.118l1.287-3.963a1 1 0 00-.364-1.118L2.098 9.39c-.783-.57-.38-1.81.588-1.81h4.167a1 1 0 00.95-.69l1.286-3.963z"/></svg>
+            Default
+          </span>
+        ) : (
+          <input type="text" value={r.label} onChange={e => onPatch({ label: e.target.value })}
+            placeholder="optional"
+            className="w-full px-2 py-1.5 text-sm rounded border focus:outline-none focus:border-[var(--primary)]"
+            style={{ borderColor: '#e2e8f0', background: 'white' }} />
+        )}
       </td>
       <td className="px-3 py-2 text-center">
         <ActiveToggle on={r.is_active} onChange={v => onPatch({ is_active: v })} />

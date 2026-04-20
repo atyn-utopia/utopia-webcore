@@ -176,15 +176,7 @@ export default function PhoneNumbersPage() {
         <PageHeader
           title={t('page.phoneNumbers.title')}
           description={t('page.phoneNumbers.description')}
-          actions={
-            <>
-              <ViewToggle value={viewMode} onChange={setViewMode} />
-              <Link href="/phone-numbers/new" className="inline-flex items-center gap-2 text-white text-sm font-medium px-4 h-9 rounded-lg transition-opacity" style={{ background: 'var(--primary)' }}>
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
-                {t('button.addNumber')}
-              </Link>
-            </>
-          }
+          actions={<ViewToggle value={viewMode} onChange={setViewMode} />}
         />
         <div className="mb-5">
           <div className="relative max-w-sm">
@@ -250,33 +242,35 @@ export default function PhoneNumbersPage() {
     )
   }
 
-  // Filter to only show websites under the selected company
+  // Filter to only show websites under the selected company, and inject empty
+  // entries for websites that have no phone numbers yet (so the table can
+  // prompt the user to add a default).
   const companyWebsiteDomains = openCompany
     ? new Set(companies.find(c => c.name === openCompany)?.company_websites.map(w => w.domain) ?? [])
     : null
-  const visibleEntries = companyWebsiteDomains
+  let visibleEntries = companyWebsiteDomains
     ? companyEntries.filter(([, { websites }]) => websites.some(([w]) => companyWebsiteDomains.has(w))).map(([name, data]) => [name, { ...data, websites: data.websites.filter(([w]) => companyWebsiteDomains.has(w)) }] as [string, typeof data])
     : companyEntries
+
+  if (openCompany && companyWebsiteDomains) {
+    const presentDomains = new Set(visibleEntries.flatMap(([, { websites }]) => websites.map(([w]) => w)))
+    const missing = Array.from(companyWebsiteDomains).filter(d => !presentDomains.has(d))
+    if (missing.length > 0) {
+      const missingEntries: [string, PhoneNumber[]][] = missing.map(d => [d, [] as PhoneNumber[]])
+      if (visibleEntries.length > 0) {
+        const [firstName, firstData] = visibleEntries[0]
+        visibleEntries = [[firstName, { ...firstData, websites: [...firstData.websites, ...missingEntries] }], ...visibleEntries.slice(1)]
+      } else {
+        visibleEntries = [[openCompany, { name: openCompany, websites: missingEntries }]]
+      }
+    }
+  }
 
   return (
     <div>
       <PageHeader
         title={openCompany || t('page.phoneNumbers.title')}
         description={openCompany ? t('page.phoneNumbers.description.scoped') : t('page.phoneNumbers.description')}
-        actions={
-          <Link
-            href={`/phone-numbers/new${openCompany ? `?company=${encodeURIComponent(openCompany)}` : ''}`}
-            className="inline-flex items-center gap-2 text-white text-sm font-medium px-4 h-9 rounded-lg transition-opacity"
-            style={{ background: 'var(--primary)' }}
-            onMouseEnter={e => (e.currentTarget as HTMLElement).style.opacity = '0.88'}
-            onMouseLeave={e => (e.currentTarget as HTMLElement).style.opacity = '1'}
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-            </svg>
-            {t('button.addNumber')}
-          </Link>
-        }
       />
 
       {/* Search + website filter */}
@@ -333,8 +327,7 @@ export default function PhoneNumbersPage() {
         <div className="p-12 text-center text-sm rounded-xl border" style={{ borderColor: '#cbd5e1', color: '#475569' }}>Loading…</div>
       ) : visibleEntries.length === 0 ? (
         <div className="p-12 text-center text-sm rounded-xl border" style={{ borderColor: '#cbd5e1', color: '#475569' }}>
-          No phone numbers found.{' '}
-          <Link href="/phone-numbers/new" className="hover:underline" style={{ color: 'var(--primary)' }}>Add one</Link>
+          No phone numbers found. Open a website and use <span className="font-medium">Manage</span> to add numbers.
         </div>
       ) : (
         <div className="space-y-8">
@@ -379,21 +372,11 @@ export default function PhoneNumbersPage() {
                   <div className="flex items-center gap-1.5">
                     <Link
                       href={`/phone-numbers/edit?website=${encodeURIComponent(website)}${openCompany ? `&company=${encodeURIComponent(openCompany)}` : ''}`}
-                      className="inline-flex items-center gap-1 h-6 sm:h-7 text-[10px] sm:text-xs font-medium px-2.5 rounded-full transition-colors hover:bg-slate-200 whitespace-nowrap"
-                      style={{ background: '#e2e8f0', color: '#475569' }}
-                    >
-                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
-                      Edit
-                    </Link>
-                    <Link
-                      href={`/phone-numbers/new?website=${encodeURIComponent(website)}${openCompany ? `&company=${encodeURIComponent(openCompany)}` : ''}`}
                       className="inline-flex items-center gap-1 h-6 sm:h-7 text-[10px] sm:text-xs font-medium px-2.5 rounded-full text-white transition-opacity hover:opacity-90 whitespace-nowrap"
                       style={{ background: 'var(--primary)' }}
                     >
-                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
-                      </svg>
-                      Add
+                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                      Manage
                     </Link>
                   </div>
                 </div>
@@ -423,6 +406,20 @@ export default function PhoneNumbersPage() {
                     </tr>
                   </thead>
                   <tbody>
+                    {rows.length === 0 && (
+                      <tr>
+                        <td colSpan={7} className="px-4 py-5 text-center">
+                          <Link
+                            href={`/phone-numbers/edit?website=${encodeURIComponent(website)}${openCompany ? `&company=${encodeURIComponent(openCompany)}` : ''}`}
+                            className="inline-flex items-center gap-2 text-xs font-medium px-3 py-2 rounded-lg transition-colors"
+                            style={{ background: '#fef3c7', color: '#92400e', border: '1px solid #fde68a' }}>
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" /></svg>
+                            Please add a default phone number
+                            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
+                          </Link>
+                        </td>
+                      </tr>
+                    )}
                     {rows.map((row, i) => {
                       const isDefault = row.type === 'default'
                       return (
