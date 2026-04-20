@@ -59,6 +59,37 @@ export async function downloadSetupBundle({ domain, apiKey, permissions }: Bundl
   URL.revokeObjectURL(url)
 }
 
+/**
+ * Single-document version of the setup — paste-ready for any Claude surface.
+ * Uses plain "=== FILE: path ===" delimiters (not fenced code blocks) so that
+ * file contents with embedded code blocks don't break the outer wrapper.
+ */
+export function fullSetupMarkdown({ domain, apiKey, permissions }: BundleInput): string {
+  const permList = permissions.length > 0 ? permissions.join(' + ') : 'read + write'
+  const sep = '═'.repeat(72)
+  const block = (path: string, content: string) =>
+    `${sep}\nFILE: ${path}\n${sep}\n\n${content}\n\n`
+
+  return `# Utopia Webcore setup for ${domain}
+
+Please create the following files in my project exactly as written. Use the content between the "FILE:" delimiters verbatim. Do NOT ask me to confirm — just create them all, then do the integration work described at the bottom.
+
+${block('AGENTS.md', agentsMd({ domain, permList }))}${block('.env.local', envExample({ domain, apiKey }))}${block('lib/webcore.ts', webcoreTs({ domain }))}${block('components/WebcoreTracker.tsx', trackerTsx({ domain }))}${block('TRACKING-GUIDE.md', trackingGuideMd())}${sep}
+END OF FILES
+${sep}
+
+After creating the files above, do the integration:
+
+1. Make sure \`.env.local\` is listed in \`.gitignore\` (add the line if not).
+2. Add \`<WebcoreTracker />\` to the root layout's \`<head>\`.
+3. Audit the codebase for hardcoded phone numbers, WhatsApp/call buttons, products, or blog content. Replace them with calls from \`lib/webcore.ts\` (\`resolvePhone\`, \`fetchProducts\`, \`fetchBlog\`, \`pushProduct\`, etc.).
+4. Wire up \`window.uwc()\` tracking on every CTA — WhatsApp, call, product cards (impression via IntersectionObserver, fire once), blog article links. Use the label conventions in AGENTS.md: \`whatsapp-{phone}\`, \`call-{phone}\`, \`product-{slug}\`, \`blog-{slug}\`.
+5. When done, tell me to verify that pageviews and clicks appear in the webcore admin Analytics tab for domain "${domain}".
+
+If anything is ambiguous, re-read AGENTS.md and TRACKING-GUIDE.md before asking me.
+`
+}
+
 /* ─── File templates ────────────────────────────────────────── */
 
 function agentsMd({ domain, permList }: { domain: string; permList: string }): string {
