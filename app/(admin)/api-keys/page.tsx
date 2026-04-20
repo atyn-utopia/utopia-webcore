@@ -65,6 +65,7 @@ export default function ApiKeysPage() {
   const [form, setForm] = useState({ name: '', website: '', permissions: ['read', 'write'] as string[] })
   const [copiedToken, setCopiedToken] = useState<string | null>(null)
   const [expandedSnippets, setExpandedSnippets] = useState<Set<string>>(new Set())
+  const [historyOpen, setHistoryOpen] = useState(false)
   const [nowMs, setNowMs] = useState(() => Date.now())
 
   useEffect(() => {
@@ -188,22 +189,52 @@ export default function ApiKeysPage() {
         <div className="p-16 text-center text-sm rounded-2xl border" style={{ borderColor: '#e2e8f0', color: '#94a3b8' }}>Loading…</div>
       ) : keys.length === 0 ? (
         <EmptyState onCreate={() => setShowForm(true)} />
-      ) : (
-        <div className="space-y-3">
-          {keys.map(k => (
-            <KeyCard
-              key={k.id}
-              k={k}
-              nowMs={nowMs}
-              copiedToken={copiedToken}
-              snippetExpanded={expandedSnippets.has(k.id)}
-              onCopy={copy}
-              onToggleSnippet={() => toggleSnippet(k.id)}
-              onRevoke={() => revokeKey(k.id, k.name)}
-            />
-          ))}
-        </div>
-      )}
+      ) : (() => {
+        const activeKeys = keys.filter(k => k.status === 'grace' || k.status === 'active')
+        const historyKeys = keys.filter(k => k.status === 'expired_unused' || k.status === 'revoked')
+        return (
+          <div className="space-y-3">
+            {activeKeys.map(k => (
+              <KeyCard
+                key={k.id}
+                k={k}
+                nowMs={nowMs}
+                copiedToken={copiedToken}
+                snippetExpanded={expandedSnippets.has(k.id)}
+                onCopy={copy}
+                onToggleSnippet={() => toggleSnippet(k.id)}
+                onRevoke={() => revokeKey(k.id, k.name)}
+              />
+            ))}
+            {historyKeys.length > 0 && (
+              <div className="pt-2">
+                <button type="button" onClick={() => setHistoryOpen(v => !v)}
+                  className="inline-flex items-center gap-1.5 text-xs font-medium transition-colors hover:underline"
+                  style={{ color: '#94a3b8' }}>
+                  <svg className={`w-3 h-3 transition-transform ${historyOpen ? 'rotate-90' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></svg>
+                  History ({historyKeys.length})
+                </button>
+                {historyOpen && (
+                  <div className="mt-3 space-y-3">
+                    {historyKeys.map(k => (
+                      <KeyCard
+                        key={k.id}
+                        k={k}
+                        nowMs={nowMs}
+                        copiedToken={copiedToken}
+                        snippetExpanded={expandedSnippets.has(k.id)}
+                        onCopy={copy}
+                        onToggleSnippet={() => toggleSnippet(k.id)}
+                        onRevoke={() => revokeKey(k.id, k.name)}
+                      />
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        )
+      })()}
     </div>
   )
 }
