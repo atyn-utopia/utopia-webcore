@@ -5,6 +5,8 @@ import PageHeader from '@/components/PageHeader'
 import { useToast } from '@/contexts/ToastContext'
 import { useConfirm } from '@/contexts/ConfirmContext'
 
+type KeyStatus = 'grace' | 'active' | 'expired_unused' | 'revoked'
+
 interface ApiKey {
   id: string
   name: string
@@ -14,6 +16,26 @@ interface ApiKey {
   is_active: boolean
   last_used: string | null
   created_at: string
+  status: KeyStatus
+  full_key: string | null
+  grace_expires_at: string | null
+}
+
+function formatCountdown(iso: string | null, nowMs: number): string {
+  if (!iso) return ''
+  const remain = new Date(iso).getTime() - nowMs
+  if (remain <= 0) return 'expiring…'
+  const h = Math.floor(remain / 3600000)
+  const m = Math.floor((remain % 3600000) / 60000)
+  if (h > 0) return `${h}h ${m}m left`
+  return `${m}m left`
+}
+
+const STATUS_META: Record<KeyStatus, { label: string; color: string; bg: string }> = {
+  grace:          { label: 'Grace period',    color: '#92400e', bg: '#fef3c7' },
+  active:         { label: 'Active',          color: '#16a34a', bg: '#dcfce7' },
+  expired_unused: { label: 'Expired — unused', color: '#dc2626', bg: '#fef2f2' },
+  revoked:        { label: 'Revoked',         color: '#64748b', bg: '#f1f5f9' },
 }
 
 function formatDate(d: string | null) {
@@ -38,6 +60,8 @@ export default function ApiKeysPage() {
   const [copied, setCopied] = useState(false)
   const [form, setForm] = useState({ name: '', website: '', permissions: ['read', 'write'] as string[] })
   const [websites, setWebsites] = useState<string[]>([])
+  const [copiedId, setCopiedId] = useState<string | null>(null)
+  const [nowMs, setNowMs] = useState(() => Date.now())
 
   useEffect(() => {
     fetchKeys()
@@ -45,6 +69,19 @@ export default function ApiKeysPage() {
       if (Array.isArray(data)) setWebsites(data.map((w: { domain: string }) => w.domain))
     }).catch(() => {})
   }, [])
+
+  // Tick every 30s to drive the grace-period countdown
+  useEffect(() => {
+    const i = setInterval(() => setNowMs(Date.now()), 30000)
+    return () => clearInterval(i)
+  }, [])
+
+  function copyGraceKey(value: string, id: string) {
+    navigator.clipboard.writeText(value)
+    setCopiedId(id)
+    toast.success('Copied to clipboard')
+    setTimeout(() => setCopiedId(null), 2000)
+  }
 
   async function fetchKeys() {
     setLoading(true)
@@ -121,7 +158,7 @@ export default function ApiKeysPage() {
     <div>
       <PageHeader
         title="API Keys"
-        description="Manage API keys for external system access to product data"
+        description="New keys are visible for 5 hours. If never used in that window, they auto-expire and must be regenerated."
         actions={
           <button onClick={() => { setShowForm(!showForm); setNewKey(null) }}
             className="inline-flex items-center gap-2 text-white text-sm font-medium px-4 h-9 rounded-lg transition-opacity"
@@ -224,38 +261,62 @@ export default function ApiKeysPage() {
         </div>
       ) : (
         <div className="rounded-xl border bg-white overflow-hidden" style={{ borderColor: '#e2e8f0' }}>
-          {keys.map((k, i) => (
-            <div key={k.id} className="px-5 py-4 flex items-center gap-4 hover:bg-[#f8fafc] transition-colors"
-              style={{ borderBottom: i < keys.length - 1 ? '1px solid #f1f5f9' : 'none', opacity: k.is_active ? 1 : 0.5 }}>
-              <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: '#f1f5f9' }}>
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: k.is_active ? 'var(--primary)' : '#94a3b8' }} strokeWidth="1.5">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
-                </svg>
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span className="text-sm font-semibold" style={{ color: 'var(--foreground)' }}>{k.name}</span>
-                  <code className="text-[10px] px-1.5 py-0.5 rounded font-mono" style={{ background: '#f1f5f9', color: '#64748b' }}>{k.key_preview}</code>
-                  {!k.is_active && <span className="text-[10px] px-1.5 py-0.5 rounded-full font-medium bg-red-100 text-red-600">Revoked</span>}
+          {keys.map((k, i) => {
+            const statusMeta = STATUS_META[k.status]
+            const dimmed = k.status === 'revoked' || k.status === 'expired_unused'
+            const showFullKey = k.status === 'grace' && k.full_key
+            return (
+              <div key={k.id} className="px-5 py-4 flex items-center gap-4 hover:bg-[#f8fafc] transition-colors"
+                style={{ borderBottom: i < keys.length - 1 ? '1px solid #f1f5f9' : 'none', opacity: dimmed ? 0.65 : 1 }}>
+                <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: '#f1f5f9' }}>
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: dimmed ? '#94a3b8' : 'var(--primary)' }} strokeWidth="1.5">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+                  </svg>
                 </div>
-                <div className="flex items-center gap-2 mt-1 flex-wrap">
-                  <span className="text-xs" style={{ color: '#64748b' }}>{k.website === '*' ? 'All websites' : k.website}</span>
-                  <span className="text-xs" style={{ color: '#94a3b8' }}>·</span>
-                  {k.permissions.map(p => {
-                    const meta = PERM_LABELS[p] ?? PERM_LABELS.read
-                    return <span key={p} className="text-[10px] font-medium px-1.5 py-0.5 rounded-full" style={{ background: meta.bg, color: meta.color }}>{meta.label}</span>
-                  })}
-                  <span className="text-xs" style={{ color: '#94a3b8' }}>· Last used: {formatDate(k.last_used)}</span>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-sm font-semibold" style={{ color: 'var(--foreground)' }}>{k.name}</span>
+                    <span className="text-[10px] px-1.5 py-0.5 rounded-full font-medium" style={{ background: statusMeta.bg, color: statusMeta.color }}>
+                      {statusMeta.label}{k.status === 'grace' && k.grace_expires_at && ` · ${formatCountdown(k.grace_expires_at, nowMs)}`}
+                    </span>
+                    {!showFullKey && (
+                      <code className="text-[10px] px-1.5 py-0.5 rounded font-mono" style={{ background: '#f1f5f9', color: '#64748b' }}>{k.key_preview}</code>
+                    )}
+                  </div>
+                  {showFullKey && (
+                    <div className="mt-2 flex items-center gap-2">
+                      <code className="flex-1 text-[11px] px-2.5 py-1.5 rounded-md font-mono break-all select-all" style={{ background: '#fffbeb', border: '1px solid #fde68a', color: '#92400e' }}>
+                        {k.full_key}
+                      </code>
+                      <button onClick={() => copyGraceKey(k.full_key!, k.id)}
+                        className="flex-shrink-0 px-2.5 py-1.5 text-[11px] font-medium rounded-md text-white transition-colors"
+                        style={{ background: copiedId === k.id ? '#16a34a' : 'var(--primary)' }}>
+                        {copiedId === k.id ? 'Copied!' : 'Copy'}
+                      </button>
+                    </div>
+                  )}
+                  <div className="flex items-center gap-2 mt-1 flex-wrap">
+                    <span className="text-xs" style={{ color: '#64748b' }}>{k.website === '*' ? 'All websites' : k.website}</span>
+                    <span className="text-xs" style={{ color: '#94a3b8' }}>·</span>
+                    {k.permissions.map(p => {
+                      const meta = PERM_LABELS[p] ?? PERM_LABELS.read
+                      return <span key={p} className="text-[10px] font-medium px-1.5 py-0.5 rounded-full" style={{ background: meta.bg, color: meta.color }}>{meta.label}</span>
+                    })}
+                    <span className="text-xs" style={{ color: '#94a3b8' }}>· Last used: {formatDate(k.last_used)}</span>
+                  </div>
+                  {k.status === 'expired_unused' && (
+                    <p className="text-[11px] mt-1.5" style={{ color: '#dc2626' }}>This key was never used within 5 hours and was auto-disabled. Generate a new key to replace it.</p>
+                  )}
                 </div>
+                {k.is_active && (
+                  <button type="button" onClick={() => revokeKey(k.id, k.name)}
+                    className="text-xs font-medium px-3 py-1.5 rounded-md border border-[#e2e8f0] text-[#94a3b8] transition-colors hover:bg-[#ef4444] hover:border-white hover:text-white flex-shrink-0">
+                    Revoke
+                  </button>
+                )}
               </div>
-              {k.is_active && (
-                <button type="button" onClick={() => revokeKey(k.id, k.name)}
-                  className="text-xs font-medium px-3 py-1.5 rounded-md border border-[#e2e8f0] text-[#94a3b8] transition-colors hover:bg-[#ef4444] hover:border-white hover:text-white flex-shrink-0">
-                  Revoke
-                </button>
-              )}
-            </div>
-          ))}
+            )
+          })}
         </div>
       )}
     </div>

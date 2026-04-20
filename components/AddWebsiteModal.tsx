@@ -143,8 +143,9 @@ export default function AddWebsiteModal({ open, onClose, onCreated, presetCompan
 
             {result.api_key && (
               <div className="rounded-xl border p-4" style={{ background: '#fff7ed', borderColor: '#fed7aa' }}>
-                <p className="text-xs font-bold mb-2" style={{ color: '#92400e' }}>
-                  API key — copy it now, it won&apos;t be shown again
+                <p className="text-xs font-bold mb-1" style={{ color: '#92400e' }}>API key</p>
+                <p className="text-[11px] mb-2" style={{ color: '#92400e' }}>
+                  You can still copy this from the API Keys page for the next 5 hours. After that, if it&apos;s never been used, it auto-expires and you&apos;ll need to generate a new one.
                 </p>
                 <div className="flex items-center gap-2">
                   <code className="flex-1 text-xs bg-white px-3 py-2 rounded-lg border font-mono break-all select-all" style={{ borderColor: '#fed7aa', color: '#92400e' }}>
@@ -181,7 +182,7 @@ export default function AddWebsiteModal({ open, onClose, onCreated, presetCompan
                 <input type="checkbox" checked={acked} onChange={e => setAcked(e.target.checked)}
                   className="mt-0.5 w-4 h-4 flex-shrink-0" />
                 <span className="text-xs" style={{ color: acked ? '#16a34a' : '#92400e' }}>
-                  I&apos;ve copied the API key and tracking snippet to a safe place. I understand the API key will not be shown again.
+                  I&apos;ve copied the API key and tracking snippet. I know I can still retrieve the key from the API Keys page for 5 hours.
                 </span>
               </label>
             )}

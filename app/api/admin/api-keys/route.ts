@@ -5,6 +5,9 @@ import { generateApiKey } from '@/lib/validateApiKey'
 import { getUserScope } from '@/lib/getUserScope'
 
 const ALLOWED_ROLES = new Set(['admin', 'designer', 'external_designer'])
+const GRACE_MS = 5 * 60 * 60 * 1000 // 5 hours
+
+type KeyStatus = 'grace' | 'active' | 'expired_unused' | 'revoked'
 
 async function authorize() {
   const supabase = await createClient()
@@ -19,12 +22,31 @@ async function authorize() {
   return { user, scope }
 }
 
-// GET /api/admin/api-keys — admin sees all; external_designer sees only their scoped keys
+/**
+ * GET /api/admin/api-keys
+ *
+ * Status rules:
+ *   - `grace`           → created < 5h ago and never used → full key still viewable
+ *   - `active`          → used at least once, still active → key is masked forever
+ *   - `expired_unused`  → created ≥ 5h ago, never used → auto-deactivated, must regenerate
+ *   - `revoked`         → admin/owner revoked it (was used before) → masked, disabled
+ */
 export async function GET() {
   const auth = await authorize()
   if ('error' in auth) return auth.error
 
   const service = createServiceClient()
+  const now = Date.now()
+  const cutoffIso = new Date(now - GRACE_MS).toISOString()
+
+  // Sweep: auto-expire stale unused keys
+  await service
+    .from('api_keys')
+    .update({ is_active: false })
+    .lt('created_at', cutoffIso)
+    .is('last_used', null)
+    .eq('is_active', true)
+
   let query = service
     .from('api_keys')
     .select('id, name, key, website, permissions, is_active, last_used, created_at')
@@ -40,15 +62,36 @@ export async function GET() {
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const masked = (data ?? []).map((k: any) => ({
-    ...k,
-    key_preview: `uwc_...${k.key.slice(-8)}`,
-  }))
+  const result = (data ?? []).map((k: any) => {
+    const createdMs = new Date(k.created_at).getTime()
+    const neverUsed = k.last_used === null
+    const inGrace = k.is_active && neverUsed && (now - createdMs < GRACE_MS)
 
-  return NextResponse.json(masked)
+    let status: KeyStatus
+    if (inGrace) status = 'grace'
+    else if (k.is_active) status = 'active'
+    else if (neverUsed) status = 'expired_unused'
+    else status = 'revoked'
+
+    return {
+      id: k.id,
+      name: k.name,
+      website: k.website,
+      permissions: k.permissions,
+      is_active: k.is_active,
+      last_used: k.last_used,
+      created_at: k.created_at,
+      status,
+      key_preview: `uwc_...${k.key.slice(-8)}`,
+      // Only leak full key during the grace window
+      full_key: inGrace ? k.key : null,
+      grace_expires_at: inGrace ? new Date(createdMs + GRACE_MS).toISOString() : null,
+    }
+  })
+
+  return NextResponse.json(result)
 }
 
-// POST /api/admin/api-keys — create a new API key (scoped users can only create for their websites)
 export async function POST(request: Request) {
   const auth = await authorize()
   if ('error' in auth) return auth.error
@@ -84,7 +127,6 @@ export async function POST(request: Request) {
   return NextResponse.json({ ...data, full_key: key }, { status: 201 })
 }
 
-// DELETE /api/admin/api-keys — deactivate a key (scoped users can only deactivate keys for their websites)
 export async function DELETE(request: Request) {
   const auth = await authorize()
   if ('error' in auth) return auth.error

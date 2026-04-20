@@ -235,7 +235,7 @@ function ResultView({ result, onReset }: { result: OnboardResult; onReset: () =>
     <div>
       <PageHeader
         title="Designer onboarded"
-        description="Copy these credentials now — the API key and password will not be shown again"
+        description="Copy these credentials now. API key stays retrievable on /api-keys for 5 hours — password is shown only once."
       />
 
       <div className="rounded-xl border p-5 mb-5" style={{ background: '#fff7ed', borderColor: '#fed7aa' }}>
