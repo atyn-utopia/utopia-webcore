@@ -34,6 +34,7 @@ export default function AddWebsiteModal({ open, onClose, onCreated, presetCompan
   const [error, setError] = useState('')
   const [result, setResult] = useState<AddWebsiteResult | null>(null)
   const [copied, setCopied] = useState<string | null>(null)
+  const [acked, setAcked] = useState(false)
 
   useEffect(() => {
     if (!open) return
@@ -46,6 +47,7 @@ export default function AddWebsiteModal({ open, onClose, onCreated, presetCompan
     if (!open) {
       setResult(null)
       setError('')
+      setAcked(false)
       setForm({ company_id: '', company_name: '', domain: '', create_api_key: true, permissions: ['read', 'write'] })
       setMode('existing')
       return
@@ -105,9 +107,11 @@ export default function AddWebsiteModal({ open, onClose, onCreated, presetCompan
 
   if (!open) return null
 
+  const keyLocked = !!(result?.api_key) && !acked
+
   return (
     <div className="fixed inset-0 z-50 flex items-start justify-center p-4 sm:p-8 overflow-y-auto" style={{ background: 'rgba(15, 23, 42, 0.5)' }}>
-      <div className="w-full max-w-2xl rounded-2xl bg-white shadow-xl my-4" style={{ border: '1px solid #e2e8f0' }}>
+      <div className="w-full max-w-2xl rounded-2xl bg-white shadow-xl my-4 overflow-hidden" style={{ border: '1px solid #e2e8f0' }}>
         {/* Header */}
         <div className="px-6 py-4 flex items-center justify-between" style={{ borderBottom: '1px solid #e2e8f0' }}>
           <div className="flex items-center gap-3">
@@ -118,12 +122,14 @@ export default function AddWebsiteModal({ open, onClose, onCreated, presetCompan
             </div>
             <div>
               <h2 className="text-base font-semibold" style={{ color: 'var(--foreground)' }}>{result ? 'Website connected' : 'Connect a new website'}</h2>
-              <p className="text-xs" style={{ color: '#94a3b8' }}>{result ? 'Save these details now' : 'Link a domain to a company and optionally generate an API key'}</p>
+              <p className="text-xs" style={{ color: '#94a3b8' }}>{result ? (keyLocked ? 'Copy the API key before closing' : 'Save these details now') : 'Link a domain to a company and optionally generate an API key'}</p>
             </div>
           </div>
-          <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-slate-100 transition-colors" style={{ color: '#64748b' }}>
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
-          </button>
+          {!keyLocked && (
+            <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-slate-100 transition-colors" style={{ color: '#64748b' }}>
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+            </button>
+          )}
         </div>
 
         {result ? (
@@ -170,12 +176,24 @@ export default function AddWebsiteModal({ open, onClose, onCreated, presetCompan
               </div>
             </div>
 
+            {result.api_key && (
+              <label className="flex items-start gap-2.5 p-3 rounded-lg border cursor-pointer" style={{ borderColor: acked ? '#16a34a' : '#fed7aa', background: acked ? '#f0fdf4' : '#fff7ed' }}>
+                <input type="checkbox" checked={acked} onChange={e => setAcked(e.target.checked)}
+                  className="mt-0.5 w-4 h-4 flex-shrink-0" />
+                <span className="text-xs" style={{ color: acked ? '#16a34a' : '#92400e' }}>
+                  I&apos;ve copied the API key and tracking snippet to a safe place. I understand the API key will not be shown again.
+                </span>
+              </label>
+            )}
+
             <div className="flex items-center justify-end gap-2 pt-2">
-              <button onClick={() => { setResult(null); setForm({ company_id: '', company_name: '', domain: '', create_api_key: true, permissions: ['read', 'write'] }) }}
-                className="px-4 py-2 text-sm rounded-lg border hover:bg-slate-50"
+              <button onClick={() => { setResult(null); setAcked(false); setForm({ company_id: '', company_name: '', domain: '', create_api_key: true, permissions: ['read', 'write'] }) }}
+                disabled={keyLocked}
+                className="px-4 py-2 text-sm rounded-lg border hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed"
                 style={{ borderColor: '#cbd5e1', color: '#475569' }}>Add another</button>
               <button onClick={onClose}
-                className="px-4 py-2 text-sm font-medium text-white rounded-lg"
+                disabled={keyLocked}
+                className="px-4 py-2 text-sm font-medium text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
                 style={{ background: 'var(--primary)' }}>Done</button>
             </div>
           </div>
