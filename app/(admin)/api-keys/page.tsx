@@ -296,13 +296,25 @@ export default function ApiKeysPage() {
                   </svg>
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className="text-sm font-semibold" style={{ color: 'var(--foreground)' }}>{k.name}</span>
-                    <span className="text-[10px] px-1.5 py-0.5 rounded-full font-medium" style={{ background: statusMeta.bg, color: statusMeta.color }}>
-                      {statusMeta.label}{k.status === 'grace' && k.grace_expires_at && ` · ${formatCountdown(k.grace_expires_at, nowMs)}`}
-                    </span>
-                    {!showFullKey && (
-                      <code className="text-[10px] px-1.5 py-0.5 rounded font-mono" style={{ background: '#f1f5f9', color: '#64748b' }}>{k.key_preview}</code>
+                  <div className="flex items-start gap-3 justify-between flex-wrap">
+                    <div className="flex items-center gap-2 flex-wrap min-w-0">
+                      <span className="text-sm font-semibold" style={{ color: 'var(--foreground)' }}>{k.name}</span>
+                      <span className="text-[10px] px-1.5 py-0.5 rounded-full font-medium" style={{ background: statusMeta.bg, color: statusMeta.color }}>
+                        {statusMeta.label}{k.status === 'grace' && k.grace_expires_at && ` · ${formatCountdown(k.grace_expires_at, nowMs)}`}
+                      </span>
+                      {!showFullKey && (
+                        <code className="text-[10px] px-1.5 py-0.5 rounded font-mono" style={{ background: '#f1f5f9', color: '#64748b' }}>{k.key_preview}</code>
+                      )}
+                    </div>
+                    {k.is_active && (
+                      <button type="button" onClick={() => revokeKey(k.id, k.name)}
+                        className="inline-flex items-center gap-1.5 text-[11px] font-medium px-2.5 py-1 rounded-md transition-all flex-shrink-0"
+                        style={{ background: 'white', border: '1px solid #e2e8f0', color: '#64748b' }}
+                        onMouseEnter={e => { e.currentTarget.style.background = '#fef2f2'; e.currentTarget.style.borderColor = '#fca5a5'; e.currentTarget.style.color = '#b91c1c' }}
+                        onMouseLeave={e => { e.currentTarget.style.background = 'white'; e.currentTarget.style.borderColor = '#e2e8f0'; e.currentTarget.style.color = '#64748b' }}>
+                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M1 7h22M9 7V4a1 1 0 011-1h4a1 1 0 011 1v3" /></svg>
+                        Revoke
+                      </button>
                     )}
                   </div>
                   {showFullKey && (
@@ -356,16 +368,6 @@ export default function ApiKeysPage() {
                     </div>
                   )}
                 </div>
-                {k.is_active && (
-                  <button type="button" onClick={() => revokeKey(k.id, k.name)}
-                    className="inline-flex items-center gap-1.5 text-[11px] font-medium px-2.5 py-1.5 rounded-md transition-all flex-shrink-0 mt-0.5"
-                    style={{ background: 'white', border: '1px solid #e2e8f0', color: '#64748b' }}
-                    onMouseEnter={e => { e.currentTarget.style.background = '#fef2f2'; e.currentTarget.style.borderColor = '#fca5a5'; e.currentTarget.style.color = '#b91c1c' }}
-                    onMouseLeave={e => { e.currentTarget.style.background = 'white'; e.currentTarget.style.borderColor = '#e2e8f0'; e.currentTarget.style.color = '#64748b' }}>
-                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M1 7h22M9 7V4a1 1 0 011-1h4a1 1 0 011 1v3" /></svg>
-                    Revoke
-                  </button>
-                )}
               </div>
             )
           })}
