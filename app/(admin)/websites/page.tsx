@@ -35,6 +35,47 @@ const ICON = {
 
 function tr(today: number, yesterday: number): 'up' | 'down' | 'flat' { return today > yesterday ? 'up' : today < yesterday ? 'down' : 'flat' }
 function formatDate(d: string | null) { if (!d) return '—'; return new Date(d).toLocaleDateString('en-MY', { day: 'numeric', month: 'short', year: 'numeric' }) }
+
+const MEDAL_COLORS = ['#f59e0b', '#94a3b8', '#ea580c']
+function DetailCard({ title, accent, bgTint, icon, items, emptyText }: {
+  title: string
+  accent: string
+  bgTint: string
+  icon: React.ReactNode
+  items: { key: string; label: string; value: number; mono?: boolean }[]
+  emptyText: string
+}) {
+  const max = items.reduce((m, i) => Math.max(m, i.value), 0) || 1
+  return (
+    <div className="rounded-xl border bg-white overflow-hidden" style={{ borderColor: '#e2e8f0' }}>
+      <div className="px-5 py-3 flex items-center gap-2" style={{ background: bgTint, borderBottom: '1px solid #e2e8f0' }}>
+        <div className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: 'white', color: accent }}>
+          {icon}
+        </div>
+        <h3 className="text-sm font-semibold" style={{ color: accent }}>{title}</h3>
+        {items.length > 0 && <span className="ml-auto text-[10px] font-medium px-1.5 py-0.5 rounded" style={{ background: 'white', color: accent }}>{items.length}</span>}
+      </div>
+      <div className="p-4">
+        {items.length === 0 ? (
+          <p className="text-xs py-6 text-center" style={{ color: '#94a3b8' }}>{emptyText}</p>
+        ) : items.slice(0, 8).map((it, i) => (
+          <div key={it.key} className="flex items-center gap-2.5 py-2" style={{ borderBottom: i < Math.min(items.length, 8) - 1 ? '1px solid #f8fafc' : 'none' }}>
+            <span className="w-5 flex-shrink-0 text-center">
+              {i < 3 ? <span className="text-xs">{['🥇','🥈','🥉'][i]}</span> : <span className="text-[10px] font-semibold" style={{ color: '#cbd5e1' }}>#{i + 1}</span>}
+            </span>
+            <span className={`text-xs truncate flex-1 ${it.mono ? 'font-mono' : ''}`} style={{ color: '#475569' }}>{it.label}</span>
+            <div className="w-14 flex-shrink-0">
+              <div className="h-1.5 rounded-full overflow-hidden" style={{ background: '#f1f5f9' }}>
+                <div className="h-full rounded-full transition-all" style={{ width: `${(it.value / max) * 100}%`, background: i < 3 ? MEDAL_COLORS[i] : accent }} />
+              </div>
+            </div>
+            <span className="text-xs font-semibold flex-shrink-0 tabular-nums w-10 text-right" style={{ color: 'var(--foreground)' }}>{it.value.toLocaleString()}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
 function PeriodSelector({ value, onChange }: { value: string; onChange: (v: '7d' | '30d' | '90d') => void }) {
   return (<div className="flex items-center rounded-lg border overflow-hidden h-9" style={{ borderColor: '#cbd5e1' }}>{[{ v: '7d' as const, l: '7d' }, { v: '30d' as const, l: '30d' }, { v: '90d' as const, l: '90d' }].map((p, i) => (<button key={p.v} onClick={() => onChange(p.v)} className="px-3 h-full text-xs font-medium transition-colors" style={{ background: value === p.v ? 'var(--primary)' : 'white', color: value === p.v ? 'white' : '#64748b', borderLeft: i > 0 ? '1px solid #cbd5e1' : undefined }}>{p.l}</button>))}</div>)
 }
@@ -45,6 +86,13 @@ export default function WebsitesPage() {
   const isWriter = role === 'writer'
   const canAddWebsite = role === 'admin' || role === 'designer'
   const [addOpen, setAddOpen] = useState(false)
+  const [sortKey, setSortKey] = useState<'domain' | 'views' | 'trend' | 'sessions' | 'clicks' | 'phones' | 'active_phones' | 'blog' | 'published_blog'>('views')
+  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc')
+
+  function toggleSort(key: typeof sortKey) {
+    if (sortKey === key) setSortDir(d => d === 'asc' ? 'desc' : 'asc')
+    else { setSortKey(key); setSortDir(key === 'domain' ? 'asc' : 'desc') }
+  }
 
   function refreshSites() {
     Promise.all([fetch('/api/websites').then(r => r.json()), fetch('/api/companies').then(r => r.json())]).then(([s, c]) => { if (Array.isArray(s)) setSites(s); if (Array.isArray(c)) setCompanies(c) }).catch(() => {})
@@ -176,7 +224,6 @@ export default function WebsitesPage() {
             Add Website
           </button>
         )}
-        <PeriodSelector value={period} onChange={setPeriod} />
         <ViewToggle value={viewMode} onChange={setViewMode} />
       </>} />
       <AddWebsiteModal open={addOpen} onClose={() => setAddOpen(false)} onCreated={refreshSites} />
@@ -210,7 +257,46 @@ export default function WebsitesPage() {
   if (openCompany && !openWebsite) {
     const currentCompany = companies.find(c => c.name === openCompany)
     const companyDomains = new Set(currentCompany?.company_websites.map(w => w.domain) ?? [])
-    const companySites = filteredSites.filter(s => companyDomains.has(s.domain))
+    const unsortedCompanySites = filteredSites.filter(s => companyDomains.has(s.domain))
+    const getSortValue = (site: WebsiteSummary): number | string => {
+      const ws = (analytics?.websiteStats ?? []).find(w => w.website === site.domain)
+      switch (sortKey) {
+        case 'domain': return site.domain
+        case 'views': return ws?.pageviews ?? 0
+        case 'trend': {
+          const t = ws?.trend ?? 'flat'
+          const p = ws?.trend_pct ?? 0
+          return t === 'up' ? p : t === 'down' ? -p : 0
+        }
+        case 'sessions': return ws?.sessions ?? 0
+        case 'clicks': return ws?.clicks ?? 0
+        case 'phones': return site.phone_count
+        case 'active_phones': return site.active_phone_count
+        case 'blog': return site.blog_count
+        case 'published_blog': return site.published_blog_count
+      }
+    }
+    const companySites = [...unsortedCompanySites].sort((a, b) => {
+      const av = getSortValue(a); const bv = getSortValue(b)
+      const cmp = typeof av === 'number' ? (av as number) - (bv as number) : String(av).localeCompare(String(bv))
+      return sortDir === 'asc' ? cmp : -cmp
+    })
+
+    const SortIcon = ({ active, dir }: { active: boolean; dir: 'asc' | 'desc' }) => (
+      <svg className={`w-3.5 h-3.5 ml-1 ${active ? 'text-[var(--primary)]' : 'text-slate-300'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M8 9l4-4 4 4" style={{ opacity: !active || dir === 'asc' ? 1 : 0.3 }} />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M8 15l4 4 4-4" style={{ opacity: !active || dir === 'desc' ? 1 : 0.3 }} />
+      </svg>
+    )
+    const Th = ({ label, col }: { label: string; col?: typeof sortKey }) => {
+      const base = "px-4 py-3 text-[10px] sm:text-xs font-medium whitespace-nowrap text-left"
+      if (!col) return <th className={base} style={{ color: '#94a3b8' }}>{label}</th>
+      return (
+        <th className={`${base} cursor-pointer select-none hover:text-[var(--primary)] transition-colors`} style={{ color: '#94a3b8' }} onClick={() => toggleSort(col)}>
+          <span className="inline-flex items-center">{label}<SortIcon active={sortKey === col} dir={sortKey === col ? sortDir : 'asc'} /></span>
+        </th>
+      )
+    }
 
     return (<div>
       <PageHeader title={openCompany} description={`${companySites.length} website${companySites.length !== 1 ? 's' : ''}`} actions={<>
@@ -222,24 +308,23 @@ export default function WebsitesPage() {
             Add Website
           </button>
         )}
-        <PeriodSelector value={period} onChange={setPeriod} />
       </>} />
       {currentCompany && <AddWebsiteModal open={addOpen} onClose={() => setAddOpen(false)} onCreated={refreshSites} presetCompany={{ id: currentCompany.id, name: currentCompany.name }} />}
       <h2 className="text-sm font-semibold text-slate-700 mb-3">Websites</h2>
       {loading ? <div className="p-12 text-center text-sm rounded-xl border" style={{ borderColor: '#e2e8f0', color: '#94a3b8' }}>Loading…</div> : companySites.length === 0 ? <div className="p-12 text-center text-sm rounded-xl border" style={{ borderColor: '#e2e8f0', color: '#94a3b8' }}>No websites found.</div> : (
         <div className="rounded-xl border overflow-hidden bg-white mb-6" style={{ borderColor: '#e2e8f0' }}>
           <div className="overflow-x-auto" style={{ maxHeight: '60vh' }}><table className="w-full text-sm min-w-[800px]"><thead><tr className="sticky top-0 z-10" style={{ borderBottom: '1px solid #e2e8f0', background: '#f8fafc' }}>
-            <th className="px-4 py-3 text-[10px] sm:text-xs font-medium whitespace-nowrap text-left" style={{ color: '#94a3b8' }}>Website</th>
-            {!isWriter && <th className="px-4 py-3 text-[10px] sm:text-xs font-medium whitespace-nowrap text-left" style={{ color: '#94a3b8' }}>Leads Mode</th>}
-            <th className="px-4 py-3 text-[10px] sm:text-xs font-medium whitespace-nowrap text-left" style={{ color: '#94a3b8' }}>Views</th>
-            <th className="px-4 py-3 text-[10px] sm:text-xs font-medium whitespace-nowrap text-left" style={{ color: '#94a3b8' }}>Trend</th>
-            <th className="px-4 py-3 text-[10px] sm:text-xs font-medium whitespace-nowrap text-left" style={{ color: '#94a3b8' }}>Sessions</th>
-            <th className="px-4 py-3 text-[10px] sm:text-xs font-medium whitespace-nowrap text-left" style={{ color: '#94a3b8' }}>Clicks</th>
-            {!isWriter && <th className="px-4 py-3 text-[10px] sm:text-xs font-medium whitespace-nowrap text-left" style={{ color: '#94a3b8' }}>Phones</th>}
-            {!isWriter && <th className="px-4 py-3 text-[10px] sm:text-xs font-medium whitespace-nowrap text-left" style={{ color: '#94a3b8' }}>Active</th>}
-            <th className="px-4 py-3 text-[10px] sm:text-xs font-medium whitespace-nowrap text-left" style={{ color: '#94a3b8' }}>Blog</th>
-            <th className="px-4 py-3 text-[10px] sm:text-xs font-medium whitespace-nowrap text-left" style={{ color: '#94a3b8' }}>Published</th>
-            <th className="px-4 py-3 text-[10px] sm:text-xs font-medium whitespace-nowrap text-center" style={{ color: '#94a3b8' }}></th>
+            <Th label="Website" col="domain" />
+            {!isWriter && <Th label="Leads Mode" />}
+            <Th label="Views" col="views" />
+            <Th label="Trend" col="trend" />
+            <Th label="Sessions" col="sessions" />
+            <Th label="Clicks" col="clicks" />
+            {!isWriter && <Th label="Phones" col="phones" />}
+            {!isWriter && <Th label="Active" col="active_phones" />}
+            <Th label="Blog" col="blog" />
+            <Th label="Published" col="published_blog" />
+            <Th label="" />
           </tr></thead><tbody>
             {companySites.map((site, i) => { const ws = (analytics?.websiteStats ?? []).find(w => w.website === site.domain); const lm = site.leads_mode && LEADS_MODE[site.leads_mode] ? LEADS_MODE[site.leads_mode] : null; return (
               <tr key={site.domain} className="hover:bg-[#f8fafc] transition-colors relative hover:z-20" style={{ borderBottom: i < companySites.length - 1 ? '1px solid #f1f5f9' : 'none' }}>
@@ -306,12 +391,80 @@ export default function WebsitesPage() {
     <Chart />
 
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-6">
-      <div className="rounded-xl border bg-white p-5" style={{ borderColor: '#e2e8f0' }}><h3 className="text-sm font-semibold mb-3" style={{ color: 'var(--foreground)' }}>Top Pages</h3>{(analytics?.topPages ?? []).length === 0 ? <p className="text-xs py-4 text-center" style={{ color: '#94a3b8' }}>No data</p> : (analytics?.topPages ?? []).map((p, i) => (<div key={i} className="flex items-center gap-3 py-2" style={{ borderBottom: i < (analytics?.topPages ?? []).length - 1 ? '1px solid #f1f5f9' : 'none' }}><span className="text-xs font-mono truncate flex-1" style={{ color: '#475569' }}>{p.path}</span><span className="text-xs font-semibold flex-shrink-0" style={{ color: 'var(--foreground)' }}>{p.count}</span></div>))}</div>
-      <div className="rounded-xl border bg-white p-5" style={{ borderColor: '#e2e8f0' }}><h3 className="text-sm font-semibold mb-3" style={{ color: 'var(--foreground)' }}>Top Referrers</h3>{(analytics?.topReferrers ?? []).length === 0 ? <p className="text-xs py-4 text-center" style={{ color: '#94a3b8' }}>No referrer data</p> : (analytics?.topReferrers ?? []).map((r, i) => (<div key={i} className="flex items-center gap-3 py-2" style={{ borderBottom: i < (analytics?.topReferrers ?? []).length - 1 ? '1px solid #f1f5f9' : 'none' }}><span className="text-xs truncate flex-1" style={{ color: '#475569' }}>{r.source}</span><span className="text-xs font-semibold flex-shrink-0" style={{ color: 'var(--foreground)' }}>{r.count}</span></div>))}</div>
-      <div className="rounded-xl border bg-white p-5" style={{ borderColor: '#e2e8f0' }}><h3 className="text-sm font-semibold mb-3" style={{ color: 'var(--foreground)' }}>Top Clicks</h3>{(analytics?.topClicks ?? []).length === 0 ? <p className="text-xs py-4 text-center" style={{ color: '#94a3b8' }}>No click data</p> : (analytics?.topClicks ?? []).map((c, i) => (<div key={i} className="flex items-center gap-3 py-2" style={{ borderBottom: i < (analytics?.topClicks ?? []).length - 1 ? '1px solid #f1f5f9' : 'none' }}><span className="text-xs truncate flex-1" style={{ color: '#475569' }}>{c.label}</span><span className="text-xs font-semibold flex-shrink-0" style={{ color: 'var(--foreground)' }}>{c.count}</span></div>))}</div>
-      <div className="rounded-xl border bg-white p-5" style={{ borderColor: '#e2e8f0' }}><h3 className="text-sm font-semibold mb-3" style={{ color: 'var(--foreground)' }}>Devices & Browsers</h3>
-        <div className="space-y-3"><div><p className="text-[10px] font-semibold uppercase tracking-wider mb-2" style={{ color: '#94a3b8' }}>Devices</p>{Object.entries(analytics?.devices ?? {}).sort(([,a],[,b]) => b - a).map(([d, c]) => (<div key={d} className="flex items-center justify-between py-1"><span className="text-xs capitalize" style={{ color: '#475569' }}>{d}</span><span className="text-xs font-semibold" style={{ color: 'var(--foreground)' }}>{c}</span></div>))}</div>
-        <div style={{ borderTop: '1px solid #f1f5f9', paddingTop: '12px' }}><p className="text-[10px] font-semibold uppercase tracking-wider mb-2" style={{ color: '#94a3b8' }}>Browsers</p>{Object.entries(analytics?.browsers ?? {}).sort(([,a],[,b]) => b - a).map(([b, c]) => (<div key={b} className="flex items-center justify-between py-1"><span className="text-xs" style={{ color: '#475569' }}>{b}</span><span className="text-xs font-semibold" style={{ color: 'var(--foreground)' }}>{c}</span></div>))}</div></div>
+      {/* Top Pages — blue */}
+      <DetailCard
+        title="Top Pages"
+        accent="#2979d6"
+        bgTint="#eff6ff"
+        icon={<svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8"><path strokeLinecap="round" strokeLinejoin="round" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2" /></svg>}
+        items={(analytics?.topPages ?? []).map(p => ({ key: p.path, label: p.path, value: p.count, mono: true }))}
+        emptyText="No page data yet"
+      />
+      {/* Top Referrers — green */}
+      <DetailCard
+        title="Top Referrers"
+        accent="#16a34a"
+        bgTint="#f0fdf4"
+        icon={<svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8"><path strokeLinecap="round" strokeLinejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" /></svg>}
+        items={(analytics?.topReferrers ?? []).map(r => ({ key: r.source, label: r.source, value: r.count }))}
+        emptyText="No referrer data — most visitors came direct"
+      />
+      {/* Top Clicks — amber */}
+      <DetailCard
+        title="Top Clicks"
+        accent="#f59e0b"
+        bgTint="#fffbeb"
+        icon={<svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8"><path strokeLinecap="round" strokeLinejoin="round" d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122" /></svg>}
+        items={(analytics?.topClicks ?? []).map(c => ({ key: c.label, label: c.label, value: c.count }))}
+        emptyText="No clicks yet — add window.uwc() calls to CTA buttons"
+      />
+      {/* Devices & Browsers — purple */}
+      <div className="rounded-xl border bg-white overflow-hidden" style={{ borderColor: '#e2e8f0' }}>
+        <div className="px-5 py-3 flex items-center gap-2" style={{ background: '#faf5ff', borderBottom: '1px solid #e2e8f0' }}>
+          <div className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: 'white', color: '#7c3aed' }}>
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8"><path strokeLinecap="round" strokeLinejoin="round" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+          </div>
+          <h3 className="text-sm font-semibold" style={{ color: '#7c3aed' }}>Visitor Mix</h3>
+        </div>
+        <div className="p-5 grid grid-cols-2 gap-5">
+          <div>
+            <p className="text-[10px] font-semibold uppercase tracking-wider mb-2.5" style={{ color: '#94a3b8' }}>Devices</p>
+            {Object.keys(analytics?.devices ?? {}).length === 0 ? (
+              <p className="text-xs" style={{ color: '#cbd5e1' }}>—</p>
+            ) : Object.entries(analytics?.devices ?? {}).sort(([,a],[,b]) => b - a).map(([d, c]) => {
+              const total = Object.values(analytics?.devices ?? {}).reduce((s, v) => s + v, 0) || 1
+              const pct = Math.round((c / total) * 100)
+              const icon = d === 'mobile' ? <path strokeLinecap="round" strokeLinejoin="round" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                : d === 'tablet' ? <path strokeLinecap="round" strokeLinejoin="round" d="M12 17.5h.01M6 3h12a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V5a2 2 0 012-2z" />
+                : <path strokeLinecap="round" strokeLinejoin="round" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+              return (
+                <div key={d} className="flex items-center gap-2 py-1.5">
+                  <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8" style={{ color: '#7c3aed' }}>{icon}</svg>
+                  <span className="text-xs capitalize flex-1" style={{ color: '#475569' }}>{d}</span>
+                  <span className="text-xs font-semibold" style={{ color: 'var(--foreground)' }}>{c}</span>
+                  <span className="text-[10px] font-medium" style={{ color: '#94a3b8' }}>({pct}%)</span>
+                </div>
+              )
+            })}
+          </div>
+          <div>
+            <p className="text-[10px] font-semibold uppercase tracking-wider mb-2.5" style={{ color: '#94a3b8' }}>Browsers</p>
+            {Object.keys(analytics?.browsers ?? {}).length === 0 ? (
+              <p className="text-xs" style={{ color: '#cbd5e1' }}>—</p>
+            ) : Object.entries(analytics?.browsers ?? {}).sort(([,a],[,b]) => b - a).map(([b, c]) => {
+              const total = Object.values(analytics?.browsers ?? {}).reduce((s, v) => s + v, 0) || 1
+              const pct = Math.round((c / total) * 100)
+              return (
+                <div key={b} className="flex items-center gap-2 py-1.5">
+                  <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8" style={{ color: '#7c3aed' }}><circle cx="12" cy="12" r="9" /><path strokeLinecap="round" d="M3 12h18M12 3a15 15 0 010 18M12 3a15 15 0 000 18" /></svg>
+                  <span className="text-xs flex-1" style={{ color: '#475569' }}>{b}</span>
+                  <span className="text-xs font-semibold" style={{ color: 'var(--foreground)' }}>{c}</span>
+                  <span className="text-[10px] font-medium" style={{ color: '#94a3b8' }}>({pct}%)</span>
+                </div>
+              )
+            })}
+          </div>
+        </div>
       </div>
     </div>
 
