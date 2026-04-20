@@ -387,17 +387,49 @@ export default function WebsitesPage() {
 
   // ═══ LEVEL 3: Website detail ═══
   const siteInfo = sites.find(s => s.domain === openWebsite)
+  const siteUrl = `https://${openWebsite}`
+  const thumbUrl = `https://s.wordpress.com/mshots/v1/${encodeURIComponent(siteUrl)}?w=480`
   return (<div>
-    <PageHeader title={openWebsite} description={
-      <a href={`https://${openWebsite}`} target="_blank" rel="noopener noreferrer"
-        className="inline-flex items-center gap-1 text-xs font-light underline underline-offset-2 transition-colors hover:text-[var(--primary)]"
-        style={{ color: '#94a3b8' }}>
-        Visit {openWebsite}
-        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-        </svg>
+    <div className="mb-6 rounded-xl border bg-white flex items-stretch gap-4 overflow-hidden" style={{ borderColor: '#e2e8f0' }}>
+      <a href={siteUrl} target="_blank" rel="noopener noreferrer"
+        className="flex-shrink-0 block border-r transition-opacity hover:opacity-90"
+        style={{ borderColor: '#e2e8f0', width: 140, background: '#f8fafc' }}
+        title={`Open ${openWebsite}`}>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={thumbUrl} alt={openWebsite} loading="lazy"
+          className="w-full h-full object-cover" style={{ minHeight: 88 }} />
       </a>
-    } actions={<PeriodSelector value={period} onChange={setPeriod} />} />
+      <div className="min-w-0 flex-1 py-3 pr-4 flex items-center gap-3 flex-wrap">
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-2 flex-wrap">
+            <h1 className="text-lg font-semibold truncate" style={{ color: 'var(--foreground)' }}>{openWebsite}</h1>
+            <span className="inline-flex items-center gap-1 text-[11px] font-medium" style={{ color: '#16a34a' }}>
+              <span className="w-1.5 h-1.5 rounded-full" style={{ background: '#22c55e' }} />
+              Live
+            </span>
+          </div>
+          <div className="mt-1 flex items-center gap-3 flex-wrap text-xs">
+            {siteInfo?.company_name && (
+              <span className="inline-flex items-center gap-1.5" style={{ color: '#64748b' }}>
+                <span>{siteInfo.company_name}</span>
+              </span>
+            )}
+            {siteInfo?.company_name && <span style={{ color: '#cbd5e1' }}>|</span>}
+            <a href={siteUrl} target="_blank" rel="noopener noreferrer"
+              className="inline-flex items-center gap-1 truncate transition-colors hover:text-[var(--primary)]"
+              style={{ color: '#64748b' }}>
+              <span className="truncate">{siteUrl}</span>
+              <svg className="w-3 h-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+              </svg>
+            </a>
+          </div>
+        </div>
+        <div className="flex-shrink-0">
+          <PeriodSelector value={period} onChange={setPeriod} />
+        </div>
+      </div>
+    </div>
     <Stats />
     <Chart />
 
