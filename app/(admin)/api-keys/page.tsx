@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import PageHeader from '@/components/PageHeader'
 import { useToast } from '@/contexts/ToastContext'
 import { useConfirm } from '@/contexts/ConfirmContext'
+import { downloadSetupBundle } from '@/lib/setupBundle'
 
 type KeyStatus = 'grace' | 'active' | 'expired_unused' | 'revoked'
 
@@ -318,16 +319,27 @@ export default function ApiKeysPage() {
                     )}
                   </div>
                   {showFullKey && (
-                    <div className="mt-2 flex items-center gap-2">
-                      <code className="flex-1 text-[11px] px-2.5 py-1.5 rounded-md font-mono break-all select-all" style={{ background: '#fffbeb', border: '1px solid #fde68a', color: '#92400e' }}>
-                        {k.full_key}
-                      </code>
-                      <button onClick={() => copyGraceKey(k.full_key!, k.id)}
-                        className="flex-shrink-0 px-2.5 py-1.5 text-[11px] font-medium rounded-md text-white transition-colors"
-                        style={{ background: copiedId === k.id ? '#16a34a' : 'var(--primary)' }}>
-                        {copiedId === k.id ? 'Copied!' : 'Copy'}
+                    <>
+                      <div className="mt-2 flex items-center gap-2">
+                        <code className="flex-1 text-[11px] px-2.5 py-1.5 rounded-md font-mono break-all select-all" style={{ background: '#fffbeb', border: '1px solid #fde68a', color: '#92400e' }}>
+                          {k.full_key}
+                        </code>
+                        <button onClick={() => copyGraceKey(k.full_key!, k.id)}
+                          className="flex-shrink-0 px-2.5 py-1.5 text-[11px] font-medium rounded-md text-white transition-colors"
+                          style={{ background: copiedId === k.id ? '#16a34a' : 'var(--primary)' }}>
+                          {copiedId === k.id ? 'Copied!' : 'Copy'}
+                        </button>
+                      </div>
+                      <button type="button"
+                        onClick={() => downloadSetupBundle({ domain: k.website, apiKey: k.full_key!, permissions: k.permissions })}
+                        className="mt-2 inline-flex items-center gap-1.5 text-[11px] font-medium px-2.5 py-1.5 rounded-md transition-all"
+                        style={{ background: 'white', border: '1px solid #e2e8f0', color: '#475569' }}
+                        onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--primary)'; e.currentTarget.style.color = 'var(--primary)' }}
+                        onMouseLeave={e => { e.currentTarget.style.borderColor = '#e2e8f0'; e.currentTarget.style.color = '#475569' }}>
+                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1M12 4v12m0 0l-4-4m4 4l4-4" /></svg>
+                        Download setup for Claude
                       </button>
-                    </div>
+                    </>
                   )}
                   <div className="flex items-center gap-2 mt-1 flex-wrap">
                     <span className="text-xs" style={{ color: '#64748b' }}>{k.website === '*' ? 'All websites' : k.website}</span>

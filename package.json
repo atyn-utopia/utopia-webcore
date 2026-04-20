@@ -20,6 +20,7 @@
     "@tiptap/pm": "^3.22.2",
     "@tiptap/react": "^3.22.2",
     "@tiptap/starter-kit": "^3.22.2",
+    "jszip": "^3.10.1",
     "next": "16.2.1",
     "react": "19.2.4",
     "react-dom": "19.2.4"
