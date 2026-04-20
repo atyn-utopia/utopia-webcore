@@ -34,6 +34,12 @@ export default function Breadcrumb() {
 
   function getCrumbs(): CrumbItem[] {
     // Websites
+    if (pathname === '/websites' && website) {
+      const crumbs: CrumbItem[] = [{ label: 'Websites', href: '/websites' }]
+      if (company) crumbs.push({ label: company, href: `/websites?company=${encodeURIComponent(company)}` })
+      crumbs.push({ label: website })
+      return crumbs
+    }
     if (pathname === '/websites' && company) {
       return [{ label: 'Websites', href: '/websites' }, { label: company }]
     }
@@ -44,6 +50,18 @@ export default function Breadcrumb() {
       const crumbs: CrumbItem[] = [{ label: 'Phone Numbers', href: '/phone-numbers' }]
       if (company) crumbs.splice(1, 0, { label: company, href: `/phone-numbers?company=${encodeURIComponent(company)}` })
       crumbs.push({ label: 'Add Number' })
+      return crumbs
+    }
+    if (pathname === '/phone-numbers/edit' && website) {
+      const crumbs: CrumbItem[] = [{ label: 'Phone Numbers', href: '/phone-numbers' }]
+      if (company) crumbs.push({ label: company, href: `/phone-numbers?company=${encodeURIComponent(company)}` })
+      crumbs.push({ label: website })
+      return crumbs
+    }
+    if (pathname === '/phone-numbers' && website) {
+      const crumbs: CrumbItem[] = [{ label: 'Phone Numbers', href: '/phone-numbers' }]
+      if (company) crumbs.push({ label: company, href: `/phone-numbers?company=${encodeURIComponent(company)}` })
+      crumbs.push({ label: website })
       return crumbs
     }
     if (pathname === '/phone-numbers' && company) {
