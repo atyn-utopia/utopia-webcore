@@ -16,7 +16,7 @@ import Tooltip from '@/components/analytics/Tooltip'
 
 interface WebsiteSummary { domain: string; company_id: string | null; company_name: string | null; leads_mode: string | null; phone_count: number; active_phone_count: number; blog_count: number; published_blog_count: number }
 interface CompanyInfo { id: string; name: string; company_websites: { domain: string }[] }
-interface WebsiteStat { website: string; pageviews: number; clicks: number; impressions: number; sessions: number }
+interface WebsiteStat { website: string; pageviews: number; clicks: number; impressions: number; sessions: number; trend: 'up' | 'down' | 'flat'; trend_pct: number }
 interface DailyStat { date: string; pageviews: number; clicks: number; impressions: number }
 interface Insight { icon: string; text: string; type: 'positive' | 'negative' | 'neutral' | 'warning' }
 interface DayStats { pageviews: number; clicks: number; impressions: number; sessions: number }
@@ -180,8 +180,6 @@ export default function WebsitesPage() {
         <ViewToggle value={viewMode} onChange={setViewMode} />
       </>} />
       <AddWebsiteModal open={addOpen} onClose={() => setAddOpen(false)} onCreated={refreshSites} />
-      <Stats />
-      <Chart />
       <SearchBar placeholder="Search companies…" />
       <div className="flex items-center gap-2 mb-3"><h2 className="text-sm font-semibold text-slate-700">Company Performance</h2><Tooltip text="Companies ranked by pageviews. Click to view websites."><svg className="w-3.5 h-3.5 cursor-help" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: '#cbd5e1' }} strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg></Tooltip></div>
       {loading ? <div className="p-12 text-center text-sm rounded-xl border" style={{ borderColor: '#e2e8f0', color: '#94a3b8' }}>Loading…</div> : viewMode === 'list' ? (
@@ -227,8 +225,6 @@ export default function WebsitesPage() {
         <PeriodSelector value={period} onChange={setPeriod} />
       </>} />
       {currentCompany && <AddWebsiteModal open={addOpen} onClose={() => setAddOpen(false)} onCreated={refreshSites} presetCompany={{ id: currentCompany.id, name: currentCompany.name }} />}
-      <Stats />
-      <Chart />
       <h2 className="text-sm font-semibold text-slate-700 mb-3">Websites</h2>
       {loading ? <div className="p-12 text-center text-sm rounded-xl border" style={{ borderColor: '#e2e8f0', color: '#94a3b8' }}>Loading…</div> : companySites.length === 0 ? <div className="p-12 text-center text-sm rounded-xl border" style={{ borderColor: '#e2e8f0', color: '#94a3b8' }}>No websites found.</div> : (
         <div className="rounded-xl border overflow-hidden bg-white mb-6" style={{ borderColor: '#e2e8f0' }}>
@@ -236,6 +232,7 @@ export default function WebsitesPage() {
             <th className="px-4 py-3 text-[10px] sm:text-xs font-medium whitespace-nowrap text-left" style={{ color: '#94a3b8' }}>Website</th>
             {!isWriter && <th className="px-4 py-3 text-[10px] sm:text-xs font-medium whitespace-nowrap text-left" style={{ color: '#94a3b8' }}>Leads Mode</th>}
             <th className="px-4 py-3 text-[10px] sm:text-xs font-medium whitespace-nowrap text-left" style={{ color: '#94a3b8' }}>Views</th>
+            <th className="px-4 py-3 text-[10px] sm:text-xs font-medium whitespace-nowrap text-left" style={{ color: '#94a3b8' }}>Trend</th>
             <th className="px-4 py-3 text-[10px] sm:text-xs font-medium whitespace-nowrap text-left" style={{ color: '#94a3b8' }}>Sessions</th>
             <th className="px-4 py-3 text-[10px] sm:text-xs font-medium whitespace-nowrap text-left" style={{ color: '#94a3b8' }}>Clicks</th>
             {!isWriter && <th className="px-4 py-3 text-[10px] sm:text-xs font-medium whitespace-nowrap text-left" style={{ color: '#94a3b8' }}>Phones</th>}
@@ -249,6 +246,26 @@ export default function WebsitesPage() {
                 <td className="px-4 py-3.5"><Link href={`/websites?website=${encodeURIComponent(site.domain)}&company=${encodeURIComponent(openCompany)}`} className="text-sm font-medium hover:text-[var(--primary)] transition-colors" style={{ color: 'var(--foreground)' }}>{site.domain}</Link></td>
                 {!isWriter && <td className="px-4 py-3.5">{lm ? <span className="text-[10px] px-2 py-0.5 rounded-full font-medium" style={{ background: lm.bg, color: lm.color }}>{lm.label}</span> : <span style={{ color: '#cbd5e1' }}>—</span>}</td>}
                 <td className="px-4 py-3.5"><span className="text-sm font-semibold" style={{ color: 'var(--foreground)' }}>{ws?.pageviews.toLocaleString() ?? '0'}</span></td>
+                <td className="px-4 py-3.5">
+                  {ws && ws.pageviews > 0 ? (
+                    ws.trend === 'up' ? (
+                      <span className="inline-flex items-center gap-1 text-xs font-medium" style={{ color: '#16a34a' }}>
+                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M5 10l7-7m0 0l7 7m-7-7v18" /></svg>
+                        {ws.trend_pct}%
+                      </span>
+                    ) : ws.trend === 'down' ? (
+                      <span className="inline-flex items-center gap-1 text-xs font-medium" style={{ color: '#dc2626' }}>
+                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M19 14l-7 7m0 0l-7-7m7 7V3" /></svg>
+                        {ws.trend_pct}%
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1 text-xs" style={{ color: '#94a3b8' }}>
+                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M5 12h14" /></svg>
+                        flat
+                      </span>
+                    )
+                  ) : <span style={{ color: '#cbd5e1' }}>—</span>}
+                </td>
                 <td className="px-4 py-3.5"><span className="text-xs" style={{ color: '#64748b' }}>{ws?.sessions.toLocaleString() ?? '0'}</span></td>
                 <td className="px-4 py-3.5"><span className="text-xs" style={{ color: '#f59e0b' }}>{ws?.clicks.toLocaleString() ?? '0'}</span></td>
                 {!isWriter && <td className="px-4 py-3.5"><span className="text-sm font-medium" style={{ color: 'var(--foreground)' }}>{site.phone_count}</span></td>}
@@ -257,6 +274,12 @@ export default function WebsitesPage() {
                 <td className="px-4 py-3.5"><span className="text-[10px] px-2 py-0.5 rounded-full font-medium" style={site.published_blog_count > 0 ? { background: '#e0f2fe', color: '#0369a1' } : { background: '#f1f5f9', color: '#94a3b8' }}>{site.published_blog_count}</span></td>
                 <td className="px-4 py-3.5">
                   <div className="flex items-center gap-1.5 justify-center">
+                    <Link href={`/websites?website=${encodeURIComponent(site.domain)}&company=${encodeURIComponent(openCompany)}`}
+                      className="inline-flex items-center gap-1 text-[11px] font-medium px-2.5 h-7 rounded-md text-white transition-opacity hover:opacity-90"
+                      style={{ background: 'var(--primary)' }} title="Open site dashboard">
+                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a1 1 0 011-1h4a1 1 0 011 1v6m-7 0H5a2 2 0 01-2-2V7a2 2 0 012-2h14a2 2 0 012 2v10a2 2 0 01-2 2h-3" /></svg>
+                      Dashboard
+                    </Link>
                     <a href={`https://${site.domain}`} target="_blank" rel="noopener noreferrer" className="group/tip relative w-7 h-7 flex items-center justify-center rounded-md border border-[#e2e8f0] text-[#94a3b8] transition-colors hover:border-[var(--primary)] hover:text-[var(--primary)]" title="Open website">
                       <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8"><path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
                     </a>
@@ -272,7 +295,6 @@ export default function WebsitesPage() {
           </tbody></table></div>
         </div>
       )}
-      <RecentActivity companyFilter={openCompany} />
     </div>)
   }
 

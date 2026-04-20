@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import PageHeader from '@/components/PageHeader'
 import { useToast } from '@/contexts/ToastContext'
 import { useConfirm } from '@/contexts/ConfirmContext'
-import { downloadSetupBundle, kickoffPrompt, fullSetupMarkdown } from '@/lib/setupBundle'
+import { fullSetupMarkdown } from '@/lib/setupBundle'
 
 type KeyStatus = 'grace' | 'active' | 'expired_unused' | 'revoked'
 
@@ -326,55 +326,32 @@ function ClaudeHandoff({ domain, apiKey, permissions, copiedToken, onCopy }: {
   copiedToken: string | null
   onCopy: (value: string, token: string, label?: string) => void
 }) {
-  const promptToken = `prompt-${domain}`
-  const fullToken = `full-${domain}`
-  const promptCopied = copiedToken === promptToken
-  const fullCopied = copiedToken === fullToken
+  const token = `setup-${domain}`
+  const copied = copiedToken === token
   return (
     <div className="rounded-lg p-3.5" style={{ background: '#f8fafc', border: '1px solid #e2e8f0' }}>
-      <div className="flex items-center gap-2 mb-2.5">
-        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8" style={{ color: 'var(--primary)' }}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
-        </svg>
-        <span className="text-xs font-semibold" style={{ color: 'var(--foreground)' }}>Claude Code handoff</span>
-      </div>
-      <p className="text-[11px] mb-3" style={{ color: '#64748b' }}>
-        Three ways to hand off. Zip is best for local Claude Code. "Paste to Claude" works everywhere — no unzip needed.
-      </p>
-      <div className="flex flex-wrap gap-2">
+      <div className="flex items-center justify-between gap-3 flex-wrap">
+        <div className="flex items-center gap-2 min-w-0">
+          <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8" style={{ color: 'var(--primary)' }}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+          </svg>
+          <div className="min-w-0">
+            <div className="text-xs font-semibold" style={{ color: 'var(--foreground)' }}>Claude Code handoff</div>
+            <div className="text-[11px]" style={{ color: '#64748b' }}>Paste into any Claude — it creates all files and does the integration.</div>
+          </div>
+        </div>
         <button type="button"
-          onClick={() => downloadSetupBundle({ domain, apiKey, permissions })}
-          className="inline-flex items-center gap-1.5 text-[11px] font-medium px-3 py-1.5 rounded-md text-white transition-opacity hover:opacity-90"
-          style={{ background: 'var(--primary)' }}>
-          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1M12 4v12m0 0l-4-4m4 4l4-4" /></svg>
-          Download setup.zip
-        </button>
-        <button type="button"
-          onClick={() => onCopy(fullSetupMarkdown({ domain, apiKey, permissions }), fullToken, 'Paste this into Claude — it will create all files')}
-          className="inline-flex items-center gap-1.5 text-[11px] font-medium px-3 py-1.5 rounded-md transition-all"
+          onClick={() => onCopy(fullSetupMarkdown({ domain, apiKey, permissions }), token, 'Paste into Claude — it will do the rest')}
+          className="inline-flex items-center gap-1.5 text-[11px] font-medium px-3 py-1.5 rounded-md transition-all flex-shrink-0"
           style={{
-            background: fullCopied ? '#dcfce7' : 'white',
-            border: `1px solid ${fullCopied ? '#86efac' : '#e2e8f0'}`,
-            color: fullCopied ? '#15803d' : '#475569',
+            background: copied ? '#dcfce7' : 'white',
+            border: `1px solid ${copied ? '#86efac' : '#e2e8f0'}`,
+            color: copied ? '#15803d' : '#475569',
           }}>
-          {fullCopied ? (
-            <><svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>Full setup copied</>
+          {copied ? (
+            <><svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>Copied — paste into Claude</>
           ) : (
-            <><svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8"><path strokeLinecap="round" strokeLinejoin="round" d="M4 7v10a2 2 0 002 2h12a2 2 0 002-2V7M16 3H8a2 2 0 00-2 2v2h12V5a2 2 0 00-2-2zM9 12h6m-6 4h4" /></svg>Copy paste-to-Claude doc</>
-          )}
-        </button>
-        <button type="button"
-          onClick={() => onCopy(kickoffPrompt(domain), promptToken, 'Prompt copied')}
-          className="inline-flex items-center gap-1.5 text-[11px] font-medium px-3 py-1.5 rounded-md transition-all"
-          style={{
-            background: promptCopied ? '#dcfce7' : 'white',
-            border: `1px solid ${promptCopied ? '#86efac' : '#e2e8f0'}`,
-            color: promptCopied ? '#15803d' : '#475569',
-          }}>
-          {promptCopied ? (
-            <><svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>Prompt copied</>
-          ) : (
-            <><svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8"><path strokeLinecap="round" strokeLinejoin="round" d="M8 12h8m-8 4h5m-7 4h10a2 2 0 002-2V6a2 2 0 00-2-2H9.914a2 2 0 00-1.414.586l-2.828 2.828A2 2 0 005 8.828V20a2 2 0 002 2z" /></svg>Copy zip kickoff prompt</>
+            <><svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8"><path strokeLinecap="round" strokeLinejoin="round" d="M8 12h8m-8 4h5m-7 4h10a2 2 0 002-2V6a2 2 0 00-2-2H9.914a2 2 0 00-1.414.586l-2.828 2.828A2 2 0 005 8.828V20a2 2 0 002 2z" /></svg>Copy setup for Claude</>
           )}
         </button>
       </div>

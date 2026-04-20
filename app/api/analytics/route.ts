@@ -82,14 +82,40 @@ export async function GET(request: Request) {
     if (e.session_id) w.sessions.add(e.session_id)
   }
 
+  // Per-website trend: compare first half vs second half of the period
+  const midMs = Date.now() - (days / 2) * 86400000
+  const midIso = new Date(midMs).toISOString()
+  const perWebsiteTrend: Record<string, { first: number; second: number }> = {}
+  for (const e of rows) {
+    if (e.event_type !== 'pageview') continue
+    if (!perWebsiteTrend[e.website]) perWebsiteTrend[e.website] = { first: 0, second: 0 }
+    if (e.created_at < midIso) perWebsiteTrend[e.website].first++
+    else perWebsiteTrend[e.website].second++
+  }
+
+  function computeTrend(first: number, second: number): { direction: 'up' | 'down' | 'flat'; pct: number } {
+    if (first === 0 && second === 0) return { direction: 'flat', pct: 0 }
+    if (first === 0) return { direction: 'up', pct: 100 }
+    const pct = Math.round(((second - first) / first) * 100)
+    if (pct > 5) return { direction: 'up', pct }
+    if (pct < -5) return { direction: 'down', pct: Math.abs(pct) }
+    return { direction: 'flat', pct: Math.abs(pct) }
+  }
+
   const websiteStats = Object.entries(byWebsite)
-    .map(([domain, s]) => ({
-      website: domain,
-      pageviews: s.pageviews,
-      clicks: s.clicks,
-      impressions: s.impressions,
-      sessions: s.sessions.size,
-    }))
+    .map(([domain, s]) => {
+      const t = perWebsiteTrend[domain] ?? { first: 0, second: 0 }
+      const trend = computeTrend(t.first, t.second)
+      return {
+        website: domain,
+        pageviews: s.pageviews,
+        clicks: s.clicks,
+        impressions: s.impressions,
+        sessions: s.sessions.size,
+        trend: trend.direction,
+        trend_pct: trend.pct,
+      }
+    })
     .sort((a, b) => b.pageviews - a.pageviews)
 
   // Per-day breakdown (for chart)
