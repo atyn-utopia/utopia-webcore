@@ -382,6 +382,29 @@ export default function PhoneNumbersPage() {
                 </div>
               </div>
 
+              {/* Critical percentage alert — appears whenever active numbers
+                  don't sum to 100% so admins can't miss it from the L2 list. */}
+              {activeRows.length > 0 && !pctOk && (
+                <div className="px-4 py-2.5 flex items-center gap-2.5"
+                  style={{ background: '#fef2f2', borderBottom: '1px solid #fecaca' }}>
+                  <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="#b91c1c" viewBox="0 0 24 24" strokeWidth="2">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+                  </svg>
+                  <span className="text-xs font-medium flex-1" style={{ color: '#b91c1c' }}>
+                    {totalPct < 100
+                      ? `Under by ${100 - totalPct}% — leads won't distribute correctly. Adjust the percentages to reach 100%.`
+                      : `Over by ${totalPct - 100}% — percentages must total exactly 100%.`}
+                  </span>
+                  <Link
+                    href={`/phone-numbers/edit?website=${encodeURIComponent(website)}${openCompany ? `&company=${encodeURIComponent(openCompany)}` : ''}`}
+                    className="inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-1 rounded-md text-white transition-opacity hover:opacity-90"
+                    style={{ background: '#dc2626' }}>
+                    Adjust
+                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
+                  </Link>
+                </div>
+              )}
+
               {/* Rows — professional table */}
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">

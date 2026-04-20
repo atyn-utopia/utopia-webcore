@@ -253,6 +253,10 @@ export default function ManagePhoneNumbersPage() {
     setAddDrafts(prev => [...prev, emptyNewRow()])
   }
 
+  function removeDraft(key: string) {
+    setAddDrafts(prev => prev.length <= 1 ? [emptyNewRow()] : prev.filter(d => d.key !== key))
+  }
+
   const deletingCount = rows.filter(r => r.markedForDelete).length
   const dirtyCount = rows.filter(r => r.dirty && !r.markedForDelete).length
   const newCount = addDrafts.filter(d => d.phone_number.trim()).length
@@ -363,6 +367,8 @@ export default function ManagePhoneNumbersPage() {
       toast.success('All changes saved', 'Saved')
       setAddDrafts([emptyNewRow()])
       await fetchExisting(website)
+      // Return to the company-level L2 view so the user sees the updated table in context.
+      router.push(cancelHref)
     } catch (e) {
       toast.error((e as Error).message, 'Save failed')
     } finally {
@@ -370,9 +376,13 @@ export default function ManagePhoneNumbersPage() {
     }
   }
 
-  function handleBack() {
-    router.push(`/phone-numbers?website=${encodeURIComponent(website)}`)
-  }
+  const companyName = useMemo(
+    () => companies.find(c => c.id === selectedCompany)?.name ?? prefillCompany ?? '',
+    [companies, selectedCompany, prefillCompany],
+  )
+  const cancelHref = companyName
+    ? `/phone-numbers?company=${encodeURIComponent(companyName)}`
+    : '/phone-numbers'
 
   return (
     <div className="max-w-6xl mx-auto w-full space-y-5">
@@ -569,8 +579,10 @@ export default function ManagePhoneNumbersPage() {
                       locationAllowsAll={locationAllowsAll}
                       rowColor={colorByKey[d.key]}
                       isLast={idx === visibleDrafts.length - 1}
+                      canRemove={visibleDrafts.length > 1 || !!d.phone_number.trim()}
                       onPatch={patch => patchDraft(d.key, patch)}
                       onAdd={addBlankDraft}
+                      onRemove={() => removeDraft(d.key)}
                     />
                   ))}
                 </tbody>
@@ -626,7 +638,7 @@ export default function ManagePhoneNumbersPage() {
           <div className="sticky bottom-4 rounded-xl border flex items-center justify-between gap-3 flex-wrap px-5 py-3 shadow-sm"
             style={{ borderColor: '#e2e8f0', background: 'white' }}>
             <div className="flex items-center gap-3 text-xs" style={{ color: '#64748b' }}>
-              <Link href={`/phone-numbers${website ? `?website=${encodeURIComponent(website)}` : ''}`}
+              <Link href={cancelHref}
                 className="font-medium underline underline-offset-2 hover:text-[var(--primary)] transition-colors">
                 Cancel
               </Link>
@@ -636,18 +648,11 @@ export default function ManagePhoneNumbersPage() {
                 <span>No changes</span>
               )}
             </div>
-            <div className="flex items-center gap-2">
-              <button type="button" onClick={handleBack}
-                className="text-sm font-medium px-4 py-2 rounded-lg border transition-colors"
-                style={{ borderColor: '#e2e8f0', color: '#475569', background: 'white' }}>
-                Back
-              </button>
-              <button type="button" onClick={doSave} disabled={saving || !hasChanges}
-                className="inline-flex items-center gap-2 text-sm font-semibold px-5 py-2 rounded-lg text-white transition-all disabled:opacity-40 disabled:cursor-not-allowed shadow-sm hover:shadow-md"
-                style={{ background: 'var(--primary)' }}>
-                {saving ? 'Saving…' : 'Save Changes'}
-              </button>
-            </div>
+            <button type="button" onClick={doSave} disabled={saving || !hasChanges}
+              className="inline-flex items-center gap-2 text-sm font-semibold px-5 py-2 rounded-lg text-white transition-all disabled:opacity-40 disabled:cursor-not-allowed shadow-sm hover:shadow-md"
+              style={{ background: 'var(--primary)' }}>
+              {saving ? 'Saving…' : 'Save Changes'}
+            </button>
           </div>
         </>
       )}
@@ -893,7 +898,7 @@ function RowEditor({ r, existingTexts, waOpenKey, setWaOpenKey, showLocationColu
   )
 }
 
-function DraftRowEditor({ d, existingTexts, waOpenKey, setWaOpenKey, showLocationColumn, locationAllowsAll, rowColor, isLast, onPatch, onAdd }: {
+function DraftRowEditor({ d, existingTexts, waOpenKey, setWaOpenKey, showLocationColumn, locationAllowsAll, rowColor, isLast, canRemove, onPatch, onAdd, onRemove }: {
   d: WorkingRow
   existingTexts: string[]
   waOpenKey: string | null
@@ -902,8 +907,10 @@ function DraftRowEditor({ d, existingTexts, waOpenKey, setWaOpenKey, showLocatio
   locationAllowsAll: boolean
   rowColor: string | undefined
   isLast: boolean
+  canRemove: boolean
   onPatch: (patch: Partial<WorkingRow>) => void
   onAdd: () => void
+  onRemove: () => void
 }) {
   return (
     <tr style={{ background: '#f8fafc', borderBottom: '1px solid #f1f5f9' }}>
@@ -945,16 +952,22 @@ function DraftRowEditor({ d, existingTexts, waOpenKey, setWaOpenKey, showLocatio
       <td className="px-3 py-2 text-center">
         <ActiveToggle on={d.is_active} onChange={v => onPatch({ is_active: v })} />
       </td>
-      <td className="px-3 py-2 text-center">
-        {isLast ? (
-          <button type="button" onClick={onAdd} title="Add another row"
-            className="w-7 h-7 inline-flex items-center justify-center rounded-md border transition-colors hover:border-[var(--primary)] hover:text-[var(--primary)]"
-            style={{ borderColor: '#e2e8f0', color: '#64748b', background: 'white' }}>
-            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" /></svg>
+      <td className="px-3 py-2">
+        <div className="flex items-center justify-center gap-1">
+          <button type="button" onClick={onRemove} disabled={!canRemove}
+            title={canRemove ? 'Remove this row' : 'Nothing to remove'}
+            className="w-7 h-7 inline-flex items-center justify-center rounded-md border transition-colors disabled:opacity-40 disabled:cursor-not-allowed hover:border-red-400 hover:text-red-600"
+            style={{ borderColor: '#e2e8f0', color: '#94a3b8', background: 'white' }}>
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M20 12H4" /></svg>
           </button>
-        ) : (
-          <span className="text-[10px]" style={{ color: '#cbd5e1' }}>—</span>
-        )}
+          {isLast && (
+            <button type="button" onClick={onAdd} title="Add another row"
+              className="w-7 h-7 inline-flex items-center justify-center rounded-md border transition-colors hover:border-[var(--primary)] hover:text-[var(--primary)]"
+              style={{ borderColor: '#e2e8f0', color: '#64748b', background: 'white' }}>
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" /></svg>
+            </button>
+          )}
+        </div>
       </td>
     </tr>
   )
