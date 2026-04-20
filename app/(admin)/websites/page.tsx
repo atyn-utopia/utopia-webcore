@@ -481,6 +481,8 @@ export default function WebsitesPage() {
 
     <RecentActivity />
 
+    <IntegrationsSection domain={openWebsite} />
+
     {siteInfo && !isWriter && (
       <div className="mt-5 rounded-xl border bg-white p-4 flex items-center justify-between" style={{ borderColor: '#e2e8f0' }}>
         <div><p className="text-xs font-medium" style={{ color: '#475569' }}>Phone Numbers</p><p className="text-[10px]" style={{ color: '#94a3b8' }}>{siteInfo.phone_count} total · {siteInfo.active_phone_count} active{siteInfo.leads_mode && LEADS_MODE[siteInfo.leads_mode] ? ` · ${LEADS_MODE[siteInfo.leads_mode].label} mode` : ''}</p></div>
@@ -488,4 +490,109 @@ export default function WebsitesPage() {
       </div>
     )}
   </div>)
+}
+
+interface IntegrationRow { id: string; website: string; provider: string; property_id: string | null; connected_at: string }
+
+function IntegrationsSection({ domain }: { domain: string }) {
+  const searchParams = useSearchParams()
+  const [rows, setRows] = useState<IntegrationRow[]>([])
+  const [loading, setLoading] = useState(true)
+  const [busy, setBusy] = useState(false)
+  const [flash, setFlash] = useState<{ kind: 'success' | 'error'; text: string } | null>(null)
+
+  function load() {
+    setLoading(true)
+    fetch(`/api/integrations?domain=${encodeURIComponent(domain)}`)
+      .then(r => r.json())
+      .then(d => { if (Array.isArray(d)) setRows(d) })
+      .catch(() => {})
+      .finally(() => setLoading(false))
+  }
+
+  useEffect(() => { load() }, [domain])
+
+  useEffect(() => {
+    const connected = searchParams.get('integration_connected')
+    const err = searchParams.get('integration_error')
+    if (connected) setFlash({ kind: 'success', text: `Connected ${connected.toUpperCase()}` })
+    else if (err) setFlash({ kind: 'error', text: `Connection failed: ${err}` })
+  }, [searchParams])
+
+  const gsc = rows.find(r => r.provider === 'gsc')
+
+  async function connectGsc() {
+    setBusy(true)
+    try {
+      const res = await fetch(`/api/integrations/gsc/connect?domain=${encodeURIComponent(domain)}`)
+      const data = await res.json()
+      if (res.ok && data.url) window.location.href = data.url
+      else setFlash({ kind: 'error', text: data.error ?? 'Failed to start OAuth' })
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  async function disconnectGsc() {
+    if (!confirm('Disconnect Google Search Console for this website?')) return
+    setBusy(true)
+    const res = await fetch('/api/integrations/gsc/disconnect', {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ domain }),
+    })
+    setBusy(false)
+    if (res.ok) { setFlash({ kind: 'success', text: 'Disconnected' }); load() }
+    else setFlash({ kind: 'error', text: 'Disconnect failed' })
+  }
+
+  return (
+    <div className="mt-5 rounded-xl border bg-white overflow-hidden" style={{ borderColor: '#e2e8f0' }}>
+      <div className="px-5 py-3 flex items-center gap-2" style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
+        <div className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: 'white', color: '#475569' }}>
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8"><path strokeLinecap="round" strokeLinejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" /></svg>
+        </div>
+        <h3 className="text-sm font-semibold" style={{ color: '#475569' }}>Integrations</h3>
+      </div>
+
+      {flash && (
+        <div className="px-5 py-2 text-xs" style={{ background: flash.kind === 'success' ? '#f0fdf4' : '#fef2f2', color: flash.kind === 'success' ? '#15803d' : '#b91c1c', borderBottom: '1px solid #e2e8f0' }}>
+          {flash.text}
+        </div>
+      )}
+
+      <div className="px-5 py-4 flex items-center justify-between gap-4 flex-wrap">
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-semibold" style={{ color: 'var(--foreground)' }}>Google Search Console</span>
+            {loading ? (
+              <span className="text-[10px] font-medium px-1.5 py-0.5 rounded" style={{ background: '#f1f5f9', color: '#94a3b8' }}>Loading…</span>
+            ) : gsc ? (
+              <span className="text-[10px] font-medium px-1.5 py-0.5 rounded" style={{ background: '#dcfce7', color: '#15803d' }}>Connected</span>
+            ) : (
+              <span className="text-[10px] font-medium px-1.5 py-0.5 rounded" style={{ background: '#f1f5f9', color: '#64748b' }}>Not connected</span>
+            )}
+          </div>
+          <p className="text-[11px] mt-0.5" style={{ color: '#94a3b8' }}>
+            {gsc
+              ? (gsc.property_id ? `Property: ${gsc.property_id}` : 'No matching GSC property — manual selection coming soon')
+              : 'Pull search impressions, clicks, and top queries from Google.'}
+          </p>
+        </div>
+        {gsc ? (
+          <button type="button" onClick={disconnectGsc} disabled={busy}
+            className="text-[11px] font-medium px-3 py-1.5 rounded-md border disabled:opacity-50 transition-colors"
+            style={{ borderColor: '#e2e8f0', color: '#b91c1c', background: 'white' }}>
+            Disconnect
+          </button>
+        ) : (
+          <button type="button" onClick={connectGsc} disabled={busy}
+            className="text-[11px] font-medium px-3 py-1.5 rounded-md text-white disabled:opacity-50 transition-opacity hover:opacity-90"
+            style={{ background: 'var(--primary)' }}>
+            {busy ? 'Starting…' : 'Connect Search Console'}
+          </button>
+        )}
+      </div>
+    </div>
+  )
 }
