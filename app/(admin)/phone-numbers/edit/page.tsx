@@ -38,7 +38,7 @@ const LEADS_MODE: Record<Mode, { label: string; color: string; bg: string; desc:
   hybrid:   { label: 'Hybrid',   color: '#b45309', bg: '#fef3c7', desc: 'Mix of all-location and specific numbers.' },
 }
 
-const BAR_COLORS = ['#1e3a5f', '#2979d6', '#475569', '#64748b', '#94a3b8', '#cbd5e1']
+const BAR_COLORS = ['#93c5fd', '#c4b5fd', '#f9a8d4', '#fcd34d', '#86efac', '#7dd3fc']
 
 interface ExistingNumber {
   id: string
@@ -209,6 +209,14 @@ export default function ManagePhoneNumbersPage() {
   }, [visibleRows, visibleDrafts])
   const pctTotal = allActiveForPct.reduce((s, r) => s + (r.percentage || 0), 0)
 
+  // Assign a stable color per row so the distribution bar and the row's color
+  // dot line up visually.
+  const colorByKey = useMemo(() => {
+    const map: Record<string, string> = {}
+    allActiveForPct.forEach((r, i) => { map[r.key] = BAR_COLORS[i % BAR_COLORS.length] })
+    return map
+  }, [allActiveForPct])
+
   function patchRow(key: string, patch: Partial<WorkingRow>) {
     setRows(prev => prev.map(r => r.key === key ? { ...r, ...patch, dirty: true } : r))
   }
@@ -219,6 +227,30 @@ export default function ManagePhoneNumbersPage() {
 
   function toggleDelete(key: string) {
     setRows(prev => prev.map(r => r.key === key ? { ...r, markedForDelete: !r.markedForDelete } : r))
+  }
+
+  function applyMode(m: Mode) {
+    setSelectedMode(m)
+    setRows(prev => prev.map(r => {
+      if (m === 'single') {
+        // Deactivate all non-default rows so the computed mode becomes 'single'.
+        if (r.type !== 'default' && r.is_active) return { ...r, is_active: false, dirty: true }
+        if (r.type === 'default' && !r.is_active) return { ...r, is_active: true, dirty: true }
+        return r
+      }
+      if (m === 'rotation') {
+        // Push every active row to 'all' locations; activate default if off.
+        const patch: Partial<WorkingRow> = {}
+        if (r.type === 'default' && !r.is_active) patch.is_active = true
+        if (r.is_active && r.location_slug !== 'all') patch.location_slug = 'all'
+        return Object.keys(patch).length ? { ...r, ...patch, dirty: true } : r
+      }
+      // location / hybrid: let the user shape the data by hand.
+      return r
+    }))
+    setAddDrafts(prev => m === 'rotation'
+      ? prev.map(d => d.location_slug !== 'all' ? { ...d, location_slug: 'all' } : d)
+      : prev)
   }
 
   const deletableRows = visibleRows.filter(r => r.type !== 'default')
@@ -396,7 +428,7 @@ export default function ManagePhoneNumbersPage() {
             <PanelHeader
               title="Leads Mode"
               right={detectedMode && mode !== detectedMode && (
-                <button type="button" onClick={() => setSelectedMode(detectedMode)}
+                <button type="button" onClick={() => applyMode(detectedMode)}
                   className="text-[11px] font-medium underline-offset-2 hover:underline"
                   style={{ color: '#64748b' }}>
                   Reset to auto-detected
@@ -408,7 +440,7 @@ export default function ManagePhoneNumbersPage() {
                 const isSelected = mode === m
                 const isDetected = detectedMode === m
                 return (
-                  <button type="button" key={m} onClick={() => setSelectedMode(m)}
+                  <button type="button" key={m} onClick={() => applyMode(m)}
                     className="text-left rounded-lg p-3.5 border transition-all"
                     style={{
                       background: isSelected ? meta.bg : 'white',
@@ -443,16 +475,22 @@ export default function ManagePhoneNumbersPage() {
                 </span>
               } />
             <div className="px-5 py-4">
-              <div className="flex h-3 rounded-full overflow-hidden" style={{ background: '#f1f5f9' }}>
-                {allActiveForPct.filter(r => r.percentage > 0).map((r, idx) => (
-                  <div key={r.key}
-                    style={{ width: `${r.percentage}%`, background: BAR_COLORS[idx % BAR_COLORS.length], transition: 'width 0.2s' }}
-                    title={`${r.phone_number || 'new'}: ${r.percentage}%`} />
+              <div className="relative flex h-3.5 rounded-full overflow-hidden" style={{ background: '#f1f5f9' }}>
+                {allActiveForPct.filter(r => r.percentage > 0).map(r => (
+                  <div key={r.key} className="relative group cursor-pointer"
+                    style={{ width: `${r.percentage}%`, background: colorByKey[r.key] ?? '#cbd5e1', transition: 'width 0.2s' }}>
+                    <div className="pointer-events-none absolute left-1/2 -translate-x-1/2 bottom-full mb-1.5 px-2 py-1 rounded text-[10px] font-medium text-white whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity z-10 shadow"
+                      style={{ background: '#0f172a' }}>
+                      <span className="font-mono">{r.phone_number || '(new)'}</span> · {r.percentage}%
+                    </div>
+                  </div>
                 ))}
               </div>
               {pctTotal !== 100 && (
-                <p className="text-[11px] mt-2" style={{ color: '#b91c1c' }}>
-                  Total must be exactly 100% before saving.
+                <p className="text-[11px] mt-2" style={{ color: pctTotal > 100 ? '#b91c1c' : '#b45309' }}>
+                  {pctTotal > 100
+                    ? `Over by ${pctTotal - 100}% — reduce some values before saving.`
+                    : `Under by ${100 - pctTotal}% — total must be exactly 100%.`}
                 </p>
               )}
             </div>
@@ -493,10 +531,23 @@ export default function ManagePhoneNumbersPage() {
               <table className="w-full text-sm">
                 <thead>
                   <tr style={{ background: '#fafbfc', borderBottom: '1px solid #e2e8f0' }}>
+                    <Th style={{ width: 76, paddingLeft: '1rem' }}>&nbsp;</Th>
                     <Th>Phone Number</Th>
                     <Th>WhatsApp Text</Th>
                     {showLocationColumn && <Th style={{ width: 180 }}>Location</Th>}
-                    <Th style={{ width: 90, textAlign: 'right' }}>%</Th>
+                    <Th style={{ width: 90, textAlign: 'right' }}>
+                      <span className="inline-flex items-center gap-1 justify-end">
+                        %
+                        {pctTotal > 100 && (
+                          <span className="inline-flex items-center gap-0.5 text-[9px] font-bold px-1 py-0.5 rounded normal-case tracking-normal"
+                            style={{ background: '#fef2f2', color: '#b91c1c', border: '1px solid #fecaca' }}
+                            title={`Over by ${pctTotal - 100}%`}>
+                            <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" /></svg>
+                            +{pctTotal - 100}%
+                          </span>
+                        )}
+                      </span>
+                    </Th>
                     <Th>Label</Th>
                     <Th style={{ width: 90, textAlign: 'center' }}>Active</Th>
                     <Th style={{ width: 52, textAlign: 'center' }}>
@@ -512,7 +563,7 @@ export default function ManagePhoneNumbersPage() {
                 <tbody>
                   {visibleRows.length === 0 && visibleDrafts.length === 0 && (
                     <tr>
-                      <td colSpan={showLocationColumn ? 7 : 6} className="px-5 py-10 text-center text-sm" style={{ color: '#94a3b8' }}>
+                      <td colSpan={showLocationColumn ? 8 : 7} className="px-5 py-10 text-center text-sm" style={{ color: '#94a3b8' }}>
                         {mode === 'single' ? 'No default number yet — add one below.' : 'No numbers yet for this website.'}
                       </td>
                     </tr>
@@ -523,6 +574,7 @@ export default function ManagePhoneNumbersPage() {
                       waOpenKey={waOpenKey} setWaOpenKey={setWaOpenKey}
                       showLocationColumn={showLocationColumn}
                       locationAllowsAll={locationAllowsAll}
+                      rowColor={colorByKey[r.key]}
                       onPatch={patch => patchRow(r.key, patch)}
                       onToggleDelete={() => toggleDelete(r.key)}
                     />
@@ -533,6 +585,7 @@ export default function ManagePhoneNumbersPage() {
                       waOpenKey={waOpenKey} setWaOpenKey={setWaOpenKey}
                       showLocationColumn={showLocationColumn}
                       locationAllowsAll={locationAllowsAll}
+                      rowColor={colorByKey[d.key]}
                       isLast={idx === visibleDrafts.length - 1}
                       onPatch={patch => patchDraft(d.key, patch)}
                       onAdd={addBlankDraft}
@@ -544,9 +597,15 @@ export default function ManagePhoneNumbersPage() {
           </Panel>
 
           {/* Preview */}
-          <Panel>
+          <Panel background="#f0fdf4" borderColor="#bbf7d0">
             <PanelHeader title="WhatsApp Preview"
-              subtitle={<>Format: <code className="text-[11px] px-1.5 py-0.5 rounded" style={{ background: '#f1f5f9', color: '#475569' }}>Hi &lt;domain&gt;[ &lt;location&gt;], &lt;text&gt;</code></>} />
+              borderColor="#bbf7d0"
+              icon={
+                <svg className="w-5 h-5" fill="#16a34a" viewBox="0 0 24 24" aria-hidden>
+                  <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.67-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.693.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+                </svg>
+              }
+              subtitle={<>Format: <code className="text-[11px] px-1.5 py-0.5 rounded" style={{ background: 'white', color: '#15803d', border: '1px solid #bbf7d0' }}>Hi &lt;domain&gt;[ &lt;location&gt;], &lt;text&gt;</code></>} />
             <div className="p-5 space-y-2">
               {allActiveForPct.length === 0 ? (
                 <p className="text-xs text-center py-4" style={{ color: '#94a3b8' }}>No active rows to preview yet.</p>
@@ -586,7 +645,7 @@ export default function ManagePhoneNumbersPage() {
             style={{ borderColor: '#e2e8f0', background: 'white' }}>
             <div className="flex items-center gap-3 text-xs" style={{ color: '#64748b' }}>
               <Link href={`/phone-numbers${website ? `?website=${encodeURIComponent(website)}` : ''}`}
-                className="font-medium underline-offset-2 hover:underline">
+                className="font-medium underline underline-offset-2 hover:text-[var(--primary)] transition-colors">
                 Cancel
               </Link>
               {hasChanges ? (
@@ -616,20 +675,29 @@ export default function ManagePhoneNumbersPage() {
 
 /* ─── Layout primitives ───────────────────────────────────────── */
 
-function Panel({ children }: { children: React.ReactNode }) {
+function Panel({ children, background, borderColor }: { children: React.ReactNode; background?: string; borderColor?: string }) {
   return (
-    <div className="rounded-xl border overflow-hidden" style={{ borderColor: '#e2e8f0', background: 'white' }}>
+    <div className="rounded-xl border overflow-hidden" style={{ borderColor: borderColor ?? '#e2e8f0', background: background ?? 'white' }}>
       {children}
     </div>
   )
 }
 
-function PanelHeader({ title, subtitle, right }: { title: string; subtitle?: React.ReactNode; right?: React.ReactNode }) {
+function PanelHeader({ title, subtitle, right, icon, borderColor }: {
+  title: string
+  subtitle?: React.ReactNode
+  right?: React.ReactNode
+  icon?: React.ReactNode
+  borderColor?: string
+}) {
   return (
-    <div className="px-5 py-3 flex items-center justify-between gap-3" style={{ borderBottom: '1px solid #f1f5f9' }}>
-      <div className="min-w-0">
-        <h3 className="text-sm font-semibold" style={{ color: 'var(--foreground)' }}>{title}</h3>
-        {subtitle && <div className="text-[11px] mt-0.5" style={{ color: '#94a3b8' }}>{subtitle}</div>}
+    <div className="px-5 py-3 flex items-center justify-between gap-3" style={{ borderBottom: `1px solid ${borderColor ?? '#f1f5f9'}` }}>
+      <div className="min-w-0 flex items-center gap-2">
+        {icon && <span className="flex-shrink-0">{icon}</span>}
+        <div className="min-w-0">
+          <h3 className="text-sm font-semibold" style={{ color: 'var(--foreground)' }}>{title}</h3>
+          {subtitle && <div className="text-[11px] mt-0.5" style={{ color: '#94a3b8' }}>{subtitle}</div>}
+        </div>
       </div>
       {right && <div className="flex-shrink-0">{right}</div>}
     </div>
@@ -767,13 +835,14 @@ function ActiveToggle({ on, onChange, dimmed = false }: { on: boolean; onChange:
 
 /* ─── Row renderers ───────────────────────────────────────────── */
 
-function RowEditor({ r, existingTexts, waOpenKey, setWaOpenKey, showLocationColumn, locationAllowsAll, onPatch, onToggleDelete }: {
+function RowEditor({ r, existingTexts, waOpenKey, setWaOpenKey, showLocationColumn, locationAllowsAll, rowColor, onPatch, onToggleDelete }: {
   r: WorkingRow
   existingTexts: string[]
   waOpenKey: string | null
   setWaOpenKey: (k: string | null) => void
   showLocationColumn: boolean
   locationAllowsAll: boolean
+  rowColor: string | undefined
   onPatch: (patch: Partial<WorkingRow>) => void
   onToggleDelete: () => void
 }) {
@@ -788,14 +857,17 @@ function RowEditor({ r, existingTexts, waOpenKey, setWaOpenKey, showLocationColu
 
   return (
     <tr style={{ background: bg, borderBottom: '1px solid #f1f5f9', textDecoration: r.markedForDelete ? 'line-through' : 'none' }}>
-      <td className="px-3 py-2">
+      <td className="py-2" style={{ paddingLeft: '1rem', paddingRight: '0.5rem' }}>
         <div className="flex items-center gap-1.5">
+          <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: rowColor ?? '#e2e8f0', opacity: r.is_active && !r.markedForDelete ? 1 : 0.3 }} />
           {isDefault && <span className="text-[9px] font-bold px-1.5 py-0.5 rounded flex-shrink-0" style={{ background: 'var(--primary)', color: 'white' }}>★</span>}
-          <input type="text" value={r.phone_number}
-            onChange={e => onPatch({ phone_number: e.target.value })}
-            className="flex-1 min-w-0 px-2 py-1.5 text-sm font-mono rounded border focus:outline-none focus:border-[var(--primary)]"
-            style={{ borderColor: '#e2e8f0', background: 'white' }} />
         </div>
+      </td>
+      <td className="px-3 py-2">
+        <input type="text" value={r.phone_number}
+          onChange={e => onPatch({ phone_number: e.target.value })}
+          className="w-full px-2 py-1.5 text-sm font-mono rounded border focus:outline-none focus:border-[var(--primary)]"
+          style={{ borderColor: '#e2e8f0', background: 'white' }} />
       </td>
       <td className="px-3 py-2 min-w-[200px]">
         <TextAutocomplete value={r.whatsapp_text} onChange={v => onPatch({ whatsapp_text: v })}
@@ -835,28 +907,32 @@ function RowEditor({ r, existingTexts, waOpenKey, setWaOpenKey, showLocationColu
   )
 }
 
-function DraftRowEditor({ d, existingTexts, waOpenKey, setWaOpenKey, showLocationColumn, locationAllowsAll, isLast, onPatch, onAdd }: {
+function DraftRowEditor({ d, existingTexts, waOpenKey, setWaOpenKey, showLocationColumn, locationAllowsAll, rowColor, isLast, onPatch, onAdd }: {
   d: WorkingRow
   existingTexts: string[]
   waOpenKey: string | null
   setWaOpenKey: (k: string | null) => void
   showLocationColumn: boolean
   locationAllowsAll: boolean
+  rowColor: string | undefined
   isLast: boolean
   onPatch: (patch: Partial<WorkingRow>) => void
   onAdd: () => void
 }) {
   return (
     <tr style={{ background: '#f8fafc', borderBottom: '1px solid #f1f5f9' }}>
-      <td className="px-3 py-2">
+      <td className="py-2" style={{ paddingLeft: '1rem', paddingRight: '0.5rem' }}>
         <div className="flex items-center gap-1.5">
+          <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: rowColor ?? '#e2e8f0', opacity: d.is_active ? 1 : 0.3 }} />
           <span className="text-[9px] font-bold px-1.5 py-0.5 rounded flex-shrink-0" style={{ background: '#16a34a', color: 'white' }}>NEW</span>
-          <input type="text" value={d.phone_number}
-            onChange={e => onPatch({ phone_number: e.target.value })}
-            placeholder="60123456789"
-            className="flex-1 min-w-0 px-2 py-1.5 text-sm font-mono rounded border focus:outline-none focus:border-[var(--primary)]"
-            style={{ borderColor: '#e2e8f0', background: 'white' }} />
         </div>
+      </td>
+      <td className="px-3 py-2">
+        <input type="text" value={d.phone_number}
+          onChange={e => onPatch({ phone_number: e.target.value })}
+          placeholder="60123456789"
+          className="w-full px-2 py-1.5 text-sm font-mono rounded border focus:outline-none focus:border-[var(--primary)]"
+          style={{ borderColor: '#e2e8f0', background: 'white' }} />
       </td>
       <td className="px-3 py-2 min-w-[200px]">
         <TextAutocomplete value={d.whatsapp_text} onChange={v => onPatch({ whatsapp_text: v })}
