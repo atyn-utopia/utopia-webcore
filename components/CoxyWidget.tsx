@@ -22,7 +22,7 @@ type Pos = { anchor: Anchor; right: number; y: number }
 
 const DEFAULT_POS: Pos = { anchor: 'bottom', right: 20, y: 26 }
 // Dashboard default: sits roughly where the old character.gif lived in the welcome banner
-const DASHBOARD_POS: Pos = { anchor: 'top', right: 80, y: 145 }
+const DASHBOARD_POS: Pos = { anchor: 'top', right: 80, y: 148 }
 
 export default function CoxyWidget() {
   const { open, setOpen } = useCoxy()
