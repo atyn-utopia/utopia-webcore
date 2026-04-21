@@ -29,7 +29,7 @@ export default function DashboardClient({ role, isScoped, websiteCount, phoneCou
 
   return (
     <div>
-      {/* Welcome banner */}
+      {/* Welcome banner — Coxy floats in the top-right of the page now (see CoxyWidget) */}
       <div className="rounded-xl overflow-hidden mb-8 relative border" style={{ background: 'linear-gradient(to right, #f0f4f8, #ffffff)', borderColor: '#e2e8f0', minHeight: '140px' }}>
         <div className="relative z-10 p-6 sm:p-8 pr-32 sm:pr-48">
           <h1 className="text-xl sm:text-2xl font-bold text-slate-900 mb-1" style={{ fontFamily: 'var(--font-display)' }}>{t('dashboard.welcome')}</h1>
@@ -43,16 +43,6 @@ export default function DashboardClient({ role, isScoped, websiteCount, phoneCou
             Ask Coxy
           </button>
         </div>
-        <button
-          type="button"
-          onClick={() => openCoxy(true)}
-          aria-label="Ask Coxy"
-          className="absolute right-0 bottom-0 h-full flex items-end focus:outline-none group"
-          style={{ maxHeight: '140px' }}
-        >
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/character.gif" alt="Coxy, your webcore assistant — click to chat" className="h-full object-contain object-right-bottom transition-transform group-hover:scale-105" style={{ maxHeight: '140px' }} />
-        </button>
       </div>
 
       {/* Stats */}

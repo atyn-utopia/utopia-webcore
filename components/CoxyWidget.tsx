@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
+import { usePathname } from 'next/navigation'
 import { useChat } from '@ai-sdk/react'
 import { DefaultChatTransport } from 'ai'
 import { useCoxy } from '@/contexts/CoxyContext'
@@ -15,28 +16,47 @@ const SUGGESTIONS = [
 const POS_STORAGE_KEY = 'coxy-floating-pos'
 const DRAG_THRESHOLD = 5 // px moved before click is suppressed and we treat it as a drag
 const BUBBLE_SIZE = 120 // approx width/height so we can clamp to the viewport
-const DEFAULT_POS = { right: 20, bottom: 20 }
+
+type Anchor = 'top' | 'bottom'
+type Pos = { anchor: Anchor; right: number; y: number }
+
+const DEFAULT_POS: Pos = { anchor: 'bottom', right: 20, y: 20 }
+// Dashboard default: sits roughly where the old character.gif lived in the welcome banner
+const DASHBOARD_POS: Pos = { anchor: 'top', right: 40, y: 110 }
 
 export default function CoxyWidget() {
   const { open, setOpen } = useCoxy()
+  const pathname = usePathname()
+  const isDashboard = pathname === '/'
   const [input, setInput] = useState('')
   const scrollRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
 
-  // Floating bubble position (right + bottom offsets, so it sticks to corners on resize)
-  const [pos, setPos] = useState<{ right: number; bottom: number }>(DEFAULT_POS)
-  const dragRef = useRef<{ startX: number; startY: number; startRight: number; startBottom: number; moved: boolean } | null>(null)
+  const [pos, setPos] = useState<Pos>(DEFAULT_POS)
+  const dragRef = useRef<{ startX: number; startY: number; startRight: number; startPosY: number; anchor: Anchor; moved: boolean } | null>(null)
   const [isDragging, setIsDragging] = useState(false)
 
-  // Load saved position on mount
+  // Reset position when route changes: dashboard has its own default, other pages use saved/default
   useEffect(() => {
+    if (isDashboard) {
+      setPos(DASHBOARD_POS)
+      return
+    }
     try {
       const saved = localStorage.getItem(POS_STORAGE_KEY)
-      if (saved) setPos(JSON.parse(saved))
+      if (saved) {
+        const parsed = JSON.parse(saved)
+        // Migrate legacy bottom-only storage shape
+        if (parsed.anchor) setPos(parsed)
+        else if (typeof parsed.bottom === 'number') setPos({ anchor: 'bottom', right: parsed.right ?? 20, y: parsed.bottom })
+        else setPos(DEFAULT_POS)
+      } else {
+        setPos(DEFAULT_POS)
+      }
     } catch {
-      // ignore — fall back to default
+      setPos(DEFAULT_POS)
     }
-  }, [])
+  }, [isDashboard])
 
   function onBubblePointerDown(e: React.PointerEvent<HTMLButtonElement>) {
     e.preventDefault()
@@ -45,7 +65,8 @@ export default function CoxyWidget() {
       startX: e.clientX,
       startY: e.clientY,
       startRight: pos.right,
-      startBottom: pos.bottom,
+      startPosY: pos.y,
+      anchor: pos.anchor,
       moved: false,
     }
     setIsDragging(true)
@@ -56,10 +77,13 @@ export default function CoxyWidget() {
     const dx = e.clientX - dragRef.current.startX
     const dy = e.clientY - dragRef.current.startY
     if (Math.abs(dx) > DRAG_THRESHOLD || Math.abs(dy) > DRAG_THRESHOLD) dragRef.current.moved = true
-    // Moving cursor right (+dx) reduces distance from right edge
+    // +dx moves right → distance from right edge decreases
     const nextRight = Math.max(0, Math.min(window.innerWidth - BUBBLE_SIZE, dragRef.current.startRight - dx))
-    const nextBottom = Math.max(0, Math.min(window.innerHeight - BUBBLE_SIZE, dragRef.current.startBottom - dy))
-    setPos({ right: nextRight, bottom: nextBottom })
+    // Top anchor: +dy increases top value. Bottom anchor: +dy decreases bottom value.
+    const nextY = dragRef.current.anchor === 'top'
+      ? Math.max(0, Math.min(window.innerHeight - BUBBLE_SIZE, dragRef.current.startPosY + dy))
+      : Math.max(0, Math.min(window.innerHeight - BUBBLE_SIZE, dragRef.current.startPosY - dy))
+    setPos(p => ({ ...p, right: nextRight, y: nextY }))
   }
 
   function onBubblePointerUp(e: React.PointerEvent<HTMLButtonElement>) {
@@ -69,8 +93,8 @@ export default function CoxyWidget() {
     setIsDragging(false)
     if (!wasMoved) {
       setOpen(true)
-    } else {
-      // Persist new position
+    } else if (!isDashboard) {
+      // Persist new position — dashboard always resets on visit, so we don't save it
       try { localStorage.setItem(POS_STORAGE_KEY, JSON.stringify(pos)) } catch {}
     }
   }
@@ -123,7 +147,7 @@ export default function CoxyWidget() {
           className={`fixed z-40 group touch-none ${isDragging ? '' : 'transition-all duration-200 hover:scale-105'}`}
           style={{
             right: `${pos.right}px`,
-            bottom: `${pos.bottom}px`,
+            ...(pos.anchor === 'top' ? { top: `${pos.y}px` } : { bottom: `${pos.y}px` }),
             cursor: isDragging ? 'grabbing' : 'grab',
             filter: 'drop-shadow(0 12px 24px rgba(15, 23, 42, 0.25)) drop-shadow(0 4px 8px rgba(15, 23, 42, 0.15))',
           }}
