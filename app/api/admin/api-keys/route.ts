@@ -3,6 +3,7 @@ import { createServiceClient } from '@/lib/supabase/service'
 import { createClient } from '@/lib/supabase/server'
 import { generateApiKey } from '@/lib/validateApiKey'
 import { getUserScope } from '@/lib/getUserScope'
+import { resolveActor, writeAuditLog } from '@/lib/auditLog'
 
 const ALLOWED_ROLES = new Set(['admin', 'designer', 'external_designer'])
 const GRACE_MS = 5 * 60 * 60 * 1000 // 5 hours
@@ -20,6 +21,89 @@ async function authorize() {
   }
 
   return { user, scope }
+}
+
+/**
+ * Sweep orphaned websites whose API keys were never used within the grace window.
+ * Only runs when the caller is admin, and only deletes a website when:
+ *   - At least one api_keys row for the domain was created > GRACE_MS ago
+ *   - ALL api_keys rows for the domain are expired_unused (is_active=false, last_used=null)
+ *   - No phone_numbers, products, blog_posts, OR website_integrations exist for the domain
+ * On delete, writes an audit log entry with entity_type='website', action='delete'.
+ */
+async function sweepOrphanedWebsites(userId: string) {
+  const service = createServiceClient()
+  const cutoffIso = new Date(Date.now() - GRACE_MS).toISOString()
+
+  // Candidate websites: distinct `website` values from api_keys older than the grace window
+  const { data: candidateRows } = await service
+    .from('api_keys')
+    .select('website')
+    .lt('created_at', cutoffIso)
+    .neq('website', '*')
+
+  const candidates = [...new Set((candidateRows ?? []).map(r => r.website as string))]
+  if (candidates.length === 0) return
+
+  for (const domain of candidates) {
+    try {
+      // Every api_key for this domain must be expired_unused
+      const { data: keys } = await service
+        .from('api_keys')
+        .select('is_active, last_used')
+        .eq('website', domain)
+      if (!keys || keys.length === 0) continue
+      const allExpiredUnused = keys.every(k => !k.is_active && k.last_used === null)
+      if (!allExpiredUnused) continue
+
+      // No other signals of actual use
+      const [phoneRes, productRes, blogRes, integrationRes] = await Promise.all([
+        service.from('phone_numbers').select('*', { count: 'exact', head: true }).eq('website', domain),
+        service.from('products').select('*', { count: 'exact', head: true }).eq('website', domain),
+        service.from('blog_posts').select('*', { count: 'exact', head: true }).eq('website', domain),
+        service.from('website_integrations').select('*', { count: 'exact', head: true }).eq('website', domain),
+      ])
+      if ((phoneRes.count ?? 0) > 0) continue
+      if ((productRes.count ?? 0) > 0) continue
+      if ((blogRes.count ?? 0) > 0) continue
+      if ((integrationRes.count ?? 0) > 0) continue
+
+      // Fetch the company_websites row so we have the id + company context for the audit log
+      const { data: cw } = await service
+        .from('company_websites')
+        .select('id, company_id')
+        .eq('domain', domain)
+        .maybeSingle()
+      if (!cw) continue
+
+      // Look up company name for the audit record (best-effort)
+      const { data: company } = await service.from('companies').select('name').eq('id', cw.company_id).maybeSingle()
+
+      // Delete the company_websites link
+      const { error: delErr } = await service.from('company_websites').delete().eq('domain', domain)
+      if (delErr) continue
+
+      // Audit log — mark actor as auto-sweep so it's recognisable in /audit
+      const actor = await resolveActor(userId)
+      await writeAuditLog({
+        actor: { ...actor, name: `${actor.name} (auto-sweep)` },
+        entityType: 'website',
+        entityId: cw.id,
+        action: 'delete',
+        website: domain,
+        label: domain,
+        metadata: {
+          reason: 'auto-removed — no API usage within 5h grace window',
+          company_id: cw.company_id,
+          company_name: company?.name ?? null,
+          stale_api_keys: keys.length,
+        },
+      })
+    } catch {
+      // Skip this candidate and continue with the rest
+      continue
+    }
+  }
 }
 
 /**
@@ -46,6 +130,11 @@ export async function GET() {
     .lt('created_at', cutoffIso)
     .is('last_used', null)
     .eq('is_active', true)
+
+  // Sweep orphaned websites (admin-only — scoped users shouldn't trigger cross-company deletes)
+  if (auth.scope.role === 'admin') {
+    try { await sweepOrphanedWebsites(auth.user.id) } catch {}
+  }
 
   let query = service
     .from('api_keys')
