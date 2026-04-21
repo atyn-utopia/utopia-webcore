@@ -20,9 +20,9 @@ const BUBBLE_SIZE = 120 // approx width/height so we can clamp to the viewport
 type Anchor = 'top' | 'bottom'
 type Pos = { anchor: Anchor; right: number; y: number }
 
-const DEFAULT_POS: Pos = { anchor: 'bottom', right: 20, y: 23 }
+const DEFAULT_POS: Pos = { anchor: 'bottom', right: 20, y: 26 }
 // Dashboard default: sits roughly where the old character.gif lived in the welcome banner
-const DASHBOARD_POS: Pos = { anchor: 'top', right: 80, y: 157 }
+const DASHBOARD_POS: Pos = { anchor: 'top', right: 80, y: 154 }
 
 export default function CoxyWidget() {
   const { open, setOpen } = useCoxy()

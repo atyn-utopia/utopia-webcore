@@ -129,6 +129,8 @@ export default function ManagePhoneNumbersPage() {
   const [rows, setRows] = useState<WorkingRow[]>([])
   const [addDrafts, setAddDrafts] = useState<WorkingRow[]>([emptyNewRow()])
   const [selectedMode, setSelectedMode] = useState<Mode | null>(null)
+  // Mode at the time of the last save / initial fetch — used to tell if the mode selector was changed.
+  const [savedMode, setSavedMode] = useState<Mode | null>(null)
   const [existingTexts, setExistingTexts] = useState<string[]>([])
   const [loading, setLoading] = useState(false)
   const [saving, setSaving] = useState(false)
@@ -182,11 +184,30 @@ export default function ManagePhoneNumbersPage() {
 
   const detectedMode = useMemo<Mode | null>(() => computeMode(rows.filter(r => r.is_active && !r.markedForDelete)), [rows])
 
+  // When a fresh set of rows is loaded, seed both the selected and the saved baseline from
+  // whatever mode the data actually represents (preferring a stored UI preference per website).
   useEffect(() => {
-    setSelectedMode(prev => prev ?? detectedMode)
-  }, [detectedMode])
+    if (detectedMode === null) return
+    if (savedMode !== null) return
+    let initial: Mode = detectedMode
+    if (typeof window !== 'undefined' && website) {
+      try {
+        const pref = localStorage.getItem(`leads_mode_pref:${website}`) as Mode | null
+        if (pref && ['single', 'rotation', 'location', 'hybrid'].includes(pref)) initial = pref
+      } catch {}
+    }
+    setSavedMode(initial)
+    setSelectedMode(prev => prev ?? initial)
+  }, [detectedMode, savedMode, website])
+
+  // Reset mode state when switching to a different website
+  useEffect(() => {
+    setSavedMode(null)
+    setSelectedMode(null)
+  }, [website])
 
   const mode: Mode | null = selectedMode ?? detectedMode
+  const modeDirty = savedMode !== null && selectedMode !== null && selectedMode !== savedMode
   const showLocationColumn = mode !== 'rotation'
   const locationAllowsAll = mode !== 'location'
 
@@ -260,7 +281,7 @@ export default function ManagePhoneNumbersPage() {
   const deletingCount = rows.filter(r => r.markedForDelete).length
   const dirtyCount = rows.filter(r => r.dirty && !r.markedForDelete).length
   const newCount = addDrafts.filter(d => d.phone_number.trim()).length
-  const hasChanges = deletingCount > 0 || dirtyCount > 0 || newCount > 0
+  const hasChanges = deletingCount > 0 || dirtyCount > 0 || newCount > 0 || modeDirty
 
   async function bulkDeleteSelected() {
     if (selectedRows.length === 0) return
@@ -311,9 +332,14 @@ export default function ManagePhoneNumbersPage() {
       return
     }
 
+    const bits: string[] = []
+    if (dirtyCount > 0) bits.push(`${dirtyCount} updated`)
+    if (newCount > 0) bits.push(`${newCount} added`)
+    if (deletingCount > 0) bits.push(`${deletingCount} deleted`)
+    if (modeDirty) bits.push(`mode → ${selectedMode}`)
     const ok = await confirm({
       title: 'Save changes?',
-      message: `${dirtyCount} updated · ${newCount} added · ${deletingCount} deleted. This cannot be undone.`,
+      message: `${bits.join(' · ')}. This cannot be undone.`,
       confirmLabel: 'Save',
       variant: 'info',
     })
@@ -364,6 +390,11 @@ export default function ManagePhoneNumbersPage() {
           throw new Error(err.error ?? `Add failed for ${d.phone_number}`)
         }
       }
+      // Persist mode preference for this website
+      if (selectedMode && typeof window !== 'undefined' && website) {
+        try { localStorage.setItem(`leads_mode_pref:${website}`, selectedMode) } catch {}
+      }
+      setSavedMode(selectedMode)
       toast.success('All changes saved', 'Saved')
       setAddDrafts([emptyNewRow()])
       await fetchExisting(website)
