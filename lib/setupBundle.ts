@@ -144,6 +144,18 @@ Stick to this format so events group correctly in webcore:
 - Track clicks/impressions from client components only
 - Never expose \`WEBCORE_API_KEY\` to the client bundle — it's server-only
 
+## Google Search Console verification (optional)
+
+If this site needs to appear in the webcore admin's Search Console card:
+
+1. The user adds a URL-prefix property at https://search.google.com/search-console
+2. Google shows a meta tag like \`<meta name="google-site-verification" content="aBcDeF123..." />\`
+3. User copies ONLY the content value (\`aBcDeF123...\`) and puts it in \`.env.local\` as \`NEXT_PUBLIC_GSC_VERIFICATION=aBcDeF123...\`
+4. Deploy — \`<WebcoreTracker />\` renders the meta tag automatically
+5. User clicks Verify in Search Console
+
+Alternative: if they control DNS for the domain, they can use the **Domain property** method (one TXT record covers the whole domain forever). No code change needed.
+
 ## Starting checklist
 
 1. Add \`<WebcoreTracker />\` to the root layout
@@ -151,6 +163,7 @@ Stick to this format so events group correctly in webcore:
 3. Replace any hardcoded products with \`fetchProducts()\` calls
 4. Wire up \`window.uwc()\` calls on all CTA buttons
 5. Verify in webcore admin that pageviews + clicks appear in the Analytics tab
+6. If the user wants GSC data, follow the verification steps above
 `
 }
 
@@ -195,6 +208,12 @@ WEBCORE_API_KEY=${apiKey}
 
 # This site's registered domain in webcore. Must match exactly.
 NEXT_PUBLIC_WEBCORE_DOMAIN=${domain}
+
+# Google Search Console verification code (optional).
+# Get it from https://search.google.com/search-console after adding a
+# URL-prefix property. Paste ONLY the "content" value from the meta tag,
+# not the whole <meta> element. <WebcoreTracker /> will render it for you.
+# NEXT_PUBLIC_GSC_VERIFICATION=
 
 # Base URL (shouldn't need to change)
 WEBCORE_BASE_URL=https://utopia-webcore.vercel.app
@@ -410,15 +429,25 @@ function trackerTsx({ domain }: { domain: string }): string {
  *       </html>
  *     )
  *   }
+ *
+ * Also renders the Google Search Console verification meta tag if
+ * NEXT_PUBLIC_GSC_VERIFICATION is set in .env.local. That lets you verify
+ * ownership of this site in Search Console by pasting ONE env var — no
+ * need to touch layout code.
  */
 export default function WebcoreTracker() {
   const domain = process.env.NEXT_PUBLIC_WEBCORE_DOMAIN ?? '${domain}'
+  const gscVerification = process.env.NEXT_PUBLIC_GSC_VERIFICATION
+
   return (
-    <script
-      defer
-      src="https://utopia-webcore.vercel.app/t.js"
-      data-website={domain}
-    />
+    <>
+      {gscVerification && <meta name="google-site-verification" content={gscVerification} />}
+      <script
+        defer
+        src="https://utopia-webcore.vercel.app/t.js"
+        data-website={domain}
+      />
+    </>
   )
 }
 `

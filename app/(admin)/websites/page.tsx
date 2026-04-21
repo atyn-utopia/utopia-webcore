@@ -539,6 +539,7 @@ function IntegrationsSection({ domain }: { domain: string }) {
   const [propsError, setPropsError] = useState<string | null>(null)
   const [selected, setSelected] = useState<string>('')
   const [saving, setSaving] = useState(false)
+  const [showVerifyHelp, setShowVerifyHelp] = useState(false)
 
   function load() {
     setLoading(true)
@@ -666,6 +667,12 @@ function IntegrationsSection({ domain }: { domain: string }) {
               ? (gsc.property_id ? `Property: ${gsc.property_id}` : 'No matching GSC property — pick one manually below.')
               : 'Pull search impressions, clicks, and top queries from Google.'}
           </p>
+          <button type="button" onClick={() => setShowVerifyHelp(v => !v)}
+            className="inline-flex items-center gap-1 text-[11px] font-medium mt-1.5 transition-colors hover:underline"
+            style={{ color: 'var(--primary)' }}>
+            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+            {showVerifyHelp ? 'Hide' : 'How does the designer verify this site in Search Console?'}
+          </button>
         </div>
         <div className="flex items-center gap-2 flex-shrink-0">
           {gsc && (
@@ -690,6 +697,36 @@ function IntegrationsSection({ domain }: { domain: string }) {
           )}
         </div>
       </div>
+
+      {/* Verification help */}
+      {showVerifyHelp && (
+        <div className="px-5 py-4 text-xs space-y-4" style={{ background: '#fafbfc', borderTop: '1px solid #e2e8f0', color: '#475569' }}>
+          <div>
+            <p className="font-semibold mb-1" style={{ color: 'var(--foreground)' }}>1. Meta tag method (easiest — per-site)</p>
+            <p className="mb-2" style={{ color: '#64748b' }}>Works when the designer uses our Next.js setup bundle.</p>
+            <ol className="list-decimal ml-5 space-y-1" style={{ color: '#475569' }}>
+              <li>Designer opens <a href="https://search.google.com/search-console" target="_blank" rel="noopener noreferrer" className="underline" style={{ color: 'var(--primary)' }}>search.google.com/search-console</a> → <strong>Add property</strong> → <strong>URL prefix</strong> → types <code className="px-1 rounded font-mono" style={{ background: '#f1f5f9' }}>https://{domain}</code></li>
+              <li>Google shows: <code className="block mt-1 p-1.5 rounded font-mono text-[10px] break-all" style={{ background: '#f1f5f9' }}>&lt;meta name=&quot;google-site-verification&quot; content=&quot;aBcDeF123...&quot; /&gt;</code></li>
+              <li>Designer copies just the <strong>content value</strong> (e.g. <code className="px-1 rounded font-mono" style={{ background: '#f1f5f9' }}>aBcDeF123...</code>) and pastes it into <code className="px-1 rounded font-mono" style={{ background: '#f1f5f9' }}>.env.local</code>:<br /><code className="block mt-1 p-1.5 rounded font-mono text-[10px]" style={{ background: '#f1f5f9' }}>NEXT_PUBLIC_GSC_VERIFICATION=aBcDeF123...</code></li>
+              <li>Redeploy the designer site. The <code className="px-1 rounded font-mono" style={{ background: '#f1f5f9' }}>&lt;WebcoreTracker /&gt;</code> component in the setup bundle renders the meta tag automatically.</li>
+              <li>Back in GSC → click <strong>Verify</strong> → ✅</li>
+              <li>Come back here → click <strong>Select property</strong> above → pick the newly verified one.</li>
+            </ol>
+          </div>
+          <div style={{ borderTop: '1px solid #e2e8f0', paddingTop: '12px' }}>
+            <p className="font-semibold mb-1" style={{ color: 'var(--foreground)' }}>2. DNS TXT method (best — covers the whole domain forever)</p>
+            <p className="mb-2" style={{ color: '#64748b' }}>Do this if you control the domain&apos;s DNS. Once, per domain.</p>
+            <ol className="list-decimal ml-5 space-y-1" style={{ color: '#475569' }}>
+              <li>In GSC → <strong>Add property</strong> → <strong>Domain</strong> → types <code className="px-1 rounded font-mono" style={{ background: '#f1f5f9' }}>{domain.replace(/^www\./, '')}</code> (no https://)</li>
+              <li>Google gives a TXT record like <code className="px-1 rounded font-mono text-[10px]" style={{ background: '#f1f5f9' }}>google-site-verification=AbCdEf...</code></li>
+              <li>Add that TXT record at your DNS provider (Cloudflare, GoDaddy, Vercel DNS, etc.) on the root domain.</li>
+              <li>Wait 1–10 min → click <strong>Verify</strong> in GSC.</li>
+              <li>That single record verifies <strong>every subdomain + https + www</strong> — any future site under this domain is already good to go.</li>
+              <li>Property appears here as <code className="px-1 rounded font-mono" style={{ background: '#f1f5f9' }}>sc-domain:{domain.replace(/^www\./, '')}</code> → Select it above.</li>
+            </ol>
+          </div>
+        </div>
+      )}
 
       {/* GSC property picker */}
       {showPicker && gsc && (
