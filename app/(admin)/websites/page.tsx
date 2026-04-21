@@ -5,9 +5,12 @@ import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { useUser } from '@/contexts/UserContext'
 import { useLanguage } from '@/contexts/LanguageContext'
+import { useRouter } from 'next/navigation'
 import PageHeader from '@/components/PageHeader'
 import ViewToggle, { type ViewMode } from '@/components/ViewToggle'
 import AddWebsiteModal from '@/components/AddWebsiteModal'
+import CompareModal from '@/components/CompareModal'
+import ComparisonColumn from '@/components/ComparisonColumn'
 import StatCard from '@/components/analytics/StatCard'
 import SimpleChart from '@/components/analytics/SimpleChart'
 import InsightsPanel from '@/components/analytics/InsightsPanel'
@@ -98,8 +101,11 @@ export default function WebsitesPage() {
     Promise.all([fetch('/api/websites').then(r => r.json()), fetch('/api/companies').then(r => r.json())]).then(([s, c]) => { if (Array.isArray(s)) setSites(s); if (Array.isArray(c)) setCompanies(c) }).catch(() => {})
   }
   const searchParams = useSearchParams()
+  const router = useRouter()
   const openCompany = searchParams.get('company') ?? ''
   const openWebsite = searchParams.get('website') ?? ''
+  const compareSites = (searchParams.get('compare') ?? '').split(',').map(s => s.trim()).filter(Boolean)
+  const [compareOpen, setCompareOpen] = useState(false)
 
   const [sites, setSites] = useState<WebsiteSummary[]>([])
   const [companies, setCompanies] = useState<CompanyInfo[]>([])
@@ -203,6 +209,62 @@ export default function WebsitesPage() {
     </div>)
   }
 
+  // ═══ LEVEL 4: Compare mode ═══
+  if (compareSites.length >= 2) {
+    function removeFromCompare(domain: string) {
+      const remaining = compareSites.filter(d => d !== domain)
+      if (remaining.length < 2) {
+        // Drop out of compare mode — go back to single-site view for the remaining one
+        const sole = remaining[0]
+        if (sole) router.push(`/websites?website=${encodeURIComponent(sole)}`)
+        else router.push('/websites')
+        return
+      }
+      const qp = new URLSearchParams({ compare: remaining.join(','), period })
+      router.push(`/websites?${qp.toString()}`)
+    }
+
+    const gridCols = compareSites.length === 2 ? 'grid-cols-1 lg:grid-cols-2' : 'grid-cols-1 lg:grid-cols-3'
+    return (<div>
+      <PageHeader
+        title="Compare websites"
+        description={
+          <div className="flex items-center gap-2 mt-1 flex-wrap">
+            <span className="text-xs" style={{ color: '#94a3b8' }}>
+              {compareSites.length} sites · same period applied to all
+            </span>
+          </div>
+        }
+        actions={<>
+          <button onClick={() => setCompareOpen(true)}
+            className="inline-flex items-center gap-2 text-sm font-medium px-4 h-9 rounded-lg border transition-colors hover:bg-slate-50"
+            style={{ borderColor: '#cbd5e1', color: '#475569' }}>
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8"><path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+            Change sites
+          </button>
+          <button onClick={() => router.push('/websites')}
+            className="inline-flex items-center gap-2 text-sm font-medium px-4 h-9 rounded-lg transition-colors hover:bg-slate-50"
+            style={{ color: '#64748b' }}>
+            Exit compare
+          </button>
+          <PeriodSelector value={period} onChange={setPeriod} />
+        </>}
+      />
+      <CompareModal open={compareOpen} onClose={() => setCompareOpen(false)} preselect={compareSites} />
+      <div className={`grid ${gridCols} gap-4 items-start`}>
+        {compareSites.map(domain => (
+          <ComparisonColumn
+            key={domain}
+            domain={domain}
+            period={period}
+            canRemove={compareSites.length > 1}
+            onRemove={() => removeFromCompare(domain)}
+          />
+        ))}
+      </div>
+    </div>)
+  }
+
   // ═══ LEVEL 1: Company folders ═══
   if (!openCompany && !openWebsite) {
     const companyStats = companies.map(c => {
@@ -216,6 +278,12 @@ export default function WebsitesPage() {
 
     return (<div>
       <PageHeader title={t('page.websites.title')} description={t('page.websites.description')} actions={<>
+        <button onClick={() => setCompareOpen(true)}
+          className="inline-flex items-center gap-2 text-sm font-medium px-4 h-9 rounded-lg border transition-colors hover:bg-slate-50"
+          style={{ borderColor: '#cbd5e1', color: '#475569' }}>
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8"><path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+          Compare
+        </button>
         {canAddWebsite && (
           <button onClick={() => setAddOpen(true)}
             className="inline-flex items-center gap-2 text-white text-sm font-medium px-4 h-9 rounded-lg transition-opacity"
@@ -227,6 +295,7 @@ export default function WebsitesPage() {
         <ViewToggle value={viewMode} onChange={setViewMode} />
       </>} />
       <AddWebsiteModal open={addOpen} onClose={() => setAddOpen(false)} onCreated={refreshSites} />
+      <CompareModal open={compareOpen} onClose={() => setCompareOpen(false)} />
       <SearchBar placeholder="Search companies…" />
       <div className="flex items-center gap-2 mb-3"><h2 className="text-sm font-semibold text-slate-700">Company Performance</h2><Tooltip text="Companies ranked by pageviews. Click to view websites."><svg className="w-3.5 h-3.5 cursor-help" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: '#cbd5e1' }} strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg></Tooltip></div>
       {loading ? <div className="p-12 text-center text-sm rounded-xl border" style={{ borderColor: '#e2e8f0', color: '#94a3b8' }}>Loading…</div> : viewMode === 'list' ? (
@@ -300,6 +369,12 @@ export default function WebsitesPage() {
 
     return (<div>
       <PageHeader title={openCompany} description={`${companySites.length} website${companySites.length !== 1 ? 's' : ''}`} actions={<>
+        <button onClick={() => setCompareOpen(true)}
+          className="inline-flex items-center gap-2 text-sm font-medium px-4 h-9 rounded-lg border transition-colors hover:bg-slate-50"
+          style={{ borderColor: '#cbd5e1', color: '#475569' }}>
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8"><path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+          Compare
+        </button>
         {canAddWebsite && currentCompany && (
           <button onClick={() => setAddOpen(true)}
             className="inline-flex items-center gap-2 text-white text-sm font-medium px-4 h-9 rounded-lg transition-opacity"
@@ -310,6 +385,7 @@ export default function WebsitesPage() {
         )}
       </>} />
       {currentCompany && <AddWebsiteModal open={addOpen} onClose={() => setAddOpen(false)} onCreated={refreshSites} presetCompany={{ id: currentCompany.id, name: currentCompany.name }} />}
+      <CompareModal open={compareOpen} onClose={() => setCompareOpen(false)} preselect={companySites.map(s => s.domain).slice(0, 1)} />
       <h2 className="text-sm font-semibold text-slate-700 mb-3">Websites</h2>
       {loading ? <div className="p-12 text-center text-sm rounded-xl border" style={{ borderColor: '#e2e8f0', color: '#94a3b8' }}>Loading…</div> : companySites.length === 0 ? <div className="p-12 text-center text-sm rounded-xl border" style={{ borderColor: '#e2e8f0', color: '#94a3b8' }}>No websites found.</div> : (
         <div className="rounded-xl border overflow-hidden bg-white mb-6" style={{ borderColor: '#e2e8f0' }}>
@@ -425,9 +501,16 @@ export default function WebsitesPage() {
         </div>
       </div>
     </div>
-    <div className="mb-5 flex justify-end">
+    <div className="mb-5 flex items-center justify-end gap-2">
+      <button onClick={() => setCompareOpen(true)}
+        className="inline-flex items-center gap-2 text-sm font-medium px-4 h-9 rounded-lg border transition-colors hover:bg-slate-50"
+        style={{ borderColor: '#cbd5e1', color: '#475569' }}>
+        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8"><path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+        Compare
+      </button>
       <PeriodSelector value={period} onChange={setPeriod} />
     </div>
+    <CompareModal open={compareOpen} onClose={() => setCompareOpen(false)} preselect={[openWebsite]} />
     <Stats />
     <Chart />
 
@@ -508,8 +591,6 @@ export default function WebsitesPage() {
         </div>
       </div>
     </div>
-
-    <RecentActivity />
 
     <SearchConsoleCard domain={openWebsite} period={period} />
 
