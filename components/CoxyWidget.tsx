@@ -92,9 +92,9 @@ export default function CoxyWidget() {
         >
           {/* Header */}
           <div className="px-4 py-3 flex items-center gap-3 flex-shrink-0" style={{ borderBottom: '1px solid #e2e8f0', background: 'linear-gradient(to right, #f0f4f8, #ffffff)' }}>
-            <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0" style={{ border: '2px solid white', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
+            <div className="w-10 h-10 flex-shrink-0 flex items-center justify-center">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/character.gif" alt="" className="w-full h-full object-cover object-center" />
+              <img src="/character-floating.gif" alt="" className="w-full h-full object-contain" />
             </div>
             <div className="min-w-0 flex-1">
               <h3 className="text-sm font-semibold flex items-center gap-1.5" style={{ color: 'var(--foreground)' }}>
@@ -140,9 +140,9 @@ export default function CoxyWidget() {
             )}
             {isStreaming && messages[messages.length - 1]?.role === 'user' && (
               <div className="flex gap-2">
-                <div className="w-7 h-7 rounded-full overflow-hidden flex-shrink-0" style={{ background: '#f0f4f8' }}>
+                <div className="w-7 h-7 flex-shrink-0 flex items-center justify-center">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src="/character.gif" alt="" className="w-full h-full object-cover object-center" />
+                  <img src="/character-floating.gif" alt="" className="w-full h-full object-contain" />
                 </div>
                 <div className="px-3 py-2 rounded-2xl rounded-tl-sm" style={{ background: 'white', border: '1px solid #e2e8f0' }}>
                   <div className="flex gap-1">
@@ -208,9 +208,9 @@ function MessageBubble({ role, parts }: { role: 'user' | 'assistant' | 'system';
   }
   return (
     <div className="flex gap-2">
-      <div className="w-7 h-7 rounded-full overflow-hidden flex-shrink-0" style={{ background: '#f0f4f8' }}>
+      <div className="w-7 h-7 flex-shrink-0 flex items-center justify-center">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/character.gif" alt="" className="w-full h-full object-cover object-center" />
+        <img src="/character-floating.gif" alt="" className="w-full h-full object-contain" />
       </div>
       <div className="max-w-[85%] px-3 py-2 rounded-2xl rounded-tl-sm text-sm whitespace-pre-wrap"
         style={{ background: 'white', border: '1px solid #e2e8f0', color: 'var(--foreground)' }}>
