@@ -43,7 +43,7 @@ export async function proxy(request: NextRequest) {
   }
 
   // Skip PWA/static assets + tracking script
-  if (pathname === '/sw.js' || pathname === '/manifest.webmanifest' || pathname.startsWith('/icon-') || pathname === '/icon.svg' || pathname === '/character.gif' || pathname === '/character-floating.gif' || pathname === '/character-logo.gif' || pathname === '/t.js') {
+  if (pathname === '/sw.js' || pathname === '/manifest.webmanifest' || pathname.startsWith('/icon-') || pathname === '/icon.svg' || pathname === '/character.gif' || pathname === '/character-floating.gif' || pathname.startsWith('/character-logo.') || pathname === '/t.js') {
     return supabaseResponse
   }
 

@@ -12,11 +12,68 @@ const SUGGESTIONS = [
   'How do I connect Google Search Console?',
 ]
 
+const POS_STORAGE_KEY = 'coxy-floating-pos'
+const DRAG_THRESHOLD = 5 // px moved before click is suppressed and we treat it as a drag
+const BUBBLE_SIZE = 120 // approx width/height so we can clamp to the viewport
+const DEFAULT_POS = { right: 20, bottom: 20 }
+
 export default function CoxyWidget() {
   const { open, setOpen } = useCoxy()
   const [input, setInput] = useState('')
   const scrollRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
+
+  // Floating bubble position (right + bottom offsets, so it sticks to corners on resize)
+  const [pos, setPos] = useState<{ right: number; bottom: number }>(DEFAULT_POS)
+  const dragRef = useRef<{ startX: number; startY: number; startRight: number; startBottom: number; moved: boolean } | null>(null)
+  const [isDragging, setIsDragging] = useState(false)
+
+  // Load saved position on mount
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(POS_STORAGE_KEY)
+      if (saved) setPos(JSON.parse(saved))
+    } catch {
+      // ignore — fall back to default
+    }
+  }, [])
+
+  function onBubblePointerDown(e: React.PointerEvent<HTMLButtonElement>) {
+    e.preventDefault()
+    e.currentTarget.setPointerCapture(e.pointerId)
+    dragRef.current = {
+      startX: e.clientX,
+      startY: e.clientY,
+      startRight: pos.right,
+      startBottom: pos.bottom,
+      moved: false,
+    }
+    setIsDragging(true)
+  }
+
+  function onBubblePointerMove(e: React.PointerEvent<HTMLButtonElement>) {
+    if (!dragRef.current) return
+    const dx = e.clientX - dragRef.current.startX
+    const dy = e.clientY - dragRef.current.startY
+    if (Math.abs(dx) > DRAG_THRESHOLD || Math.abs(dy) > DRAG_THRESHOLD) dragRef.current.moved = true
+    // Moving cursor right (+dx) reduces distance from right edge
+    const nextRight = Math.max(0, Math.min(window.innerWidth - BUBBLE_SIZE, dragRef.current.startRight - dx))
+    const nextBottom = Math.max(0, Math.min(window.innerHeight - BUBBLE_SIZE, dragRef.current.startBottom - dy))
+    setPos({ right: nextRight, bottom: nextBottom })
+  }
+
+  function onBubblePointerUp(e: React.PointerEvent<HTMLButtonElement>) {
+    try { e.currentTarget.releasePointerCapture(e.pointerId) } catch {}
+    const wasMoved = dragRef.current?.moved ?? false
+    dragRef.current = null
+    setIsDragging(false)
+    if (!wasMoved) {
+      setOpen(true)
+    } else {
+      // Persist new position
+      try { localStorage.setItem(POS_STORAGE_KEY, JSON.stringify(pos)) } catch {}
+    }
+  }
 
   const { messages, sendMessage, status, error } = useChat({
     transport: new DefaultChatTransport({ api: '/api/coxy/chat' }),
@@ -54,14 +111,22 @@ export default function CoxyWidget() {
 
   return (
     <>
-      {/* Floating mascot — shown on every admin page whenever the chat panel is closed. */}
+      {/* Floating mascot — draggable, shown on every admin page whenever the chat panel is closed. */}
       {!open && (
         <button
           type="button"
-          onClick={() => setOpen(true)}
-          aria-label="Open Coxy chat"
-          className="fixed bottom-5 right-5 z-40 transition-transform duration-200 hover:scale-105 group"
-          style={{ filter: 'drop-shadow(0 12px 24px rgba(15, 23, 42, 0.25)) drop-shadow(0 4px 8px rgba(15, 23, 42, 0.15))' }}
+          onPointerDown={onBubblePointerDown}
+          onPointerMove={onBubblePointerMove}
+          onPointerUp={onBubblePointerUp}
+          onPointerCancel={onBubblePointerUp}
+          aria-label="Open Coxy chat (drag to move, click to open)"
+          className={`fixed z-40 group touch-none ${isDragging ? '' : 'transition-all duration-200 hover:scale-105'}`}
+          style={{
+            right: `${pos.right}px`,
+            bottom: `${pos.bottom}px`,
+            cursor: isDragging ? 'grabbing' : 'grab',
+            filter: 'drop-shadow(0 12px 24px rgba(15, 23, 42, 0.25)) drop-shadow(0 4px 8px rgba(15, 23, 42, 0.15))',
+          }}
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
@@ -73,7 +138,7 @@ export default function CoxyWidget() {
           {/* Tooltip bubble on hover */}
           <span className="absolute right-full top-1/2 -translate-y-1/2 mr-2 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none text-[11px] font-medium px-2.5 py-1 rounded-full"
             style={{ background: 'var(--foreground)', color: 'white', boxShadow: '0 4px 12px rgba(0,0,0,0.15)' }}>
-            Ask Coxy
+            Drag me · click to chat
           </span>
           {/* Online dot */}
           <span className="absolute top-1 right-1 w-3 h-3 rounded-full border-2 border-white" style={{ background: '#22c55e' }} aria-hidden />
@@ -90,7 +155,7 @@ export default function CoxyWidget() {
           <div className="px-4 py-3 flex items-center gap-3 flex-shrink-0" style={{ borderBottom: '1px solid #e2e8f0', background: 'linear-gradient(to right, #f0f4f8, #ffffff)' }}>
             <div className="w-10 h-10 flex-shrink-0 flex items-center justify-center">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/character-logo.gif" alt="" className="w-full h-full object-contain" />
+              <img src="/character-logo.png" alt="" className="w-full h-full object-contain" />
             </div>
             <div className="min-w-0 flex-1">
               <h3 className="text-sm font-semibold flex items-center gap-1.5" style={{ color: 'var(--foreground)' }}>
