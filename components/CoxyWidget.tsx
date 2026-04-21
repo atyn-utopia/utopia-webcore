@@ -54,17 +54,29 @@ export default function CoxyWidget() {
 
   return (
     <>
-      {/* Floating bubble — only when closed */}
+      {/* Floating mascot — only when closed. Visible on every admin page. */}
       {!open && (
         <button
+          type="button"
           onClick={() => setOpen(true)}
           aria-label="Open Coxy chat"
-          className="fixed bottom-5 right-5 z-40 w-14 h-14 rounded-full shadow-lg overflow-hidden border-2 border-white transition-transform hover:scale-110 hover:shadow-xl"
-          style={{ background: 'linear-gradient(135deg, #f0f4f8, #ffffff)' }}
+          className="fixed bottom-5 right-5 z-40 transition-transform duration-200 hover:scale-105 group"
+          style={{ filter: 'drop-shadow(0 12px 24px rgba(15, 23, 42, 0.25)) drop-shadow(0 4px 8px rgba(15, 23, 42, 0.15))' }}
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/character.gif" alt="" className="w-full h-full object-cover object-center pointer-events-none" />
-          <span className="absolute top-0.5 right-0.5 w-3 h-3 rounded-full border-2 border-white" style={{ background: '#22c55e' }} aria-hidden />
+          <img
+            src="/character-floating.gif"
+            alt="Coxy — click to chat"
+            className="h-24 w-auto pointer-events-none select-none"
+            draggable={false}
+          />
+          {/* Tooltip bubble on hover */}
+          <span className="absolute right-full top-1/2 -translate-y-1/2 mr-2 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none text-[11px] font-medium px-2.5 py-1 rounded-full"
+            style={{ background: 'var(--foreground)', color: 'white', boxShadow: '0 4px 12px rgba(0,0,0,0.15)' }}>
+            Ask Coxy
+          </span>
+          {/* Online dot */}
+          <span className="absolute top-1 right-1 w-3 h-3 rounded-full border-2 border-white" style={{ background: '#22c55e' }} aria-hidden />
         </button>
       )}
 
