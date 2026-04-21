@@ -525,6 +525,7 @@ export default function WebsitesPage() {
 }
 
 interface IntegrationRow { id: string; website: string; provider: string; property_id: string | null; connected_at: string }
+interface GscProperty { siteUrl: string; permissionLevel: string; matched: boolean; selected: boolean }
 
 function IntegrationsSection({ domain }: { domain: string }) {
   const searchParams = useSearchParams()
@@ -532,6 +533,12 @@ function IntegrationsSection({ domain }: { domain: string }) {
   const [loading, setLoading] = useState(true)
   const [busy, setBusy] = useState(false)
   const [flash, setFlash] = useState<{ kind: 'success' | 'error'; text: string } | null>(null)
+  const [showPicker, setShowPicker] = useState(false)
+  const [properties, setProperties] = useState<GscProperty[] | null>(null)
+  const [propsLoading, setPropsLoading] = useState(false)
+  const [propsError, setPropsError] = useState<string | null>(null)
+  const [selected, setSelected] = useState<string>('')
+  const [saving, setSaving] = useState(false)
 
   function load() {
     setLoading(true)
@@ -543,6 +550,55 @@ function IntegrationsSection({ domain }: { domain: string }) {
   }
 
   useEffect(() => { load() }, [domain])
+
+  async function loadProperties() {
+    setPropsLoading(true)
+    setPropsError(null)
+    try {
+      const res = await fetch(`/api/integrations/gsc/properties?domain=${encodeURIComponent(domain)}`)
+      const data = await res.json()
+      if (!res.ok) {
+        setPropsError(data.error ?? 'Failed to load properties')
+        return
+      }
+      setProperties(data.properties ?? [])
+      const preselect = (data.properties ?? []).find((p: GscProperty) => p.selected) ?? (data.properties ?? []).find((p: GscProperty) => p.matched) ?? (data.properties ?? [])[0]
+      if (preselect) setSelected(preselect.siteUrl)
+    } catch (e) {
+      setPropsError((e as Error).message)
+    } finally {
+      setPropsLoading(false)
+    }
+  }
+
+  async function saveProperty() {
+    if (!selected) return
+    setSaving(true)
+    try {
+      const res = await fetch('/api/integrations/gsc/properties', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ domain, property_id: selected }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        setFlash({ kind: 'error', text: data.error ?? 'Failed to save' })
+        return
+      }
+      setFlash({ kind: 'success', text: 'Property saved — data should appear shortly' })
+      setShowPicker(false)
+      load()
+    } catch (e) {
+      setFlash({ kind: 'error', text: (e as Error).message })
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  function openPicker() {
+    setShowPicker(true)
+    if (!properties && !propsLoading) loadProperties()
+  }
 
   useEffect(() => {
     const connected = searchParams.get('integration_connected')
@@ -607,24 +663,82 @@ function IntegrationsSection({ domain }: { domain: string }) {
           </div>
           <p className="text-[11px] mt-1" style={{ color: '#94a3b8' }}>
             {gsc
-              ? (gsc.property_id ? `Property: ${gsc.property_id}` : 'No matching GSC property — manual selection coming soon')
+              ? (gsc.property_id ? `Property: ${gsc.property_id}` : 'No matching GSC property — pick one manually below.')
               : 'Pull search impressions, clicks, and top queries from Google.'}
           </p>
         </div>
-        {gsc ? (
-          <button type="button" onClick={disconnectGsc} disabled={busy}
-            className="text-[11px] font-medium px-3 py-1.5 rounded-md border disabled:opacity-50 transition-colors"
-            style={{ borderColor: '#e2e8f0', color: '#b91c1c', background: 'white' }}>
-            Disconnect
-          </button>
-        ) : (
-          <button type="button" onClick={connectGsc} disabled={busy}
-            className="text-[11px] font-medium px-3 py-1.5 rounded-md text-white disabled:opacity-50 transition-opacity hover:opacity-90"
-            style={{ background: 'var(--primary)' }}>
-            {busy ? 'Starting…' : 'Connect Search Console'}
-          </button>
-        )}
+        <div className="flex items-center gap-2 flex-shrink-0">
+          {gsc && (
+            <button type="button" onClick={openPicker} disabled={busy}
+              className="text-[11px] font-medium px-3 py-1.5 rounded-md border disabled:opacity-50 transition-colors hover:bg-slate-50"
+              style={{ borderColor: '#e2e8f0', color: '#475569', background: 'white' }}>
+              {gsc.property_id ? 'Change property' : 'Select property'}
+            </button>
+          )}
+          {gsc ? (
+            <button type="button" onClick={disconnectGsc} disabled={busy}
+              className="text-[11px] font-medium px-3 py-1.5 rounded-md border disabled:opacity-50 transition-colors"
+              style={{ borderColor: '#e2e8f0', color: '#b91c1c', background: 'white' }}>
+              Disconnect
+            </button>
+          ) : (
+            <button type="button" onClick={connectGsc} disabled={busy}
+              className="text-[11px] font-medium px-3 py-1.5 rounded-md text-white disabled:opacity-50 transition-opacity hover:opacity-90"
+              style={{ background: 'var(--primary)' }}>
+              {busy ? 'Starting…' : 'Connect Search Console'}
+            </button>
+          )}
+        </div>
       </div>
+
+      {/* GSC property picker */}
+      {showPicker && gsc && (
+        <div className="px-5 py-4" style={{ background: '#fafbfc', borderTop: '1px solid #e2e8f0' }}>
+          <p className="text-[11px] font-semibold uppercase tracking-wider mb-2" style={{ color: '#94a3b8' }}>
+            Pick the GSC property for {domain}
+          </p>
+          {propsLoading ? (
+            <p className="text-xs py-3" style={{ color: '#94a3b8' }}>Loading your Search Console properties…</p>
+          ) : propsError ? (
+            <p className="text-xs py-3" style={{ color: '#b91c1c' }}>{propsError}</p>
+          ) : !properties || properties.length === 0 ? (
+            <div className="py-3 space-y-2">
+              <p className="text-xs" style={{ color: '#64748b' }}>
+                The connected Google account has <strong>no Search Console properties</strong>. Go to{' '}
+                <a href="https://search.google.com/search-console" target="_blank" rel="noopener noreferrer" className="underline" style={{ color: 'var(--primary)' }}>
+                  search.google.com/search-console
+                </a>{' '}
+                first, add and verify your site, then come back and hit <strong>Change property</strong>.
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              <div className="rounded-lg overflow-hidden" style={{ border: '1px solid #e2e8f0', background: 'white', maxHeight: '240px', overflowY: 'auto' }}>
+                {properties.map(p => (
+                  <label key={p.siteUrl} className="flex items-center gap-3 px-3 py-2 cursor-pointer transition-colors hover:bg-slate-50"
+                    style={{ borderBottom: '1px solid #f1f5f9', background: selected === p.siteUrl ? '#eff6ff' : 'transparent' }}>
+                    <input type="radio" name="gsc-property" value={p.siteUrl} checked={selected === p.siteUrl}
+                      onChange={() => setSelected(p.siteUrl)} className="flex-shrink-0" />
+                    <span className="text-xs font-mono flex-1 truncate" style={{ color: '#334155' }}>{p.siteUrl}</span>
+                    {p.matched && <span className="text-[10px] font-medium px-1.5 py-0.5 rounded" style={{ background: '#dcfce7', color: '#15803d' }}>likely match</span>}
+                    <span className="text-[10px] font-medium" style={{ color: '#94a3b8' }}>{p.permissionLevel.replace('site', '').toLowerCase() || p.permissionLevel}</span>
+                  </label>
+                ))}
+              </div>
+              <div className="flex items-center justify-end gap-2 pt-1">
+                <button type="button" onClick={() => setShowPicker(false)}
+                  className="text-[11px] font-medium px-3 py-1.5 rounded-md transition-colors hover:bg-slate-100"
+                  style={{ color: '#475569' }}>Cancel</button>
+                <button type="button" onClick={saveProperty} disabled={!selected || saving}
+                  className="text-[11px] font-medium px-3 py-1.5 rounded-md text-white disabled:opacity-50 transition-opacity hover:opacity-90"
+                  style={{ background: 'var(--primary)' }}>
+                  {saving ? 'Saving…' : 'Save property'}
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   )
 }
