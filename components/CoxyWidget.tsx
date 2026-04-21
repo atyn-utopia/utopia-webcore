@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { usePathname } from 'next/navigation'
 import { useChat } from '@ai-sdk/react'
 import { DefaultChatTransport } from 'ai'
 import { useCoxy } from '@/contexts/CoxyContext'
@@ -15,9 +14,6 @@ const SUGGESTIONS = [
 
 export default function CoxyWidget() {
   const { open, setOpen } = useCoxy()
-  const pathname = usePathname()
-  // Hide the floating mascot on the dashboard — the welcome banner already shows Coxy.
-  const showFloatingBubble = pathname !== '/'
   const [input, setInput] = useState('')
   const scrollRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
@@ -58,8 +54,8 @@ export default function CoxyWidget() {
 
   return (
     <>
-      {/* Floating mascot — only when closed and not on the dashboard (which has its own big Coxy). */}
-      {!open && showFloatingBubble && (
+      {/* Floating mascot — shown on every admin page whenever the chat panel is closed. */}
+      {!open && (
         <button
           type="button"
           onClick={() => setOpen(true)}
