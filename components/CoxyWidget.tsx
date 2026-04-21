@@ -94,7 +94,7 @@ export default function CoxyWidget() {
           <div className="px-4 py-3 flex items-center gap-3 flex-shrink-0" style={{ borderBottom: '1px solid #e2e8f0', background: 'linear-gradient(to right, #f0f4f8, #ffffff)' }}>
             <div className="w-10 h-10 flex-shrink-0 flex items-center justify-center">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/character-floating.gif" alt="" className="w-full h-full object-contain" />
+              <img src="/character-logo.gif" alt="" className="w-full h-full object-contain" />
             </div>
             <div className="min-w-0 flex-1">
               <h3 className="text-sm font-semibold flex items-center gap-1.5" style={{ color: 'var(--foreground)' }}>
