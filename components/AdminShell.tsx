@@ -7,9 +7,11 @@ import { UserProvider, type UserRole } from '@/contexts/UserContext'
 import { LanguageProvider } from '@/contexts/LanguageContext'
 import { ConfirmProvider } from '@/contexts/ConfirmContext'
 import { ToastProvider } from '@/contexts/ToastContext'
+import { CoxyProvider } from '@/contexts/CoxyContext'
 import Sidebar from './Sidebar'
 import Breadcrumb from './Breadcrumb'
 import TopBar from './TopBar'
+import CoxyWidget from './CoxyWidget'
 
 interface AdminShellProps {
   userEmail: string
@@ -36,6 +38,7 @@ export default function AdminShell({ userEmail, userName, userRole, children }: 
     <ConfirmProvider>
     <UserProvider value={{ email: userEmail, name: userName, role: userRole }}>
     <WebsiteProvider>
+    <CoxyProvider>
       <div className="flex flex-col h-screen" style={{ background: '#ffffff' }}>
         {/* Beta banner — full width above everything */}
         {showBeta && (
@@ -111,7 +114,9 @@ export default function AdminShell({ userEmail, userName, userRole, children }: 
           </div>
         </main>
         </div>
+        <CoxyWidget />
       </div>
+    </CoxyProvider>
     </WebsiteProvider>
     </UserProvider>
     </ConfirmProvider>

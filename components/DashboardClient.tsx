@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { useLanguage } from '@/contexts/LanguageContext'
+import { useCoxy } from '@/contexts/CoxyContext'
 import type { UserRole } from '@/contexts/UserContext'
 import type { TranslationKey } from '@/lib/i18n/en'
 
@@ -21,6 +22,7 @@ interface Props {
 
 export default function DashboardClient({ role, isScoped, websiteCount, phoneCount, postCount, recentPosts, recentPhones }: Props) {
   const { t } = useLanguage()
+  const { setOpen: openCoxy } = useCoxy()
   const isWriter = role === 'writer'
 
   const welcomeKey = `dashboard.welcome.${role}` as TranslationKey
@@ -32,9 +34,25 @@ export default function DashboardClient({ role, isScoped, websiteCount, phoneCou
         <div className="relative z-10 p-6 sm:p-8 pr-32 sm:pr-48">
           <h1 className="text-xl sm:text-2xl font-bold text-slate-900 mb-1" style={{ fontFamily: 'var(--font-display)' }}>{t('dashboard.welcome')}</h1>
           <p className="text-sm text-slate-500 max-w-md">{t(welcomeKey)}</p>
+          <button
+            onClick={() => openCoxy(true)}
+            className="mt-3 inline-flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-full transition-all hover:bg-white"
+            style={{ border: '1px solid #e2e8f0', background: 'rgba(255,255,255,0.7)', color: '#475569' }}
+          >
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8"><path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.86 9.86 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>
+            Ask Coxy
+          </button>
         </div>
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/character.gif" alt="" className="absolute right-0 bottom-0 h-full object-contain object-right-bottom pointer-events-none" style={{ maxHeight: '140px' }} />
+        <button
+          type="button"
+          onClick={() => openCoxy(true)}
+          aria-label="Ask Coxy"
+          className="absolute right-0 bottom-0 h-full flex items-end focus:outline-none group"
+          style={{ maxHeight: '140px' }}
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/character.gif" alt="Coxy, your webcore assistant — click to chat" className="h-full object-contain object-right-bottom transition-transform group-hover:scale-105" style={{ maxHeight: '140px' }} />
+        </button>
       </div>
 
       {/* Stats */}
