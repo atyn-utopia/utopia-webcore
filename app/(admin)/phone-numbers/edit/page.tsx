@@ -131,6 +131,8 @@ export default function ManagePhoneNumbersPage() {
   const [selectedMode, setSelectedMode] = useState<Mode | null>(null)
   // Mode at the time of the last save / initial fetch — used to tell if the mode selector was changed.
   const [savedMode, setSavedMode] = useState<Mode | null>(null)
+  // Override read from the server (null if never set). Used as the baseline for savedMode.
+  const [serverOverride, setServerOverride] = useState<Mode | null | undefined>(undefined)
   const [existingTexts, setExistingTexts] = useState<string[]>([])
   const [loading, setLoading] = useState(false)
   const [saving, setSaving] = useState(false)
@@ -182,28 +184,37 @@ export default function ManagePhoneNumbersPage() {
     return () => clearTimeout(timeout)
   }, [website, fetchExisting])
 
+  // Fetch the stored override for this website (separate from phone numbers so mode works
+  // even when there are no numbers yet)
+  useEffect(() => {
+    if (!website.trim()) { setServerOverride(undefined); return }
+    let cancelled = false
+    fetch(`/api/websites`).then(r => r.json()).then(data => {
+      if (cancelled || !Array.isArray(data)) return
+      const match = data.find((w: { domain: string }) => w.domain === website)
+      setServerOverride((match?.leads_mode_override ?? null) as Mode | null)
+    }).catch(() => {})
+    return () => { cancelled = true }
+  }, [website])
+
   const detectedMode = useMemo<Mode | null>(() => computeMode(rows.filter(r => r.is_active && !r.markedForDelete)), [rows])
 
-  // When a fresh set of rows is loaded, seed both the selected and the saved baseline from
-  // whatever mode the data actually represents (preferring a stored UI preference per website).
+  // Seed the saved baseline from the server override (if set) else from the data-derived mode.
+  // We only settle once serverOverride has been resolved (undefined = still loading).
   useEffect(() => {
     if (detectedMode === null) return
     if (savedMode !== null) return
-    let initial: Mode = detectedMode
-    if (typeof window !== 'undefined' && website) {
-      try {
-        const pref = localStorage.getItem(`leads_mode_pref:${website}`) as Mode | null
-        if (pref && ['single', 'rotation', 'location', 'hybrid'].includes(pref)) initial = pref
-      } catch {}
-    }
+    if (serverOverride === undefined) return
+    const initial: Mode = (serverOverride as Mode | null) ?? detectedMode
     setSavedMode(initial)
     setSelectedMode(prev => prev ?? initial)
-  }, [detectedMode, savedMode, website])
+  }, [detectedMode, savedMode, website, serverOverride])
 
   // Reset mode state when switching to a different website
   useEffect(() => {
     setSavedMode(null)
     setSelectedMode(null)
+    setServerOverride(undefined)
   }, [website])
 
   const mode: Mode | null = selectedMode ?? detectedMode
@@ -228,6 +239,33 @@ export default function ManagePhoneNumbersPage() {
     const combined = [...visibleRows, ...visibleDrafts.filter(d => d.phone_number.trim())]
     return combined.filter(r => r.is_active && !r.markedForDelete)
   }, [visibleRows, visibleDrafts])
+
+  // Per-location percentage pools.
+  // - single: one pool (the single default at 'all') — total must be 100%
+  // - rotation: one pool across all 'all' rows — total must be 100%
+  // - location: each distinct location_slug is its own pool; each must be 100%
+  // - hybrid: 'all' is one pool, each specific slug is its own pool; each must be 100%
+  const pctPools = useMemo(() => {
+    const pools: Record<string, { label: string; total: number }> = {}
+    for (const r of allActiveForPct) {
+      const slug = r.location_slug || 'all'
+      const key = mode === 'location' || mode === 'hybrid' ? slug : 'pool'
+      const label = key === 'pool'
+        ? 'Distribution'
+        : (slug === 'all' ? 'All locations' : (LOCATION_LABEL[slug] ?? slug))
+      if (!pools[key]) pools[key] = { label, total: 0 }
+      pools[key].total += r.percentage || 0
+    }
+    return pools
+  }, [allActiveForPct, mode])
+
+  const pctErrors = Object.entries(pctPools)
+    .filter(([, v]) => v.total !== 100)
+    .map(([, v]) => v.total > 100
+      ? `${v.label}: over by ${v.total - 100}%`
+      : `${v.label}: under by ${100 - v.total}%`)
+
+  // Legacy total used by distribution bar display
   const pctTotal = allActiveForPct.reduce((s, r) => s + (r.percentage || 0), 0)
 
   // Assign a stable color per row so the distribution bar and the row's color
@@ -327,8 +365,8 @@ export default function ManagePhoneNumbersPage() {
       seen.add(n)
     }
 
-    if (pctTotal !== 100) {
-      toast.error(`Active percentages total ${pctTotal}% — must be exactly 100%.`, 'Percentage invalid')
+    if (pctErrors.length > 0) {
+      toast.error(pctErrors.join(' · '), 'Percentage invalid')
       return
     }
 
@@ -390,9 +428,17 @@ export default function ManagePhoneNumbersPage() {
           throw new Error(err.error ?? `Add failed for ${d.phone_number}`)
         }
       }
-      // Persist mode preference for this website
-      if (selectedMode && typeof window !== 'undefined' && website) {
-        try { localStorage.setItem(`leads_mode_pref:${website}`, selectedMode) } catch {}
+      // Persist the mode override to the DB so the dashboard reflects it
+      if (modeDirty && selectedMode && website) {
+        const res = await fetch('/api/websites', {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ website, leads_mode_override: selectedMode }),
+        })
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}))
+          throw new Error(err.error ?? 'Failed to save mode override')
+        }
       }
       setSavedMode(selectedMode)
       toast.success('All changes saved', 'Saved')
@@ -493,28 +539,57 @@ export default function ManagePhoneNumbersPage() {
               title="Lead Distribution"
               right={
                 <span className="text-xs font-semibold tabular-nums"
-                  style={{ color: pctTotal === 100 ? '#16a34a' : '#b91c1c' }}>
-                  {pctTotal}% / 100%
+                  style={{ color: pctErrors.length === 0 ? '#16a34a' : '#b91c1c' }}>
+                  {pctErrors.length === 0 ? 'All pools 100%' : `${pctErrors.length} pool${pctErrors.length === 1 ? '' : 's'} off`}
                 </span>
               } />
             <div className="px-5 py-4">
-              <div className="relative flex h-3.5 rounded-full overflow-hidden" style={{ background: '#f1f5f9' }}>
-                {allActiveForPct.filter(r => r.percentage > 0).map(r => (
-                  <div key={r.key} className="relative group cursor-pointer"
-                    style={{ width: `${r.percentage}%`, background: colorByKey[r.key] ?? '#cbd5e1', transition: 'width 0.2s' }}>
-                    <div className="pointer-events-none absolute left-1/2 -translate-x-1/2 bottom-full mb-1.5 px-2 py-1 rounded text-[10px] font-medium text-white whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity z-10 shadow"
-                      style={{ background: '#0f172a' }}>
-                      <span className="font-mono">{r.phone_number || '(new)'}</span> · {r.percentage}%
+              {(mode === 'location' || mode === 'hybrid') ? (
+                <div className="space-y-3">
+                  {Object.entries(pctPools).map(([poolKey, pool]) => {
+                    const poolRows = allActiveForPct.filter(r => {
+                      const slug = r.location_slug || 'all'
+                      return slug === poolKey
+                    })
+                    const poolBarMax = Math.max(pool.total, 100)
+                    return (
+                      <div key={poolKey}>
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-[11px] font-medium" style={{ color: '#475569' }}>{pool.label}</span>
+                          <span className="text-[11px] font-semibold tabular-nums" style={{ color: pool.total === 100 ? '#16a34a' : '#b91c1c' }}>
+                            {pool.total}% / 100%
+                          </span>
+                        </div>
+                        <div className="relative flex h-2.5 rounded-full overflow-hidden" style={{ background: '#f1f5f9' }}>
+                          {poolRows.filter(r => r.percentage > 0).map(r => (
+                            <div key={r.key} className="relative group" style={{ width: `${(r.percentage / poolBarMax) * 100}%`, background: colorByKey[r.key] ?? '#cbd5e1', transition: 'width 0.2s' }} />
+                          ))}
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              ) : (
+                <div className="relative flex h-3.5 rounded-full overflow-hidden" style={{ background: '#f1f5f9' }}>
+                  {allActiveForPct.filter(r => r.percentage > 0).map(r => (
+                    <div key={r.key} className="relative group cursor-pointer"
+                      style={{ width: `${r.percentage}%`, background: colorByKey[r.key] ?? '#cbd5e1', transition: 'width 0.2s' }}>
+                      <div className="pointer-events-none absolute left-1/2 -translate-x-1/2 bottom-full mb-1.5 px-2 py-1 rounded text-[10px] font-medium text-white whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity z-10 shadow"
+                        style={{ background: '#0f172a' }}>
+                        <span className="font-mono">{r.phone_number || '(new)'}</span> · {r.percentage}%
+                      </div>
                     </div>
-                  </div>
-                ))}
-              </div>
-              {pctTotal !== 100 && (
-                <p className="text-[11px] mt-2" style={{ color: pctTotal > 100 ? '#b91c1c' : '#b45309' }}>
-                  {pctTotal > 100
-                    ? `Over by ${pctTotal - 100}% — reduce some values before saving.`
-                    : `Under by ${100 - pctTotal}% — total must be exactly 100%.`}
-                </p>
+                  ))}
+                </div>
+              )}
+              {pctErrors.length > 0 && (
+                <ul className="mt-3 space-y-0.5">
+                  {pctErrors.map((msg, i) => (
+                    <li key={i} className="text-[11px]" style={{ color: msg.includes('over') ? '#b91c1c' : '#b45309' }}>
+                      {msg.includes('over') ? '↑' : '↓'} {msg}
+                    </li>
+                  ))}
+                </ul>
               )}
             </div>
           </Panel>
