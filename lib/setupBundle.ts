@@ -114,7 +114,13 @@ You're helping build a website that integrates with **Utopia Webcore** — a cen
    - \`fetchPhones()\` / \`resolvePhone(location)\` — WhatsApp and call numbers
    - \`fetchProducts()\` / \`fetchProduct(slug)\` — product catalog
    - \`fetchBlog()\` / \`fetchBlogPost(slug)\` — blog posts
-   - \`pushProduct(...)\` — write new/updated products back to webcore (requires write permission)
+
+**Writes — one API key covers all three:**
+   - Products: \`pushProduct() / updateProduct(id, ...) / deleteProduct(id)\`
+   - Phone numbers: \`pushPhone() / updatePhone(id, ...) / deletePhone(id)\` (the admin 'default' phone is read-only from the API — leave it alone)
+   - Blog posts: \`pushBlogPost({ slug, translations, ... }) / updateBlogPost(id, ...) / deleteBlogPost(id)\` (translations are upserted per language — send just the languages you're changing)
+
+   All writes are server-only (require \`WEBCORE_API_KEY\`). Never expose or use the key from the browser.
 
 3. **Track user interactions** via \`window.uwc(type, { label })\`:
    - WhatsApp button click: \`window.uwc('click', { label: \\\`whatsapp-\${phone}\\\` })\`
@@ -356,6 +362,26 @@ export async function fetchBlogPost(slug: string, language?: string): Promise<Bl
 }
 
 /* ─── Writes (server-only, need WEBCORE_API_KEY) ────────────── */
+/* One API key gates every write endpoint below. The key is scoped per
+ * website in webcore, so it can only affect this site's data. */
+
+async function writeJson<T = unknown>(path: string, method: 'POST' | 'PATCH' | 'DELETE', body: Record<string, unknown>): Promise<T | { error: string }> {
+  const apiKey = process.env.WEBCORE_API_KEY
+  if (!apiKey) return { error: 'WEBCORE_API_KEY not set' }
+
+  const res = await fetch(\`\${BASE}\${path}\`, {
+    method,
+    headers: { 'Content-Type': 'application/json', 'X-API-Key': apiKey },
+    body: JSON.stringify({ website: SITE, ...body }),
+  })
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}))
+    return { error: data.error ?? \`\${method} \${path} failed with \${res.status}\` }
+  }
+  return res.json() as Promise<T>
+}
+
+// ── Products ──
 
 interface PushProductInput {
   name: string
@@ -367,18 +393,84 @@ interface PushProductInput {
   photos?: { url: string; alt_text?: string }[]
 }
 
-/** SERVER-ONLY. Pushes a new product. Uses WEBCORE_API_KEY from env. */
-export async function pushProduct(input: PushProductInput): Promise<{ id: string } | { error: string }> {
-  const apiKey = process.env.WEBCORE_API_KEY
-  if (!apiKey) return { error: 'WEBCORE_API_KEY not set' }
+/** SERVER-ONLY. Create a product. */
+export async function pushProduct(input: PushProductInput) {
+  return writeJson<{ id: string }>('/api/public/products', 'POST', input)
+}
 
-  const res = await fetch(\`\${BASE}/api/public/products\`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'X-API-Key': apiKey },
-    body: JSON.stringify({ website: SITE, ...input }),
-  })
-  if (!res.ok) return { error: (await res.json()).error ?? 'Unknown error' }
-  return res.json()
+/** SERVER-ONLY. Update a product by id. */
+export async function updateProduct(id: string, fields: Partial<PushProductInput> & { is_active?: boolean }) {
+  return writeJson('/api/public/products', 'PATCH', { id, ...fields })
+}
+
+/** SERVER-ONLY. Delete a product by id. */
+export async function deleteProduct(id: string) {
+  return writeJson<{ success: boolean }>('/api/public/products', 'DELETE', { id })
+}
+
+// ── Phone Numbers ──
+
+interface PushPhoneInput {
+  phone_number: string
+  whatsapp_text: string
+  location_slug?: string
+  percentage?: number
+  label?: string
+}
+
+/** SERVER-ONLY. Create a phone number. Admin manages the 'default' phone. */
+export async function pushPhone(input: PushPhoneInput) {
+  return writeJson<PhoneNumber & { id: string }>('/api/public/phone-numbers', 'POST', input)
+}
+
+/** SERVER-ONLY. Update a phone by id. Can't edit the admin 'default' phone. */
+export async function updatePhone(id: string, fields: Partial<PushPhoneInput> & { is_active?: boolean }) {
+  return writeJson('/api/public/phone-numbers', 'PATCH', { id, ...fields })
+}
+
+/** SERVER-ONLY. Delete a phone by id. Can't delete the admin 'default' phone. */
+export async function deletePhone(id: string) {
+  return writeJson<{ success: boolean }>('/api/public/phone-numbers', 'DELETE', { id })
+}
+
+// ── Blog Posts ──
+
+interface BlogTranslationInput {
+  language: string
+  title: string
+  content?: string
+  excerpt?: string
+  meta_title?: string
+  meta_description?: string
+}
+
+interface PushBlogInput {
+  slug: string
+  status?: 'draft' | 'published'
+  cover_image_url?: string
+  translations: BlogTranslationInput[]
+}
+
+/** SERVER-ONLY. Create a blog post with one or more translations. */
+export async function pushBlogPost(input: PushBlogInput) {
+  return writeJson<BlogPost>('/api/public/blog', 'POST', input as unknown as Record<string, unknown>)
+}
+
+/**
+ * SERVER-ONLY. Update a blog post.
+ * Any translations in the body are upserted by language — passing just one
+ * language leaves the others untouched.
+ */
+export async function updateBlogPost(
+  id: string,
+  fields: Partial<{ slug: string; status: 'draft' | 'published'; cover_image_url: string; translations: BlogTranslationInput[] }>,
+) {
+  return writeJson('/api/public/blog', 'PATCH', { id, ...fields })
+}
+
+/** SERVER-ONLY. Delete a blog post (and its translations). */
+export async function deleteBlogPost(id: string) {
+  return writeJson<{ success: boolean }>('/api/public/blog', 'DELETE', { id })
 }
 
 /* ─── Client-side tracking helpers ──────────────────────────── */
@@ -506,12 +598,30 @@ GET /api/public/blog?website=YOUR-DOMAIN&slug=my-post&language=ms # single, flat
 
 ## Write APIs (require API key via \`X-API-Key\` header)
 
-### Create / Update / Delete a product
+One API key (scoped to the website) gates all three endpoints.
+
+### Products
 
 \`\`\`
-POST   /api/public/products    { website, name, slug, sale_price, photos: [...] }
-PATCH  /api/public/products    { id, ...fields }
-DELETE /api/public/products    { id }
+POST   /api/public/products         { website, name, slug, sale_price?, rental_price?, photos?: [...] }
+PATCH  /api/public/products         { id, ...fields }
+DELETE /api/public/products         { id }
+\`\`\`
+
+### Phone numbers
+
+\`\`\`
+POST   /api/public/phone-numbers    { website, phone_number, whatsapp_text, location_slug?, percentage?, label? }
+PATCH  /api/public/phone-numbers    { id, ...fields }    # admin 'default' phone is read-only here
+DELETE /api/public/phone-numbers    { id }               # same — can't delete the 'default'
+\`\`\`
+
+### Blog posts
+
+\`\`\`
+POST   /api/public/blog             { website, slug, status?='draft', cover_image_url?, translations: [{language,title,content,...}] }
+PATCH  /api/public/blog             { id, ...postFields, translations?: [...] }   # translations upsert by language
+DELETE /api/public/blog             { id }
 \`\`\`
 
 ## Label Conventions

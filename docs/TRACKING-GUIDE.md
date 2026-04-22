@@ -297,17 +297,15 @@ Flat list (no nesting):
 ?website=your-domain.vercel.app&type=all
 ```
 
-### Pushing Products (requires API key)
+### Pushing Data (requires API key)
 
-Designers/admins can push product updates from their builder into Webcore:
+Designers can push products, phone numbers, and blog posts back into Webcore. **One API key gates all three** — request it from your Webcore admin (scoped to one website, read/write).
 
 ```js
+// Products
 fetch('https://utopia-webcore.vercel.app/api/public/products', {
   method: 'POST',
-  headers: {
-    'Content-Type': 'application/json',
-    'X-API-Key': 'uwc_...',
-  },
+  headers: { 'Content-Type': 'application/json', 'X-API-Key': 'uwc_...' },
   body: JSON.stringify({
     website: 'your-domain.vercel.app',
     name: 'Electric Wheelchair',
@@ -316,9 +314,39 @@ fetch('https://utopia-webcore.vercel.app/api/public/products', {
     photos: [{ url: 'https://...', alt_text: 'Side view' }],
   }),
 })
+
+// Phone numbers (the admin 'default' number is read-only from the API)
+fetch('https://utopia-webcore.vercel.app/api/public/phone-numbers', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json', 'X-API-Key': 'uwc_...' },
+  body: JSON.stringify({
+    website: 'your-domain.vercel.app',
+    phone_number: '60123456789',
+    whatsapp_text: 'Hi, I want to know more about…',
+    location_slug: 'shah-alam',
+    percentage: 50,
+    label: 'Shah Alam Sales',
+  }),
+})
+
+// Blog posts — translations are upserted by language on PATCH
+fetch('https://utopia-webcore.vercel.app/api/public/blog', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json', 'X-API-Key': 'uwc_...' },
+  body: JSON.stringify({
+    website: 'your-domain.vercel.app',
+    slug: 'wheelchair-buying-guide',
+    status: 'published',
+    cover_image_url: 'https://…',
+    translations: [
+      { language: 'en', title: 'Buying guide', content: '…', excerpt: '…' },
+      { language: 'ms', title: 'Panduan membeli', content: '…', excerpt: '…' },
+    ],
+  }),
+})
 ```
 
-Request an API key from your Webcore admin (scoped to one website, read/write).
+**`PATCH` and `DELETE`** use the same endpoints, with `{ id, ...fields }` in the body. For blog `PATCH`, include only the languages you want to update in `translations`; other languages stay untouched.
 
 ---
 
