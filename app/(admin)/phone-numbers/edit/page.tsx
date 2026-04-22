@@ -220,7 +220,9 @@ export default function ManagePhoneNumbersPage() {
   const mode: Mode | null = selectedMode ?? detectedMode
   const modeDirty = savedMode !== null && selectedMode !== null && selectedMode !== savedMode
   const showLocationColumn = mode !== 'rotation'
-  const locationAllowsAll = mode !== 'location'
+  // 'all' is always selectable in the dropdown so users aren't trapped; Location mode
+  // still rejects 'all' at save time with a clear 'use Hybrid instead' message.
+  const locationAllowsAll = true
 
   // Filter rows for display based on selected mode.
   // Single mode: only default row visible. Others: all visible.
@@ -240,33 +242,13 @@ export default function ManagePhoneNumbersPage() {
     return combined.filter(r => r.is_active && !r.markedForDelete)
   }, [visibleRows, visibleDrafts])
 
-  // Per-location percentage pools.
-  // - single: one pool (the single default at 'all') — total must be 100%
-  // - rotation: one pool across all 'all' rows — total must be 100%
-  // - location: each distinct location_slug is its own pool; each must be 100%
-  // - hybrid: 'all' is one pool, each specific slug is its own pool; each must be 100%
-  const pctPools = useMemo(() => {
-    const pools: Record<string, { label: string; total: number }> = {}
-    for (const r of allActiveForPct) {
-      const slug = r.location_slug || 'all'
-      const key = mode === 'location' || mode === 'hybrid' ? slug : 'pool'
-      const label = key === 'pool'
-        ? 'Distribution'
-        : (slug === 'all' ? 'All locations' : (LOCATION_LABEL[slug] ?? slug))
-      if (!pools[key]) pools[key] = { label, total: 0 }
-      pools[key].total += r.percentage || 0
-    }
-    return pools
-  }, [allActiveForPct, mode])
-
-  const pctErrors = Object.entries(pctPools)
-    .filter(([, v]) => v.total !== 100)
-    .map(([, v]) => v.total > 100
-      ? `${v.label}: over by ${v.total - 100}%`
-      : `${v.label}: under by ${100 - v.total}%`)
-
-  // Legacy total used by distribution bar display
+  // Percentages always sum to 100% globally, regardless of mode.
   const pctTotal = allActiveForPct.reduce((s, r) => s + (r.percentage || 0), 0)
+
+  // Location mode forbids rows at 'all' — they must pick a specific location.
+  const allLocationRowsInLocationMode = mode === 'location'
+    ? allActiveForPct.filter(r => (r.location_slug || 'all') === 'all')
+    : []
 
   // Assign a stable color per row so the distribution bar and the row's color
   // dot line up visually.
@@ -365,8 +347,21 @@ export default function ManagePhoneNumbersPage() {
       seen.add(n)
     }
 
-    if (pctErrors.length > 0) {
-      toast.error(pctErrors.join(' · '), 'Percentage invalid')
+    if (pctTotal !== 100) {
+      toast.error(
+        pctTotal > 100
+          ? `Active percentages total ${pctTotal}% — reduce some values before saving.`
+          : `Active percentages total ${pctTotal}% — must be exactly 100%.`,
+        'Percentage invalid',
+      )
+      return
+    }
+
+    if (allLocationRowsInLocationMode.length > 0) {
+      toast.error(
+        `Location mode can't have rows at 'all' location. Set a specific location for ${allLocationRowsInLocationMode.length} row${allLocationRowsInLocationMode.length === 1 ? '' : 's'}, or switch to Hybrid mode.`,
+        'Invalid location for this mode',
+      )
       return
     }
 
@@ -539,57 +534,33 @@ export default function ManagePhoneNumbersPage() {
               title="Lead Distribution"
               right={
                 <span className="text-xs font-semibold tabular-nums"
-                  style={{ color: pctErrors.length === 0 ? '#16a34a' : '#b91c1c' }}>
-                  {pctErrors.length === 0 ? 'All pools 100%' : `${pctErrors.length} pool${pctErrors.length === 1 ? '' : 's'} off`}
+                  style={{ color: pctTotal === 100 ? '#16a34a' : '#b91c1c' }}>
+                  {pctTotal}% / 100%
                 </span>
               } />
             <div className="px-5 py-4">
-              {(mode === 'location' || mode === 'hybrid') ? (
-                <div className="space-y-3">
-                  {Object.entries(pctPools).map(([poolKey, pool]) => {
-                    const poolRows = allActiveForPct.filter(r => {
-                      const slug = r.location_slug || 'all'
-                      return slug === poolKey
-                    })
-                    const poolBarMax = Math.max(pool.total, 100)
-                    return (
-                      <div key={poolKey}>
-                        <div className="flex items-center justify-between mb-1">
-                          <span className="text-[11px] font-medium" style={{ color: '#475569' }}>{pool.label}</span>
-                          <span className="text-[11px] font-semibold tabular-nums" style={{ color: pool.total === 100 ? '#16a34a' : '#b91c1c' }}>
-                            {pool.total}% / 100%
-                          </span>
-                        </div>
-                        <div className="relative flex h-2.5 rounded-full overflow-hidden" style={{ background: '#f1f5f9' }}>
-                          {poolRows.filter(r => r.percentage > 0).map(r => (
-                            <div key={r.key} className="relative group" style={{ width: `${(r.percentage / poolBarMax) * 100}%`, background: colorByKey[r.key] ?? '#cbd5e1', transition: 'width 0.2s' }} />
-                          ))}
-                        </div>
-                      </div>
-                    )
-                  })}
-                </div>
-              ) : (
-                <div className="relative flex h-3.5 rounded-full overflow-hidden" style={{ background: '#f1f5f9' }}>
-                  {allActiveForPct.filter(r => r.percentage > 0).map(r => (
-                    <div key={r.key} className="relative group cursor-pointer"
-                      style={{ width: `${r.percentage}%`, background: colorByKey[r.key] ?? '#cbd5e1', transition: 'width 0.2s' }}>
-                      <div className="pointer-events-none absolute left-1/2 -translate-x-1/2 bottom-full mb-1.5 px-2 py-1 rounded text-[10px] font-medium text-white whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity z-10 shadow"
-                        style={{ background: '#0f172a' }}>
-                        <span className="font-mono">{r.phone_number || '(new)'}</span> · {r.percentage}%
-                      </div>
+              <div className="relative flex h-3.5 rounded-full overflow-hidden" style={{ background: '#f1f5f9' }}>
+                {allActiveForPct.filter(r => r.percentage > 0).map(r => (
+                  <div key={r.key} className="relative group cursor-pointer"
+                    style={{ width: `${r.percentage}%`, background: colorByKey[r.key] ?? '#cbd5e1', transition: 'width 0.2s' }}>
+                    <div className="pointer-events-none absolute left-1/2 -translate-x-1/2 bottom-full mb-1.5 px-2 py-1 rounded text-[10px] font-medium text-white whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity z-10 shadow"
+                      style={{ background: '#0f172a' }}>
+                      <span className="font-mono">{r.phone_number || '(new)'}</span> · {r.percentage}%
                     </div>
-                  ))}
-                </div>
+                  </div>
+                ))}
+              </div>
+              {pctTotal !== 100 && (
+                <p className="text-[11px] mt-2" style={{ color: pctTotal > 100 ? '#b91c1c' : '#b45309' }}>
+                  {pctTotal > 100
+                    ? `Over by ${pctTotal - 100}% — reduce some values before saving.`
+                    : `Under by ${100 - pctTotal}% — total must be exactly 100%.`}
+                </p>
               )}
-              {pctErrors.length > 0 && (
-                <ul className="mt-3 space-y-0.5">
-                  {pctErrors.map((msg, i) => (
-                    <li key={i} className="text-[11px]" style={{ color: msg.includes('over') ? '#b91c1c' : '#b45309' }}>
-                      {msg.includes('over') ? '↑' : '↓'} {msg}
-                    </li>
-                  ))}
-                </ul>
+              {allLocationRowsInLocationMode.length > 0 && (
+                <p className="text-[11px] mt-2" style={{ color: '#b91c1c' }}>
+                  {allLocationRowsInLocationMode.length} row{allLocationRowsInLocationMode.length === 1 ? '' : 's'} at &apos;all&apos; location — not valid in Location mode. Set a specific location, or switch to Hybrid.
+                </p>
               )}
             </div>
           </Panel>
