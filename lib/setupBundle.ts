@@ -11,16 +11,19 @@ interface BundleInput {
  * the setup bundle. Kept in sync with the file list in downloadSetupBundle.
  */
 export function kickoffPrompt(domain: string): string {
-  return `I've added webcore-setup-${domain} files to this project (webcore-AGENTS.md at the root, plus lib/webcore.ts, components/WebcoreTracker.tsx, .env.local.example, and webcore-TRACKING-GUIDE.md).
+  return `I've added webcore-setup-${domain} files to this project (webcore-AGENTS.md at the root, plus lib/webcore.ts, components/WebcoreTracker.tsx, .env.local.example, webcore-TRACKING-GUIDE.md, and an AGENTS.md stub that points to webcore-AGENTS.md).
 
 Please:
 
 1. Read webcore-AGENTS.md — it has the full integration spec.
-2. Rename .env.local.example to .env.local. The WEBCORE_API_KEY is already filled in; make sure .env.local is in .gitignore.
-3. Add <WebcoreTracker /> to the root layout's <head>.
-4. Audit the codebase for hardcoded phone numbers, WhatsApp/call buttons, products, or blog content. Replace them with calls from lib/webcore.ts (resolvePhone, fetchProducts, fetchBlog, pushProduct, etc.).
-5. Wire up window.uwc() tracking on every CTA — WhatsApp, call, product cards (impression via IntersectionObserver, fire once), blog article links. Use the label conventions in webcore-AGENTS.md: whatsapp-{phone}, call-{phone}, product-{slug}, blog-{slug}.
-6. When done, confirm pageviews and clicks appear in the webcore admin Analytics tab for domain "${domain}".
+2. Handle AGENTS.md at the project root so Claude auto-loads webcore rules on future turns:
+   - If AGENTS.md does NOT exist: keep the stub I added verbatim.
+   - If AGENTS.md ALREADY exists (from a previous setup or template): leave the existing content intact and just append a "## Webcore integration" section that says "See webcore-AGENTS.md for the full spec."
+3. Rename .env.local.example to .env.local. The WEBCORE_API_KEY is already filled in; make sure .env.local is in .gitignore.
+4. Add <WebcoreTracker /> to the root layout's <head>.
+5. Audit the codebase for hardcoded phone numbers, WhatsApp/call buttons, products, or blog content. Replace them with calls from lib/webcore.ts (resolvePhone, fetchProducts, fetchBlog, pushProduct, etc.).
+6. Wire up window.uwc() tracking on every CTA — WhatsApp, call, product cards (impression via IntersectionObserver, fire once), blog article links. Use the label conventions in webcore-AGENTS.md: whatsapp-{phone}, call-{phone}, product-{slug}, blog-{slug}.
+7. When done, confirm pageviews and clicks appear in the webcore admin Analytics tab for domain "${domain}".
 
 If anything is ambiguous, re-read webcore-AGENTS.md and webcore-TRACKING-GUIDE.md before asking me.`
 }
@@ -30,17 +33,19 @@ If anything is ambiguous, re-read webcore-AGENTS.md and webcore-TRACKING-GUIDE.m
  * everything a designer needs to hand off to their Claude Code agent for
  * integration work:
  *
- *   webcore-AGENTS.md                  — project instructions (point Claude at this file via the kickoff prompt)
- *   webcore-README.md                  — human-readable quick-start
- *   .env.local.example         — with API key + domain pre-filled
- *   lib/webcore.ts             — typed helper for the public APIs
- *   components/WebcoreTracker.tsx — drop-in <head> tracking script
- *   webcore-TRACKING-GUIDE.md          — full reference docs
+ *   AGENTS.md                         — auto-loaded stub pointing Claude at webcore-AGENTS.md
+ *   webcore-AGENTS.md                 — full project instructions
+ *   webcore-README.md                 — human-readable quick-start
+ *   .env.local.example                — with API key + domain pre-filled
+ *   lib/webcore.ts                    — typed helper for the public APIs
+ *   components/WebcoreTracker.tsx     — drop-in <head> tracking script
+ *   webcore-TRACKING-GUIDE.md         — full reference docs
  */
 export async function downloadSetupBundle({ domain, apiKey, permissions }: BundleInput) {
   const zip = new JSZip()
   const permList = permissions.length > 0 ? permissions.join(' + ') : 'read + write'
 
+  zip.file('AGENTS.md', agentsStub())
   zip.file('webcore-AGENTS.md', agentsMd({ domain, permList }))
   zip.file('webcore-README.md', readmeMd({ domain }))
   zip.file('.env.local.example', envExample({ domain, apiKey }))
@@ -74,23 +79,45 @@ export function fullSetupMarkdown({ domain, apiKey, permissions }: BundleInput):
 
 Please create the following files in my project exactly as written. Use the content between the "FILE:" delimiters verbatim. Do NOT ask me to confirm — just create them all, then do the integration work described at the bottom.
 
-${block('webcore-AGENTS.md', agentsMd({ domain, permList }))}${block('.env.local', envExample({ domain, apiKey }))}${block('lib/webcore.ts', webcoreTs({ domain }))}${block('components/WebcoreTracker.tsx', trackerTsx({ domain }))}${block('webcore-TRACKING-GUIDE.md', trackingGuideMd())}${sep}
+${block('webcore-AGENTS.md', agentsMd({ domain, permList }))}${block('.env.local', envExample({ domain, apiKey }))}${block('lib/webcore.ts', webcoreTs({ domain }))}${block('components/WebcoreTracker.tsx', trackerTsx({ domain }))}${block('webcore-TRACKING-GUIDE.md', trackingGuideMd())}${block('AGENTS.md (stub — merge if file already exists)', agentsStub())}${sep}
 END OF FILES
 ${sep}
 
 After creating the files above, do the integration:
 
-1. Make sure \`.env.local\` is listed in \`.gitignore\` (add the line if not).
-2. Add \`<WebcoreTracker />\` to the root layout's \`<head>\`.
-3. Audit the codebase for hardcoded phone numbers, WhatsApp/call buttons, products, or blog content. Replace them with calls from \`lib/webcore.ts\` (\`resolvePhone\`, \`fetchProducts\`, \`fetchBlog\`, \`pushProduct\`, etc.).
-4. Wire up \`window.uwc()\` tracking on every CTA — WhatsApp, call, product cards (impression via IntersectionObserver, fire once), blog article links. Use the label conventions in webcore-AGENTS.md: \`whatsapp-{phone}\`, \`call-{phone}\`, \`product-{slug}\`, \`blog-{slug}\`.
-5. When done, tell me to verify that pageviews and clicks appear in the webcore admin Analytics tab for domain "${domain}".
+1. Handle AGENTS.md so Claude auto-loads webcore rules on future turns:
+   - If AGENTS.md does NOT exist: write the stub content from above verbatim.
+   - If AGENTS.md ALREADY exists: do NOT overwrite it. Append a "## Webcore integration" section that says "See webcore-AGENTS.md for the full spec." below whatever's already there.
+2. Make sure \`.env.local\` is listed in \`.gitignore\` (add the line if not).
+3. Add \`<WebcoreTracker />\` to the root layout's \`<head>\`.
+4. Audit the codebase for hardcoded phone numbers, WhatsApp/call buttons, products, or blog content. Replace them with calls from \`lib/webcore.ts\` (\`resolvePhone\`, \`fetchProducts\`, \`fetchBlog\`, \`pushProduct\`, etc.).
+5. Wire up \`window.uwc()\` tracking on every CTA — WhatsApp, call, product cards (impression via IntersectionObserver, fire once), blog article links. Use the label conventions in webcore-AGENTS.md: \`whatsapp-{phone}\`, \`call-{phone}\`, \`product-{slug}\`, \`blog-{slug}\`.
+6. When done, tell me to verify that pageviews and clicks appear in the webcore admin Analytics tab for domain "${domain}".
 
 If anything is ambiguous, re-read webcore-AGENTS.md and webcore-TRACKING-GUIDE.md before asking me.
 `
 }
 
 /* ─── File templates ────────────────────────────────────────── */
+
+function agentsStub(): string {
+  return `# Project instructions
+
+## Webcore integration
+
+This project integrates with **Utopia Webcore**. For the full integration spec, read [webcore-AGENTS.md](./webcore-AGENTS.md).
+
+Key rules at a glance:
+
+- Do NOT hardcode phone numbers, products, or blog content — fetch them via \`lib/webcore.ts\`.
+- Every page loads \`<WebcoreTracker />\` in its root layout.
+- Click/impression tracking uses \`window.uwc(...)\` with label conventions \`whatsapp-{phone}\`, \`call-{phone}\`, \`product-{slug}\`, \`blog-{slug}\`.
+- \`WEBCORE_API_KEY\` is server-only — never imported into client components.
+
+See \`webcore-AGENTS.md\` for roles, APIs, conventions, and Google Search Console verification steps.
+`
+}
+
 
 function agentsMd({ domain, permList }: { domain: string; permList: string }): string {
   return `# Utopia Webcore Integration
@@ -180,7 +207,8 @@ This folder contains everything needed to integrate this website with Utopia Web
 
 ## Files
 
-- \`webcore-AGENTS.md\` — instructions for Claude Code / Claude agents (point Claude at this file; it won't auto-load)
+- \`AGENTS.md\` — a small stub that points Claude Code at \`webcore-AGENTS.md\` (auto-loaded on every turn). If your project already has an AGENTS.md, merge — don't overwrite.
+- \`webcore-AGENTS.md\` — full integration spec for Claude Code / Claude agents
 - \`.env.local.example\` — environment variables template (rename to \`.env.local\`)
 - \`lib/webcore.ts\` — typed helper for fetching and pushing data
 - \`components/WebcoreTracker.tsx\` — drop-in component for the tracking script
