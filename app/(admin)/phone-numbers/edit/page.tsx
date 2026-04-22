@@ -237,8 +237,16 @@ export default function ManagePhoneNumbersPage() {
     return addDrafts
   }, [addDrafts, mode])
 
+  // A draft is "populated" (and therefore counts toward percentage totals / save
+  // validation) the moment the user types anything into it — not just when the
+  // phone number is filled. This is what makes e.g. "100% but no phone" still
+  // trigger the over-100% error.
+  function isPopulatedDraft(d: WorkingRow) {
+    return !!(d.phone_number.trim() || (d.percentage || 0) > 0 || d.whatsapp_text.trim() || (d.label ?? '').trim())
+  }
+
   const allActiveForPct = useMemo(() => {
-    const combined = [...visibleRows, ...visibleDrafts.filter(d => d.phone_number.trim())]
+    const combined = [...visibleRows, ...visibleDrafts.filter(isPopulatedDraft)]
     return combined.filter(r => r.is_active && !r.markedForDelete)
   }, [visibleRows, visibleDrafts])
 
@@ -300,7 +308,10 @@ export default function ManagePhoneNumbersPage() {
 
   const deletingCount = rows.filter(r => r.markedForDelete).length
   const dirtyCount = rows.filter(r => r.dirty && !r.markedForDelete).length
-  const newCount = addDrafts.filter(d => d.phone_number.trim()).length
+  // Any draft the user has started filling in counts as a change — save-time
+  // validation will catch drafts that are only partially filled.
+  const populatedDrafts = addDrafts.filter(isPopulatedDraft)
+  const newCount = populatedDrafts.length
   const hasChanges = deletingCount > 0 || dirtyCount > 0 || newCount > 0 || modeDirty
 
   async function bulkDeleteSelected() {
@@ -327,6 +338,17 @@ export default function ManagePhoneNumbersPage() {
 
   async function doSave() {
     if (!website) { toast.error('Pick a website first', 'Missing website'); return }
+
+    // Any draft row the user has started filling must have a phone number.
+    // Blank-phone-but-has-percentage was previously silently dropped.
+    const incompleteDraft = populatedDrafts.find(d => !d.phone_number.trim())
+    if (incompleteDraft) {
+      toast.error(
+        'A new row has a percentage or text but no phone number. Fill in the phone number or clear the row before saving.',
+        'Missing phone number',
+      )
+      return
+    }
 
     const allNumbers = [
       ...rows.filter(r => !r.markedForDelete),
