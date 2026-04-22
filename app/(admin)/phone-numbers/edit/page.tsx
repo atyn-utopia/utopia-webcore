@@ -862,20 +862,40 @@ function LocationCombobox({ value, onChange, allowsAll, listId }: {
 }) {
   // Convert slug to label when a known state; pass-through otherwise.
   const displayValue = value === 'all' ? (allowsAll ? 'All locations' : '') : (LOCATION_LABEL[value] ?? value)
+  // Buffer the text the user is currently typing. While focused, we show this buffer
+  // (blank on first click) so the datalist shows ALL options instead of filtering
+  // down to only those that match the current value.
+  const [buffer, setBuffer] = useState<string | null>(null)
+  const focused = buffer !== null
 
-  function handleInput(v: string) {
-    if (!v.trim()) { onChange(allowsAll ? 'all' : ''); return }
-    if (allowsAll && v.toLowerCase().trim() === 'all locations') { onChange('all'); return }
-    const match = MY_STATES.find(s => s.label.toLowerCase() === v.toLowerCase().trim())
-    onChange(match ? match.slug : v.trim())
+  function commit(v: string) {
+    const trimmed = v.trim()
+    if (!trimmed) { onChange(allowsAll ? 'all' : ''); return }
+    if (allowsAll && trimmed.toLowerCase() === 'all locations') { onChange('all'); return }
+    const match = MY_STATES.find(s => s.label.toLowerCase() === trimmed.toLowerCase())
+    onChange(match ? match.slug : trimmed)
   }
 
   return (
     <>
-      <input type="text" list={listId}
-        value={displayValue}
-        onChange={e => handleInput(e.target.value)}
-        placeholder={allowsAll ? 'All locations or state name' : 'Pick or type a location'}
+      <input
+        type="text"
+        list={listId}
+        value={focused ? (buffer ?? '') : displayValue}
+        onFocus={() => setBuffer('')}
+        onChange={e => {
+          setBuffer(e.target.value)
+          // If user picked an option from the datalist, commit immediately so the choice
+          // doesn't disappear if they tab away.
+          const v = e.target.value
+          const match = MY_STATES.find(s => s.label.toLowerCase() === v.toLowerCase().trim())
+          if (match || (allowsAll && v.toLowerCase().trim() === 'all locations')) commit(v)
+        }}
+        onBlur={() => {
+          if (buffer !== null && buffer.trim().length > 0) commit(buffer)
+          setBuffer(null)
+        }}
+        placeholder={displayValue || (allowsAll ? 'All locations or state name' : 'Pick or type a location')}
         className="w-full px-2 py-1.5 text-sm rounded border focus:outline-none focus:border-[var(--primary)]"
         style={{ borderColor: '#e2e8f0', background: 'white' }} />
       <datalist id={listId}>
