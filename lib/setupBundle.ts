@@ -170,6 +170,59 @@ Stick to this format so events group correctly in webcore:
 | Product impression | \`product-{slug}\` |
 | Blog click | \`blog-{slug}\` |
 
+## Phone CTA patterns — resolution + rotation
+
+For WhatsApp / Call buttons, ALWAYS call \`resolvePhone()\` at click time — never at render time or build time. Caching the result would freeze one phone for everyone and break the rotation.
+
+The resolver tries these in order (server-side):
+
+1. Active phones at the passed \`location\` slug → weighted-random pick using the \`percentage\` field
+2. Active phones at \`location_slug = 'all'\` → weighted-random pick
+3. The admin \`type='default'\` row as last resort (returned with \`source: 'default_fallback'\`)
+
+You can tell how the number was chosen from the returned \`source\` field. If you want step 3 disabled (e.g. hide the button instead of showing the default), pass \`{ noFallback: true }\`.
+
+### Canonical WhatsApp button (click-time resolve, always works)
+
+\`\`\`tsx
+'use client'
+import { resolvePhone } from '@/lib/webcore'
+
+export function WhatsAppButton({ location }: { location?: string }) {
+  async function onClick() {
+    const p = await resolvePhone(location)
+    if (!p) return // default fallback is on by default — null is rare (no default row configured)
+    window.uwc?.('click', { label: \\\`whatsapp-\\\${p.phone_number}\\\` })
+    window.open(
+      \\\`https://wa.me/\\\${p.phone_number}?text=\\\${encodeURIComponent(p.whatsapp_text)}\\\`,
+      '_blank',
+    )
+  }
+  return <button onClick={onClick}>WhatsApp us</button>
+}
+\`\`\`
+
+### Call button (pageview rotation — OK for tel: links)
+
+\`tel:\` links need the number in the \`href\`, so the number is fixed for the render. Rotation still happens per page visit because \`resolvePhone()\` is called server-side on each request.
+
+\`\`\`tsx
+// app/contact/page.tsx — Server Component
+import { resolvePhone } from '@/lib/webcore'
+
+export default async function ContactPage({ params }: { params: { location?: string } }) {
+  const p = await resolvePhone(params.location) // cache: 'no-store' is set in the helper
+  return p ? <a href={\\\`tel:\\\${p.phone_number}\\\`}>Call {p.phone_number}</a> : null
+}
+\`\`\`
+
+### Anti-patterns — do NOT do these
+
+- ❌ \`const phone = (await fetchPhones())[0]\` — freezes first phone, kills rotation
+- ❌ Baking a WhatsApp URL into static HTML at build time — same reason
+- ❌ Caching \`resolvePhone()\` in a module-level variable — same reason
+- ❌ Matching on \`label === 'default'\` client-side — use \`type === 'default'\` instead; labels are editable
+
 ## Code style
 
 - TypeScript strict mode everywhere
@@ -271,6 +324,8 @@ export interface PhoneNumber {
   type: 'default' | 'custom' | 'location' | string
   label: string | null
   location_slug: string
+  /** Populated by resolvePhone — tells you how the number was chosen. */
+  source?: 'location' | 'all' | 'default_fallback'
 }
 
 export interface ProductPhoto {
@@ -337,11 +392,29 @@ export async function fetchPhones(location?: string): Promise<PhoneNumber[]> {
   return res.json()
 }
 
-/** Resolve a single phone number (respects rotation / location / hybrid modes). */
-export async function resolvePhone(location?: string): Promise<PhoneNumber | null> {
+/**
+ * Resolve a single phone number for a CTA button.
+ *
+ * Resolution order (server-side):
+ *   1. Active phones with location_slug = <location> (weighted random)
+ *   2. Active phones with location_slug = 'all' (weighted random)
+ *   3. Last resort: the admin 'default' row (returned with source='default_fallback')
+ *
+ * Always call this at click time with { cache: 'no-store' } so rotation
+ * distributes across users. Never bake the result into server-rendered HTML
+ * or cache it — that freezes one phone for everyone.
+ *
+ * Pass \`{ noFallback: true }\` if you want null back instead of the default row
+ * (e.g. you want to hide the button entirely when nothing matches).
+ */
+export async function resolvePhone(
+  location?: string,
+  options?: { noFallback?: boolean },
+): Promise<PhoneNumber | null> {
   const url = new URL(\`\${BASE}/api/public/phone-numbers/resolve\`)
   url.searchParams.set('website', SITE)
   if (location) url.searchParams.set('location', location)
+  if (options?.noFallback) url.searchParams.set('fallback_default', '0')
   const res = await fetch(url, { cache: 'no-store' })
   if (!res.ok) return null
   return res.json()

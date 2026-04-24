@@ -3,22 +3,23 @@ import { NextResponse } from 'next/server'
 
 /**
  * PUBLIC endpoint — no auth required.
- * Resolves ONE phone number for a given website + optional location,
- * respecting the site's leads_mode (single / rotation / location / hybrid).
+ * Resolves ONE phone number for a given website + optional location.
  *
  * Usage:
  *   GET /api/public/phone-numbers/resolve?website=example.com
  *   GET /api/public/phone-numbers/resolve?website=example.com&location=shah-alam
+ *   GET /api/public/phone-numbers/resolve?website=example.com&fallback_default=0
  *
  * Resolution order:
- *   1. If `location` param given: try phones with that exact location_slug
- *   2. Fall back to phones with location_slug = 'all'
- *   3. If multiple candidates: weighted random pick using `percentage`
+ *   1. If `location` is given: active phones with that exact location_slug (weighted random)
+ *   2. Active phones with location_slug = 'all' (weighted random)
+ *   3. Last resort: the admin 'default' row (even if is_active=false), unless
+ *      fallback_default=0 is passed
  *
  * Response:
- *   { phone_number, whatsapp_text, type, label, location_slug, source: 'location' | 'all' }
+ *   { phone_number, whatsapp_text, type, label, location_slug, source: 'location' | 'all' | 'default_fallback' }
  *
- * 404 if no active phones are configured for this website.
+ * 404 only if a default doesn't exist either (rare; usually a site setup error).
  */
 const CORS = {
   'Access-Control-Allow-Origin': '*',
@@ -54,6 +55,7 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url)
   const website = searchParams.get('website')
   const location = searchParams.get('location')
+  const fallbackDefault = searchParams.get('fallback_default') !== '0'
 
   if (!website) {
     return NextResponse.json({ error: 'website parameter is required' }, { status: 400, headers: CORS })
@@ -87,6 +89,24 @@ export async function GET(request: Request) {
   if (allPhones && allPhones.length > 0) {
     const chosen = weightedPick(allPhones as PhoneRow[])
     return NextResponse.json({ ...chosen, percentage: undefined, source: 'all' }, { headers: CORS })
+  }
+
+  // 3. Last resort: the admin 'default' row for this website (may be inactive).
+  // This makes CTAs degrade gracefully instead of returning null when no
+  // location/all match is available (e.g. Location-mode sites called without
+  // a location param).
+  if (fallbackDefault) {
+    const { data: defaultPhones } = await service
+      .from('phone_numbers')
+      .select('phone_number, whatsapp_text, type, label, location_slug, percentage')
+      .eq('website', website)
+      .eq('type', 'default')
+      .limit(1)
+
+    if (defaultPhones && defaultPhones.length > 0) {
+      const chosen = defaultPhones[0] as PhoneRow
+      return NextResponse.json({ ...chosen, percentage: undefined, source: 'default_fallback' }, { headers: CORS })
+    }
   }
 
   return NextResponse.json({ error: 'No active phone numbers configured for this website' }, { status: 404, headers: CORS })
