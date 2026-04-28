@@ -9,7 +9,7 @@ interface AuditLog {
   user_id: string | null
   user_name: string
   user_role: string
-  entity_type: 'phone_number' | 'blog_post' | 'product' | 'website'
+  entity_type: 'phone_number' | 'blog_post' | 'product' | 'website' | 'api_key'
   entity_id: string | null
   action: 'create' | 'update' | 'delete'
   website: string | null
@@ -66,6 +66,16 @@ const ENTITY_META: Record<string, { label: string; icon: React.ReactNode; color:
       </svg>
     ),
   },
+  api_key: {
+    label: 'API key',
+    color: '#475569',
+    bg: '#f1f5f9',
+    icon: (
+      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M15 7a4 4 0 11-4 4m4-4a4 4 0 00-4 4m4-4l5 5-2 2-1-1-2 2-1-1-2 2-3-3" />
+      </svg>
+    ),
+  },
 }
 
 function formatRelative(d: string) {
@@ -105,7 +115,7 @@ export default function AuditTrailPage() {
   const [loading, setLoading] = useState(true)
   const [expanded, setExpanded] = useState<Set<string>>(new Set())
   const [search, setSearch] = useState('')
-  const [filterEntity, setFilterEntity] = useState<'' | 'phone_number' | 'blog_post' | 'product' | 'website'>('')
+  const [filterEntity, setFilterEntity] = useState<'' | 'phone_number' | 'blog_post' | 'product' | 'website' | 'api_key'>('')
   const [filterAction, setFilterAction] = useState<'' | 'create' | 'update' | 'delete'>('')
 
   useEffect(() => {
@@ -167,13 +177,14 @@ export default function AuditTrailPage() {
         <div>
           <label className="block text-[10px] font-medium mb-1" style={{ color: '#94a3b8' }}>Entity</label>
           <div className="relative">
-            <select value={filterEntity} onChange={e => setFilterEntity(e.target.value as '' | 'phone_number' | 'blog_post' | 'product' | 'website')}
+            <select value={filterEntity} onChange={e => setFilterEntity(e.target.value as '' | 'phone_number' | 'blog_post' | 'product' | 'website' | 'api_key')}
               className="px-3 py-2 text-sm rounded-lg border focus:outline-none cursor-pointer pr-9" style={{ borderColor: '#e2e8f0', appearance: 'none', WebkitAppearance: 'none', background: 'white', minWidth: '140px', color: '#64748b' }}>
               <option value="">All entities</option>
               <option value="phone_number">Phone numbers</option>
               <option value="blog_post">Blog posts</option>
               <option value="product">Products</option>
               <option value="website">Websites</option>
+              <option value="api_key">API keys</option>
             </select>
             <svg className="w-3.5 h-3.5 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: '#94a3b8' }} strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
           </div>
