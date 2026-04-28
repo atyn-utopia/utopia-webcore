@@ -618,6 +618,7 @@ function IntegrationsSection({ domain }: { domain: string }) {
   const [properties, setProperties] = useState<GscProperty[] | null>(null)
   const [propsLoading, setPropsLoading] = useState(false)
   const [propsError, setPropsError] = useState<string | null>(null)
+  const [propsNeedsReconnect, setPropsNeedsReconnect] = useState(false)
   const [selected, setSelected] = useState<string>('')
   const [saving, setSaving] = useState(false)
   const [showVerifyHelp, setShowVerifyHelp] = useState(false)
@@ -636,11 +637,16 @@ function IntegrationsSection({ domain }: { domain: string }) {
   async function loadProperties() {
     setPropsLoading(true)
     setPropsError(null)
+    setPropsNeedsReconnect(false)
     try {
       const res = await fetch(`/api/integrations/gsc/properties?domain=${encodeURIComponent(domain)}`)
       const data = await res.json()
       if (!res.ok) {
-        setPropsError(data.error ?? 'Failed to load properties')
+        if (data.needsReconnect) {
+          setPropsNeedsReconnect(true)
+        } else {
+          setPropsError(data.error ?? 'Failed to load properties')
+        }
         return
       }
       setProperties(data.properties ?? [])
@@ -817,6 +823,17 @@ function IntegrationsSection({ domain }: { domain: string }) {
           </p>
           {propsLoading ? (
             <p className="text-xs py-3" style={{ color: '#94a3b8' }}>Loading your Search Console properties…</p>
+          ) : propsNeedsReconnect ? (
+            <div className="py-3 flex items-center justify-between gap-3 flex-wrap">
+              <p className="text-xs" style={{ color: '#64748b' }}>
+                Google revoked Webcore&apos;s access (token expired or permission removed). Reconnect to pick a property.
+              </p>
+              <button type="button" onClick={connectGsc} disabled={busy}
+                className="text-[11px] font-medium px-3 py-1.5 rounded-md text-white disabled:opacity-50 transition-opacity hover:opacity-90 flex-shrink-0"
+                style={{ background: 'var(--primary)' }}>
+                Reconnect Search Console
+              </button>
+            </div>
           ) : propsError ? (
             <p className="text-xs py-3" style={{ color: '#b91c1c' }}>{propsError}</p>
           ) : !properties || properties.length === 0 ? (
@@ -880,7 +897,13 @@ function GoogleSearchConsoleWordmark() {
 /* ─── Search Console data card ──────────────────────────────── */
 
 interface GscRow { keys?: string[]; clicks: number; impressions: number; ctr: number; position: number }
-interface GscResponse { connected: boolean; rows: GscRow[]; summary: { clicks: number; impressions: number } | null; error?: string }
+interface GscResponse { connected: boolean; rows: GscRow[]; summary: { clicks: number; impressions: number } | null; error?: string; needsReconnect?: boolean }
+
+async function startGscReconnect(domain: string) {
+  const res = await fetch(`/api/integrations/gsc/connect?domain=${encodeURIComponent(domain)}`)
+  const data = await res.json()
+  if (res.ok && data.url) window.location.href = data.url
+}
 
 function SearchConsoleCard({ domain, period }: { domain: string; period: string }) {
   const [data, setData] = useState<GscResponse | null>(null)
@@ -936,6 +959,25 @@ function SearchConsoleCard({ domain, period }: { domain: string; period: string 
           <p className="text-xs" style={{ color: '#64748b' }}>
             See how people find this site from Google search — <span style={{ color: '#475569', fontWeight: 500 }}>Connect in the Integrations section below</span>.
           </p>
+        </div>
+      </Container>
+    )
+  }
+
+  if (data.needsReconnect) {
+    return (
+      <Container>
+        <Header rightSlot={<span className="text-[10px] font-medium px-1.5 py-0.5 rounded" style={{ background: '#fef3c7', color: '#92400e' }}>Reconnect needed</span>} />
+        <div className="p-5 flex items-center justify-between gap-3 flex-wrap">
+          <p className="text-xs" style={{ color: '#64748b' }}>
+            Google revoked Webcore&apos;s access to Search Console for this site (token expired or permission removed).
+            Reconnect to restore search analytics.
+          </p>
+          <button type="button" onClick={() => startGscReconnect(domain)}
+            className="text-[11px] font-medium px-3 py-1.5 rounded-md text-white transition-opacity hover:opacity-90 flex-shrink-0"
+            style={{ background: 'var(--primary)' }}>
+            Reconnect Search Console
+          </button>
         </div>
       </Container>
     )

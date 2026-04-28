@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { createServiceClient } from '@/lib/supabase/service'
 import { getUserScope } from '@/lib/getUserScope'
-import { listGscSites, refreshAccessToken } from '@/lib/integrations/gsc'
+import { GscTokenRevokedError, listGscSites, refreshAccessToken } from '@/lib/integrations/gsc'
 
 const ALLOWED_ROLES = new Set(['admin', 'designer', 'external_designer'])
 
@@ -77,6 +77,9 @@ export async function GET(request: Request) {
 
     return NextResponse.json({ properties: enriched, selected: info.propertyId })
   } catch (e) {
+    if (e instanceof GscTokenRevokedError) {
+      return NextResponse.json({ error: 'token_revoked', needsReconnect: true }, { status: 401 })
+    }
     return NextResponse.json({ error: (e as Error).message }, { status: 502 })
   }
 }
@@ -97,15 +100,18 @@ export async function PATCH(request: Request) {
   }
 
   // Sanity check — make sure the property is actually one of the user's accessible ones
-  const info = await getIntegrationWithFreshToken(domain)
-  if ('error' in info) return NextResponse.json({ error: info.error }, { status: 400 })
-
   try {
+    const info = await getIntegrationWithFreshToken(domain)
+    if ('error' in info) return NextResponse.json({ error: info.error }, { status: 400 })
+
     const sites = await listGscSites(info.accessToken)
     if (!sites.some(s => s.siteUrl === property_id)) {
       return NextResponse.json({ error: 'That property is not accessible by the connected account' }, { status: 400 })
     }
   } catch (e) {
+    if (e instanceof GscTokenRevokedError) {
+      return NextResponse.json({ error: 'token_revoked', needsReconnect: true }, { status: 401 })
+    }
     return NextResponse.json({ error: (e as Error).message }, { status: 502 })
   }
 

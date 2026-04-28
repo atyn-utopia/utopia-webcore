@@ -50,6 +50,14 @@ export async function exchangeCodeForTokens({ code, origin }: { code: string; or
   return res.json()
 }
 
+export class GscTokenRevokedError extends Error {
+  readonly code = 'token_revoked' as const
+  constructor(detail: string) {
+    super(`Google refresh token expired or revoked: ${detail}`)
+    this.name = 'GscTokenRevokedError'
+  }
+}
+
 export async function refreshAccessToken(refreshToken: string): Promise<GoogleTokens> {
   const res = await fetch(GOOGLE_TOKEN_URL, {
     method: 'POST',
@@ -61,7 +69,13 @@ export async function refreshAccessToken(refreshToken: string): Promise<GoogleTo
       grant_type: 'refresh_token',
     }),
   })
-  if (!res.ok) throw new Error(`Token refresh failed: ${res.status} ${await res.text()}`)
+  if (!res.ok) {
+    const body = await res.text()
+    if (res.status === 400 && body.includes('invalid_grant')) {
+      throw new GscTokenRevokedError(body)
+    }
+    throw new Error(`Token refresh failed: ${res.status} ${body}`)
+  }
   return res.json()
 }
 

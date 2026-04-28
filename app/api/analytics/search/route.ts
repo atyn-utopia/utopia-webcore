@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { createServiceClient } from '@/lib/supabase/service'
 import { getUserScope } from '@/lib/getUserScope'
-import { querySearchAnalytics, refreshAccessToken } from '@/lib/integrations/gsc'
+import { GscTokenRevokedError, querySearchAnalytics, refreshAccessToken } from '@/lib/integrations/gsc'
 
 const ALLOWED_ROLES = new Set(['admin', 'designer', 'external_designer'])
 const PERIOD_DAYS: Record<string, number> = { '7d': 7, '30d': 30, '90d': 90 }
@@ -64,6 +64,9 @@ export async function GET(request: Request) {
         .eq('website', domain)
         .eq('provider', 'gsc')
     } catch (e) {
+      if (e instanceof GscTokenRevokedError) {
+        return NextResponse.json({ connected: true, rows: [], summary: null, error: 'token_revoked', needsReconnect: true })
+      }
       return NextResponse.json({ connected: true, rows: [], summary: null, error: (e as Error).message }, { status: 502 })
     }
   }
