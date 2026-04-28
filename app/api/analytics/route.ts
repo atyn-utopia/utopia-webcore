@@ -4,6 +4,8 @@ import { createClient } from '@/lib/supabase/server'
 import { getUserScope } from '@/lib/getUserScope'
 
 // GET /api/analytics?period=7d|30d|90d&website=&event_type=
+//   or  /api/analytics?from=YYYY-MM-DD&to=YYYY-MM-DD
+// `from`/`to` (inclusive, UTC) take precedence over `period` when both are given.
 export async function GET(request: Request) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -14,10 +16,29 @@ export async function GET(request: Request) {
   const period = searchParams.get('period') ?? '7d'
   const website = searchParams.get('website')
   const eventType = searchParams.get('event_type')
+  const fromParam = searchParams.get('from')
+  const toParam = searchParams.get('to')
 
-  // Calculate date range
-  const days = period === '90d' ? 90 : period === '30d' ? 30 : 7
-  const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString()
+  const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/
+  const useCustomRange = fromParam && toParam && ISO_DATE.test(fromParam) && ISO_DATE.test(toParam)
+
+  // Calculate date range. Custom from/to wins when valid; otherwise fall back to period preset.
+  let days: number
+  let since: string
+  let until: string | null = null
+  if (useCustomRange) {
+    const fromMs = Date.parse(`${fromParam}T00:00:00.000Z`)
+    const toMs = Date.parse(`${toParam}T23:59:59.999Z`)
+    if (Number.isNaN(fromMs) || Number.isNaN(toMs) || toMs < fromMs) {
+      return NextResponse.json({ error: 'Invalid from/to range' }, { status: 400 })
+    }
+    since = new Date(fromMs).toISOString()
+    until = new Date(toMs).toISOString()
+    days = Math.max(1, Math.ceil((toMs - fromMs) / 86400000))
+  } else {
+    days = period === '90d' ? 90 : period === '30d' ? 30 : 7
+    since = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString()
+  }
 
   const service = createServiceClient()
 
@@ -27,6 +48,8 @@ export async function GET(request: Request) {
     .select('website, event_type, path, label, device, browser, referrer, session_id, created_at')
     .gte('created_at', since)
     .order('created_at', { ascending: false })
+
+  if (until) query = query.lte('created_at', until)
 
   // Apply scoping
   if (website) {
@@ -266,7 +289,7 @@ export async function GET(request: Request) {
   }
 
   return NextResponse.json({
-    period: { days, since },
+    period: { days, since, until },
     summary: {
       pageviews: totalPageviews,
       clicks: totalClicks,
