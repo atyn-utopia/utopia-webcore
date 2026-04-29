@@ -7,7 +7,9 @@ import { exchangeCodeForTokens, listGscSites } from '@/lib/integrations/gsc'
 const ALLOWED_ROLES = new Set(['admin', 'designer', 'external_designer'])
 
 function redirectBack(origin: string, domain: string, params: Record<string, string>) {
-  const target = new URL(`${origin}/websites`)
+  // Redirect back to /integrations (where GSC config now lives) so the success/
+  // error flash lands on the same page the user started from.
+  const target = new URL(`${origin}/integrations`)
   target.searchParams.set('website', domain)
   for (const [k, v] of Object.entries(params)) target.searchParams.set(k, v)
   return NextResponse.redirect(target)

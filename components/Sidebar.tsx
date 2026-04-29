@@ -179,8 +179,7 @@ const siteNavItems: SiteNavItem[] = [
     ),
   },
   {
-    basePath: '/websites',
-    hash: 'integrations',
+    basePath: '/integrations',
     label: 'Integrations',
     roles: ['admin', 'designer', 'external_designer'],
     icon: (
@@ -289,12 +288,7 @@ export default function Sidebar({ userEmail, userName, userRole, open, onClose }
             {/* Site-scoped tabs */}
             {siteNavItems.filter(item => item.roles.includes(userRole)).map(item => {
               const href = `${item.basePath}?website=${encodeURIComponent(websiteParam)}${item.hash ? `#${item.hash}` : ''}`
-              // Active state: pathname matches basePath; for the Integrations entry (which shares
-              // /websites with Dashboard), we don't try to disambiguate via hash — Dashboard wins.
-              const isDashboardEntry = item.basePath === '/websites' && !item.hash
-              const isIntegrationsEntry = item.basePath === '/websites' && item.hash === 'integrations'
-              const onTargetPath = pathname === item.basePath || pathname.startsWith(item.basePath + '/')
-              const active = isIntegrationsEntry ? false : (onTargetPath && (isDashboardEntry || true))
+              const active = pathname === item.basePath || pathname.startsWith(item.basePath + '/')
               return (
                 <Link
                   key={item.label}
