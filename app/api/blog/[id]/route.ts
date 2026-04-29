@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/service'
 import { createClient } from '@/lib/supabase/server'
 import { resolveActor, writeAuditLog, diffObjects, BLOG_FIELDS, type ChangesMap } from '@/lib/auditLog'
+import { notifyWebsite } from '@/lib/notifyWebsite'
 
 // GET /api/blog/[id] — get post with all translations
 export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -116,6 +117,8 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     })
   }
 
+  if (data?.website) void notifyWebsite(data.website, 'blog_post')
+
   return NextResponse.json(data)
 }
 
@@ -152,6 +155,7 @@ export async function DELETE(_request: Request, { params }: { params: Promise<{ 
         languages: (before.blog_translations as any[])?.map(t => t.language) ?? [],
       },
     })
+    void notifyWebsite(before.website, 'blog_post')
   }
 
   return NextResponse.json({ success: true })

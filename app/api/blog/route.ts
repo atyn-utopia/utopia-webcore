@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/service'
 import { createClient } from '@/lib/supabase/server'
 import { resolveActor, writeAuditLog } from '@/lib/auditLog'
+import { notifyWebsite } from '@/lib/notifyWebsite'
 
 // GET /api/blog?website=&status=
 export async function GET(request: Request) {
@@ -114,6 +115,8 @@ export async function POST(request: Request) {
       languages: Array.isArray(translations) ? translations.map((t: { language: string }) => t.language) : [],
     },
   })
+
+  void notifyWebsite(website, 'blog_post')
 
   return NextResponse.json(post, { status: 201 })
 }

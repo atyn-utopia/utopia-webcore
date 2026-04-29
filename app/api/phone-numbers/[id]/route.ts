@@ -3,6 +3,7 @@ import { createServiceClient } from '@/lib/supabase/service'
 import { createClient } from '@/lib/supabase/server'
 import { updateLeadsMode } from '@/lib/updateLeadsMode'
 import { resolveActor, writeAuditLog, diffObjects, PHONE_FIELDS } from '@/lib/auditLog'
+import { notifyWebsite } from '@/lib/notifyWebsite'
 
 // PATCH /api/phone-numbers/[id]
 export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -45,6 +46,8 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     })
   }
 
+  if (data?.website) void notifyWebsite(data.website, 'phone_number')
+
   return NextResponse.json(data)
 }
 
@@ -86,6 +89,7 @@ export async function DELETE(_request: Request, { params }: { params: Promise<{ 
         whatsapp_text: before.whatsapp_text,
       },
     })
+    void notifyWebsite(before.website, 'phone_number')
   }
 
   return NextResponse.json({ success: true })

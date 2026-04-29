@@ -359,6 +359,17 @@ function ClaudeHandoff({ domain, apiKey, permissions, copiedToken, onCopy }: {
 }) {
   const token = `setup-${domain}`
   const copied = copiedToken === token
+  const [revalidateSecret, setRevalidateSecret] = useState<string | null>(null)
+
+  useEffect(() => {
+    let cancelled = false
+    fetch(`/api/website-settings?website=${encodeURIComponent(domain)}`)
+      .then(r => r.ok ? r.json() : null)
+      .then(d => { if (!cancelled) setRevalidateSecret(d?.revalidate_secret ?? null) })
+      .catch(() => {})
+    return () => { cancelled = true }
+  }, [domain])
+
   return (
     <div className="rounded-lg p-3.5" style={{ background: '#f8fafc', border: '1px solid #e2e8f0' }}>
       <div className="flex items-center justify-between gap-3 flex-wrap">
@@ -372,7 +383,7 @@ function ClaudeHandoff({ domain, apiKey, permissions, copiedToken, onCopy }: {
           </div>
         </div>
         <button type="button"
-          onClick={() => onCopy(fullSetupMarkdown({ domain, apiKey, permissions }), token, 'Paste into Claude — it will do the rest')}
+          onClick={() => onCopy(fullSetupMarkdown({ domain, apiKey, permissions, revalidateSecret }), token, 'Paste into Claude — it will do the rest')}
           className="inline-flex items-center gap-1.5 text-[11px] font-medium px-3 py-1.5 rounded-md transition-all flex-shrink-0"
           style={{
             background: copied ? '#dcfce7' : 'white',

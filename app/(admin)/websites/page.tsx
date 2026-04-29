@@ -596,6 +596,8 @@ export default function WebsitesPage() {
 
     <IntegrationsSection domain={openWebsite} />
 
+    <RevalidationSection domain={openWebsite} />
+
     {siteInfo && !isWriter && (
       <div className="mt-5 rounded-xl border bg-white p-4 flex items-center justify-between" style={{ borderColor: '#e2e8f0' }}>
         <div><p className="text-xs font-medium" style={{ color: '#475569' }}>Phone Numbers</p><p className="text-[10px]" style={{ color: '#94a3b8' }}>{siteInfo.phone_count} total · {siteInfo.active_phone_count} active{siteInfo.leads_mode && LEADS_MODE[siteInfo.leads_mode] ? ` · ${LEADS_MODE[siteInfo.leads_mode].label} mode` : ''}</p></div>
@@ -1066,6 +1068,186 @@ function GscStat({ label, value, color }: { label: string; value: string; color:
     <div className="rounded-lg px-3 py-2.5" style={{ background: '#fafbfc', border: '1px solid #f1f5f9' }}>
       <div className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: '#94a3b8' }}>{label}</div>
       <div className="text-lg font-bold mt-0.5 tabular-nums" style={{ color }}>{value}</div>
+    </div>
+  )
+}
+
+interface RevalidationSettings {
+  website: string
+  revalidate_url: string | null
+  revalidate_secret: string | null
+}
+
+function RevalidationSection({ domain }: { domain: string }) {
+  const [settings, setSettings] = useState<RevalidationSettings | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [urlInput, setUrlInput] = useState('')
+  const [saving, setSaving] = useState(false)
+  const [rotating, setRotating] = useState(false)
+  const [showSecret, setShowSecret] = useState(false)
+  const [flash, setFlash] = useState<{ kind: 'success' | 'error'; text: string } | null>(null)
+
+  function load() {
+    setLoading(true)
+    fetch(`/api/website-settings?website=${encodeURIComponent(domain)}`)
+      .then(r => r.json())
+      .then(d => {
+        setSettings(d)
+        setUrlInput(d?.revalidate_url ?? '')
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false))
+  }
+
+  useEffect(() => { load() }, [domain])
+
+  async function save() {
+    setSaving(true)
+    setFlash(null)
+    try {
+      const trimmed = urlInput.trim()
+      const res = await fetch('/api/website-settings', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ website: domain, revalidate_url: trimmed === '' ? null : trimmed }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        setFlash({ kind: 'error', text: data.error ?? 'Failed to save' })
+        return
+      }
+      setSettings(data)
+      setUrlInput(data?.revalidate_url ?? '')
+      setFlash({ kind: 'success', text: trimmed === '' ? 'Revalidation disabled' : 'Saved — webcore will now ping this URL on every change' })
+    } catch (e) {
+      setFlash({ kind: 'error', text: (e as Error).message })
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  async function rotate() {
+    if (!confirm('Rotate the secret? You will need to update WEBCORE_REVALIDATE_SECRET in the designer site\'s .env and redeploy.')) return
+    setRotating(true)
+    setFlash(null)
+    try {
+      const res = await fetch('/api/website-settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ website: domain, action: 'rotate_secret' }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        setFlash({ kind: 'error', text: data.error ?? 'Failed to rotate' })
+        return
+      }
+      setSettings(data)
+      setShowSecret(true)
+      setFlash({ kind: 'success', text: 'New secret generated — copy it into the designer site\'s .env now.' })
+    } catch (e) {
+      setFlash({ kind: 'error', text: (e as Error).message })
+    } finally {
+      setRotating(false)
+    }
+  }
+
+  function copySecret() {
+    if (!settings?.revalidate_secret) return
+    navigator.clipboard.writeText(settings.revalidate_secret)
+      .then(() => setFlash({ kind: 'success', text: 'Secret copied to clipboard' }))
+      .catch(() => setFlash({ kind: 'error', text: 'Copy failed' }))
+  }
+
+  return (
+    <div className="mt-5 rounded-xl border bg-white p-4" style={{ borderColor: '#e2e8f0' }}>
+      <div className="flex items-start justify-between gap-3 mb-3">
+        <div>
+          <h3 className="text-sm font-semibold" style={{ color: 'var(--foreground)' }}>Live revalidation</h3>
+          <p className="text-[11px] mt-0.5" style={{ color: '#64748b' }}>
+            When products, phone numbers, or blog posts change in webcore, ping the designer site so it flushes its cache instantly.
+          </p>
+        </div>
+        {settings?.revalidate_url && (
+          <span className="text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full flex-shrink-0" style={{ background: '#dcfce7', color: '#166534' }}>Active</span>
+        )}
+      </div>
+
+      {loading ? (
+        <p className="text-xs" style={{ color: '#94a3b8' }}>Loading…</p>
+      ) : (
+        <>
+          <label className="block text-[11px] font-semibold mb-1" style={{ color: '#475569' }}>Designer site revalidate URL</label>
+          <div className="flex gap-2">
+            <input
+              type="url"
+              value={urlInput}
+              onChange={e => setUrlInput(e.target.value)}
+              placeholder="https://designersite.com/api/revalidate"
+              className="flex-1 text-xs px-3 py-2 rounded-md outline-none focus:border-[var(--primary)]"
+              style={{ border: '1px solid #e2e8f0', color: 'var(--foreground)' }}
+              disabled={saving}
+            />
+            <button
+              onClick={save}
+              disabled={saving || urlInput === (settings?.revalidate_url ?? '')}
+              className="text-xs font-medium px-3 py-2 rounded-md text-white disabled:opacity-40"
+              style={{ background: 'var(--primary)' }}
+            >
+              {saving ? 'Saving…' : 'Save'}
+            </button>
+          </div>
+          <div className="text-[10px] mt-2 space-y-1" style={{ color: '#64748b' }}>
+            <p><span className="font-semibold" style={{ color: '#475569' }}>What to paste:</span> the designer site&apos;s deployed origin + <code className="font-mono">/api/revalidate</code>.</p>
+            <p>Example: <code className="font-mono px-1 py-0.5 rounded" style={{ background: '#f1f5f9', color: '#475569' }}>https://{domain.replace(/^www\./, '')}/api/revalidate</code></p>
+            <p><span className="font-semibold" style={{ color: '#475569' }}>Where to find it:</span> the designer&apos;s Vercel project URL — usually the custom domain, or the <code className="font-mono">.vercel.app</code> URL if no custom domain yet. Path stays <code className="font-mono">/api/revalidate</code> (it&apos;s shipped in the setup bundle).</p>
+            <p><span className="font-semibold" style={{ color: '#475569' }}>Heads up:</span> the designer site must have <code className="font-mono">WEBCORE_REVALIDATE_SECRET</code> set in its production env (Vercel → Project → Settings → Environment Variables) and be redeployed. Without that, pings return 401 and content stays stale.</p>
+            <p>Leave blank to disable.</p>
+          </div>
+
+          {settings?.revalidate_secret && (
+            <div className="mt-4 pt-4" style={{ borderTop: '1px solid #f1f5f9' }}>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="text-[11px] font-semibold" style={{ color: '#475569' }}>Secret (header: <code className="font-mono">X-Webcore-Secret</code>)</label>
+                <button
+                  onClick={() => setShowSecret(s => !s)}
+                  className="text-[10px] font-medium underline"
+                  style={{ color: '#64748b' }}
+                >
+                  {showSecret ? 'Hide' : 'Reveal'}
+                </button>
+              </div>
+              <div className="flex gap-2">
+                <code className="flex-1 text-[11px] font-mono px-3 py-2 rounded-md truncate" style={{ background: '#f8fafc', border: '1px solid #e2e8f0', color: 'var(--foreground)' }}>
+                  {showSecret ? settings.revalidate_secret : '••••••••••••••••••••••••••••••••'}
+                </code>
+                <button
+                  onClick={copySecret}
+                  className="text-xs font-medium px-3 py-2 rounded-md border"
+                  style={{ borderColor: '#e2e8f0', color: '#475569' }}
+                >
+                  Copy
+                </button>
+                <button
+                  onClick={rotate}
+                  disabled={rotating}
+                  className="text-xs font-medium px-3 py-2 rounded-md border disabled:opacity-40"
+                  style={{ borderColor: '#fecaca', color: '#b91c1c' }}
+                >
+                  {rotating ? '…' : 'Rotate'}
+                </button>
+              </div>
+              <p className="text-[10px] mt-1.5" style={{ color: '#94a3b8' }}>Paste this as <code className="font-mono">WEBCORE_REVALIDATE_SECRET</code> in the designer site&apos;s <code className="font-mono">.env.local</code>.</p>
+            </div>
+          )}
+
+          {flash && (
+            <div className="mt-3 px-3 py-2 rounded-md text-xs"
+              style={{ background: flash.kind === 'success' ? '#f0fdf4' : '#fef2f2', border: `1px solid ${flash.kind === 'success' ? '#bbf7d0' : '#fecaca'}`, color: flash.kind === 'success' ? '#166534' : '#b91c1c' }}>
+              {flash.text}
+            </div>
+          )}
+        </>
+      )}
     </div>
   )
 }

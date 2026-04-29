@@ -1,6 +1,7 @@
 import { createServiceClient } from '@/lib/supabase/service'
 import { NextResponse } from 'next/server'
 import { validateApiKey } from '@/lib/validateApiKey'
+import { notifyWebsite } from '@/lib/notifyWebsite'
 
 /**
  * PUBLIC endpoint — no auth required for reads.
@@ -214,6 +215,8 @@ export async function POST(request: Request) {
     await service.from('product_photos').insert(rows)
   }
 
+  void notifyWebsite(website, 'product')
+
   return NextResponse.json(product, { status: 201 })
 }
 
@@ -246,6 +249,8 @@ export async function PATCH(request: Request) {
   const { data, error } = await service.from('products').update(fields).eq('id', id).select().single()
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
+  void notifyWebsite(product.website, 'product')
+
   return NextResponse.json(data)
 }
 
@@ -270,6 +275,8 @@ export async function DELETE(request: Request) {
 
   const { error } = await service.from('products').delete().eq('id', id)
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+
+  void notifyWebsite(product.website, 'product')
 
   return NextResponse.json({ success: true })
 }

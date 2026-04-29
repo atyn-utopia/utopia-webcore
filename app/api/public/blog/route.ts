@@ -1,6 +1,7 @@
 import { createServiceClient } from '@/lib/supabase/service'
 import { NextResponse } from 'next/server'
 import { validateApiKey } from '@/lib/validateApiKey'
+import { notifyWebsite } from '@/lib/notifyWebsite'
 
 /**
  * PUBLIC endpoints for blog posts.
@@ -182,6 +183,8 @@ export async function POST(request: Request) {
   const { error: transErr } = await service.from('blog_translations').insert(rows)
   if (transErr) return json({ error: transErr.message }, 500)
 
+  void notifyWebsite(website, 'blog_post')
+
   return json(post, 201)
 }
 
@@ -243,6 +246,8 @@ export async function PATCH(request: Request) {
     }
   }
 
+  void notifyWebsite(before.website, 'blog_post')
+
   return json({ success: true })
 }
 
@@ -267,6 +272,8 @@ export async function DELETE(request: Request) {
   await service.from('blog_translations').delete().eq('post_id', id)
   const { error } = await service.from('blog_posts').delete().eq('id', id)
   if (error) return json({ error: error.message }, 500)
+
+  void notifyWebsite(before.website, 'blog_post')
 
   return json({ success: true })
 }

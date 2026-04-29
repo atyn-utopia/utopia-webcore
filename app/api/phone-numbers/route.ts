@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { updateLeadsMode } from '@/lib/updateLeadsMode'
 import { getUserScope } from '@/lib/getUserScope'
 import { resolveActor, writeAuditLog } from '@/lib/auditLog'
+import { notifyWebsite } from '@/lib/notifyWebsite'
 
 // GET /api/phone-numbers?website=
 export async function GET(request: Request) {
@@ -85,6 +86,8 @@ export async function POST(request: Request) {
       percentage: data.percentage,
     },
   })
+
+  void notifyWebsite(website, 'phone_number')
 
   return NextResponse.json(data, { status: 201 })
 }

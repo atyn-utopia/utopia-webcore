@@ -3,6 +3,7 @@ import { createServiceClient } from '@/lib/supabase/service'
 import { createClient } from '@/lib/supabase/server'
 import { getUserScope } from '@/lib/getUserScope'
 import { resolveActor, writeAuditLog } from '@/lib/auditLog'
+import { notifyWebsite } from '@/lib/notifyWebsite'
 
 // GET /api/products?website=&parent_id=
 export async function GET(request: Request) {
@@ -128,6 +129,8 @@ export async function POST(request: Request) {
     label: name,
     metadata: { slug, sale_price, rental_price, parent_id: parent_id || null },
   })
+
+  void notifyWebsite(website, 'product')
 
   return NextResponse.json(product, { status: 201 })
 }

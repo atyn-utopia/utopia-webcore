@@ -4,6 +4,7 @@ interface BundleInput {
   domain: string
   apiKey: string
   permissions: string[]
+  revalidateSecret?: string | null
 }
 
 /**
@@ -11,7 +12,7 @@ interface BundleInput {
  * the setup bundle. Kept in sync with the file list in downloadSetupBundle.
  */
 export function kickoffPrompt(domain: string): string {
-  return `I've added webcore-setup-${domain} files to this project (webcore-AGENTS.md at the root, plus lib/webcore.ts, components/WebcoreTracker.tsx, .env.local.example, webcore-TRACKING-GUIDE.md, and an AGENTS.md stub that points to webcore-AGENTS.md).
+  return `I've added webcore-setup-${domain} files to this project (webcore-AGENTS.md at the root, plus lib/webcore.ts, components/WebcoreTracker.tsx, app/api/revalidate/route.ts, .env.local.example, webcore-TRACKING-GUIDE.md, and an AGENTS.md stub that points to webcore-AGENTS.md).
 
 Please:
 
@@ -19,11 +20,12 @@ Please:
 2. Handle AGENTS.md at the project root so Claude auto-loads webcore rules on future turns:
    - If AGENTS.md does NOT exist: keep the stub I added verbatim.
    - If AGENTS.md ALREADY exists (from a previous setup or template): leave the existing content intact and just append a "## Webcore integration" section that says "See webcore-AGENTS.md for the full spec."
-3. Rename .env.local.example to .env.local. The WEBCORE_API_KEY is already filled in; make sure .env.local is in .gitignore.
+3. Rename .env.local.example to .env.local. WEBCORE_API_KEY and WEBCORE_REVALIDATE_SECRET are already filled in; make sure .env.local is in .gitignore.
 4. Add <WebcoreTracker /> to the root layout's <head>.
-5. Audit the codebase for hardcoded phone numbers, WhatsApp/call buttons, products, or blog content. Replace them with calls from lib/webcore.ts (resolvePhone, fetchProducts, fetchBlog, pushProduct, etc.).
+5. Audit the codebase for hardcoded phone numbers, WhatsApp/call buttons, products, or blog content. Replace them with calls from lib/webcore.ts (resolvePhone, fetchProducts, fetchBlog, pushProduct, etc.). These helpers are tagged for ISR — when webcore content changes, the /api/revalidate handler will flush the right tag and the next request rebuilds.
 6. Wire up window.uwc() tracking on every CTA — WhatsApp, call, product cards (impression via IntersectionObserver, fire once), blog article links. Use the label conventions in webcore-AGENTS.md: whatsapp-{phone}, call-{phone}, product-{slug}, blog-{slug}.
-7. When done, confirm pageviews and clicks appear in the webcore admin Analytics tab for domain "${domain}".
+7. After deploying, paste the deployed origin + /api/revalidate into webcore admin → website detail → Live revalidation. Verify by editing a product in webcore and refreshing the live site within ~2 seconds.
+8. When done, confirm pageviews and clicks appear in the webcore admin Analytics tab for domain "${domain}".
 
 If anything is ambiguous, re-read webcore-AGENTS.md and webcore-TRACKING-GUIDE.md before asking me.`
 }
@@ -41,16 +43,17 @@ If anything is ambiguous, re-read webcore-AGENTS.md and webcore-TRACKING-GUIDE.m
  *   components/WebcoreTracker.tsx     — drop-in <head> tracking script
  *   webcore-TRACKING-GUIDE.md         — full reference docs
  */
-export async function downloadSetupBundle({ domain, apiKey, permissions }: BundleInput) {
+export async function downloadSetupBundle({ domain, apiKey, permissions, revalidateSecret }: BundleInput) {
   const zip = new JSZip()
   const permList = permissions.length > 0 ? permissions.join(' + ') : 'read + write'
 
   zip.file('AGENTS.md', agentsStub())
   zip.file('webcore-AGENTS.md', agentsMd({ domain, permList }))
   zip.file('webcore-README.md', readmeMd({ domain }))
-  zip.file('.env.local.example', envExample({ domain, apiKey }))
+  zip.file('.env.local.example', envExample({ domain, apiKey, revalidateSecret }))
   zip.file('lib/webcore.ts', webcoreTs({ domain }))
   zip.file('components/WebcoreTracker.tsx', trackerTsx({ domain }))
+  zip.file('app/api/revalidate/route.ts', revalidateRouteTs())
   zip.file('webcore-TRACKING-GUIDE.md', trackingGuideMd())
 
   const blob = await zip.generateAsync({ type: 'blob' })
@@ -69,7 +72,7 @@ export async function downloadSetupBundle({ domain, apiKey, permissions }: Bundl
  * Uses plain "=== FILE: path ===" delimiters (not fenced code blocks) so that
  * file contents with embedded code blocks don't break the outer wrapper.
  */
-export function fullSetupMarkdown({ domain, apiKey, permissions }: BundleInput): string {
+export function fullSetupMarkdown({ domain, apiKey, permissions, revalidateSecret }: BundleInput): string {
   const permList = permissions.length > 0 ? permissions.join(' + ') : 'read + write'
   const sep = '═'.repeat(72)
   const block = (path: string, content: string) =>
@@ -79,7 +82,7 @@ export function fullSetupMarkdown({ domain, apiKey, permissions }: BundleInput):
 
 Please create the following files in my project exactly as written. Use the content between the "FILE:" delimiters verbatim. Do NOT ask me to confirm — just create them all, then do the integration work described at the bottom.
 
-${block('webcore-AGENTS.md', agentsMd({ domain, permList }))}${block('.env.local', envExample({ domain, apiKey }))}${block('lib/webcore.ts', webcoreTs({ domain }))}${block('components/WebcoreTracker.tsx', trackerTsx({ domain }))}${block('webcore-TRACKING-GUIDE.md', trackingGuideMd())}${block('AGENTS.md (stub — merge if file already exists)', agentsStub())}${sep}
+${block('webcore-AGENTS.md', agentsMd({ domain, permList }))}${block('.env.local', envExample({ domain, apiKey, revalidateSecret }))}${block('lib/webcore.ts', webcoreTs({ domain }))}${block('components/WebcoreTracker.tsx', trackerTsx({ domain }))}${block('app/api/revalidate/route.ts', revalidateRouteTs())}${block('webcore-TRACKING-GUIDE.md', trackingGuideMd())}${block('AGENTS.md (stub — merge if file already exists)', agentsStub())}${sep}
 END OF FILES
 ${sep}
 
@@ -141,6 +144,8 @@ You're helping build a website that integrates with **Utopia Webcore** — a cen
    - \`fetchPhones()\` / \`resolvePhone(location)\` — WhatsApp and call numbers
    - \`fetchProducts()\` / \`fetchProduct(slug)\` — product catalog
    - \`fetchBlog()\` / \`fetchBlogPost(slug)\` — blog posts
+
+   These helpers use Next.js ISR with **cache tags**, not time-based revalidation. They cache forever until webcore tells this site to flush. Tags are: \`webcore-products\`, \`webcore-phones\`, \`webcore-blog\`. If you add new fetches that aren't going through \`lib/webcore.ts\`, add the matching tag yourself: \`fetch(url, { next: { tags: ['webcore-products'] } })\`.
 
 **Writes — one API key covers all three:**
    - Products: \`pushProduct() / updateProduct(id, ...) / deleteProduct(id)\`
@@ -223,12 +228,31 @@ export default async function ContactPage({ params }: { params: { location?: str
 - ❌ Caching \`resolvePhone()\` in a module-level variable — same reason
 - ❌ Matching on \`label === 'default'\` client-side — use \`type === 'default'\` instead; labels are editable
 
+## Live revalidation — how content stays fresh
+
+This site has \`app/api/revalidate/route.ts\` shipped with the setup bundle. **Don't delete or modify it.** It's how webcore tells this site to flush its ISR cache when a product / phone / blog post changes in the admin.
+
+The flow:
+
+1. Admin edits a product in webcore → webcore POSTs to \`https://${domain}/api/revalidate\` with header \`X-Webcore-Secret: <shared>\` and body \`{ entity, tags: ['webcore-products'], website }\`.
+2. The handler verifies the secret against \`WEBCORE_REVALIDATE_SECRET\` from \`.env\`, then calls \`revalidateTag('webcore-products')\`.
+3. The next visitor request rebuilds the affected pages on-demand. End-to-end latency is ~1–2 seconds.
+
+**Required setup checklist**:
+
+- \`WEBCORE_REVALIDATE_SECRET\` MUST be set in production env (Vercel project settings, not just \`.env.local\`).
+- Every webcore fetch MUST include the right \`next.tags\` (already done in \`lib/webcore.ts\`).
+- After deploying, the webcore admin must paste this site's deployed URL + \`/api/revalidate\` into webcore admin → website detail → Live revalidation.
+- Test by editing a product in webcore and refreshing this site within ~2s.
+
+**Don't reintroduce time-based revalidation.** Specifically: don't put \`export const revalidate = 60\` on a page that consumes \`lib/webcore.ts\`, and don't change the \`tags:\` calls into \`revalidate:\` numbers. Time-based revalidation defeats the point — visitors will see stale content for up to N seconds even though webcore already told us to flush.
+
 ## Code style
 
 - TypeScript strict mode everywhere
 - Server-side data fetching (Server Components or route handlers) preferred for SEO
 - Track clicks/impressions from client components only
-- Never expose \`WEBCORE_API_KEY\` to the client bundle — it's server-only
+- Never expose \`WEBCORE_API_KEY\` or \`WEBCORE_REVALIDATE_SECRET\` to the client bundle — both are server-only
 
 ## Google Search Console verification (optional)
 
@@ -263,8 +287,9 @@ This folder contains everything needed to integrate this website with Utopia Web
 - \`AGENTS.md\` — a small stub that points Claude Code at \`webcore-AGENTS.md\` (auto-loaded on every turn). If your project already has an AGENTS.md, merge — don't overwrite.
 - \`webcore-AGENTS.md\` — full integration spec for Claude Code / Claude agents
 - \`.env.local.example\` — environment variables template (rename to \`.env.local\`)
-- \`lib/webcore.ts\` — typed helper for fetching and pushing data
+- \`lib/webcore.ts\` — typed helper for fetching and pushing data (uses cache tags so webcore can revalidate on demand)
 - \`components/WebcoreTracker.tsx\` — drop-in component for the tracking script
+- \`app/api/revalidate/route.ts\` — webhook endpoint webcore calls when content changes; flushes the matching ISR cache tag
 - \`webcore-TRACKING-GUIDE.md\` — full API reference
 
 ## Quick start
@@ -285,7 +310,10 @@ Once running, open webcore admin → **Analytics** → filter by this domain. Yo
 `
 }
 
-function envExample({ domain, apiKey }: { domain: string; apiKey: string }): string {
+function envExample({ domain, apiKey, revalidateSecret }: { domain: string; apiKey: string; revalidateSecret?: string | null }): string {
+  const secretLine = revalidateSecret
+    ? `WEBCORE_REVALIDATE_SECRET=${revalidateSecret}`
+    : `# WEBCORE_REVALIDATE_SECRET=  # ask the webcore admin to enable Live revalidation for this site, then paste the secret here`
   return `# Utopia Webcore
 
 # API key — keep secret, never commit .env.local to git.
@@ -293,6 +321,11 @@ WEBCORE_API_KEY=${apiKey}
 
 # This site's registered domain in webcore. Must match exactly.
 NEXT_PUBLIC_WEBCORE_DOMAIN=${domain}
+
+# Shared secret used by webcore to authenticate revalidation pings.
+# When products / phones / blog change in webcore, webcore POSTs to
+# /api/revalidate on this site with the X-Webcore-Secret header.
+${secretLine}
 
 # Google Search Console verification code (optional).
 # Get it from https://search.google.com/search-console after adding a
@@ -381,13 +414,22 @@ export interface BlogPost {
 }
 
 /* ─── Reads (no auth required) ──────────────────────────────── */
+//
+// All cached reads use Next.js ISR with TAGS, not time-based revalidation.
+// Webcore POSTs to /api/revalidate when content changes; that handler calls
+// revalidateTag(...) and the next request rebuilds. Cached forever in between.
+//
+// Tag conventions (must match what /api/revalidate handles):
+//   webcore-phones    — phone numbers
+//   webcore-products  — products
+//   webcore-blog      — blog posts
 
 /** Fetch all active phone numbers. Optionally filter by location slug. */
 export async function fetchPhones(location?: string): Promise<PhoneNumber[]> {
   const url = new URL(\`\${BASE}/api/public/phone-numbers\`)
   url.searchParams.set('website', SITE)
   if (location) url.searchParams.set('location', location)
-  const res = await fetch(url, { next: { revalidate: 60 } })
+  const res = await fetch(url, { next: { tags: ['webcore-phones'] } })
   if (!res.ok) return []
   return res.json()
 }
@@ -424,7 +466,7 @@ export async function resolvePhone(
 export async function fetchProducts(): Promise<Product[]> {
   const url = new URL(\`\${BASE}/api/public/products\`)
   url.searchParams.set('website', SITE)
-  const res = await fetch(url, { next: { revalidate: 300 } })
+  const res = await fetch(url, { next: { tags: ['webcore-products'] } })
   if (!res.ok) return []
   return res.json()
 }
@@ -434,7 +476,7 @@ export async function fetchProduct(slug: string): Promise<Product | null> {
   const url = new URL(\`\${BASE}/api/public/products\`)
   url.searchParams.set('website', SITE)
   url.searchParams.set('slug', slug)
-  const res = await fetch(url, { next: { revalidate: 300 } })
+  const res = await fetch(url, { next: { tags: ['webcore-products'] } })
   if (!res.ok) return null
   return res.json()
 }
@@ -444,7 +486,7 @@ export async function fetchBlog(language?: string): Promise<BlogPostSummary[]> {
   const url = new URL(\`\${BASE}/api/public/blog\`)
   url.searchParams.set('website', SITE)
   if (language) url.searchParams.set('language', language)
-  const res = await fetch(url, { next: { revalidate: 300 } })
+  const res = await fetch(url, { next: { tags: ['webcore-blog'] } })
   if (!res.ok) return []
   return res.json()
 }
@@ -455,7 +497,7 @@ export async function fetchBlogPost(slug: string, language?: string): Promise<Bl
   url.searchParams.set('website', SITE)
   url.searchParams.set('slug', slug)
   if (language) url.searchParams.set('language', language)
-  const res = await fetch(url, { next: { revalidate: 300 } })
+  const res = await fetch(url, { next: { tags: ['webcore-blog'] } })
   if (!res.ok) return null
   return res.json()
 }
@@ -606,6 +648,44 @@ export function trackBlogClick(slug: string) {
 `
 }
 
+function revalidateRouteTs(): string {
+  return `import { revalidateTag } from 'next/cache'
+import { NextResponse } from 'next/server'
+
+/**
+ * Webcore revalidation webhook.
+ *
+ * When products / phone numbers / blog posts change in the webcore admin,
+ * webcore POSTs here. We verify the shared secret, then call
+ * revalidateTag(...) to flush this site's ISR cache for that content type.
+ *
+ * The matching tags must be set on every webcore fetch in lib/webcore.ts:
+ *   webcore-products, webcore-phones, webcore-blog
+ *
+ * Body:    { entity: 'product' | 'phone_number' | 'blog_post', tags: string[], website: string }
+ * Header:  X-Webcore-Secret: <shared secret>
+ */
+export async function POST(request: Request) {
+  const secret = request.headers.get('x-webcore-secret')
+  const expected = process.env.WEBCORE_REVALIDATE_SECRET
+  if (!expected) {
+    return NextResponse.json({ error: 'WEBCORE_REVALIDATE_SECRET not set on this site' }, { status: 500 })
+  }
+  if (!secret || secret !== expected) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
+  const { tags } = (await request.json().catch(() => ({}))) as { tags?: string[] }
+  if (!Array.isArray(tags) || tags.length === 0) {
+    return NextResponse.json({ error: 'tags array required' }, { status: 400 })
+  }
+
+  for (const tag of tags) revalidateTag(tag)
+  return NextResponse.json({ revalidated: tags })
+}
+`
+}
+
 function trackerTsx({ domain }: { domain: string }): string {
   return `/**
  * Drop-in webcore tracker. Place inside the root layout's <head>:
@@ -731,6 +811,22 @@ Stick to these so analytics group correctly:
 - \`call-{phone}\`
 - \`product-{slug}\`
 - \`blog-{slug}\`
+
+## Live revalidation webhook
+
+Webcore POSTs to your site whenever a product / phone / blog post changes:
+
+\`\`\`
+POST https://YOUR-DOMAIN/api/revalidate
+Header: X-Webcore-Secret: <value of WEBCORE_REVALIDATE_SECRET>
+Body:   { "entity": "product" | "phone_number" | "blog_post",
+          "tags": ["webcore-products"],
+          "website": "YOUR-DOMAIN" }
+\`\`\`
+
+The handler that ships in \`app/api/revalidate/route.ts\` verifies the header and calls \`revalidateTag(...)\`. As long as your fetches in \`lib/webcore.ts\` include the matching \`next.tags\`, the next request rebuilds with fresh data.
+
+To enable: webcore admin pastes your deployed URL + \`/api/revalidate\` into the website's "Live revalidation" panel.
 
 ## Privacy & Performance
 

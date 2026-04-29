@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/service'
 import { createClient } from '@/lib/supabase/server'
 import { resolveActor, writeAuditLog, diffObjects, PRODUCT_FIELDS } from '@/lib/auditLog'
+import { notifyWebsite } from '@/lib/notifyWebsite'
 
 // GET /api/products/[id] — single product with photos + sub-products
 export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -76,6 +77,8 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     })
   }
 
+  if (data?.website) void notifyWebsite(data.website, 'product')
+
   return NextResponse.json(data)
 }
 
@@ -103,6 +106,7 @@ export async function DELETE(_request: Request, { params }: { params: Promise<{ 
       label: before.name,
       metadata: { slug: before.slug, sale_price: before.sale_price, rental_price: before.rental_price },
     })
+    void notifyWebsite(before.website, 'product')
   }
 
   return NextResponse.json({ success: true })

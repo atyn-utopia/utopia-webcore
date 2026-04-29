@@ -2,6 +2,7 @@ import { createServiceClient } from '@/lib/supabase/service'
 import { NextResponse } from 'next/server'
 import { validateApiKey } from '@/lib/validateApiKey'
 import { updateLeadsMode } from '@/lib/updateLeadsMode'
+import { notifyWebsite } from '@/lib/notifyWebsite'
 
 /**
  * PUBLIC endpoints for phone numbers.
@@ -103,6 +104,7 @@ export async function POST(request: Request) {
   if (error) return json({ error: error.message }, 500)
 
   await updateLeadsMode(website)
+  void notifyWebsite(website, 'phone_number')
   return json(data, 201)
 }
 
@@ -138,6 +140,7 @@ export async function PATCH(request: Request) {
   if (error) return json({ error: error.message }, 500)
 
   await updateLeadsMode(existing.website)
+  void notifyWebsite(existing.website, 'phone_number')
   return json(data)
 }
 
@@ -166,5 +169,6 @@ export async function DELETE(request: Request) {
   if (error) return json({ error: error.message }, 500)
 
   await updateLeadsMode(existing.website)
+  void notifyWebsite(existing.website, 'phone_number')
   return json({ success: true })
 }
