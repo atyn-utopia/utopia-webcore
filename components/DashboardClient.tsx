@@ -9,6 +9,7 @@ import type { TranslationKey } from '@/lib/i18n/en'
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type RecentPost = { id: string; website: string; slug: string; status: string; updated_at: string; blog_translations?: any[] }
 type RecentPhone = { id: string; website: string; phone_number: string; label: string | null; type: string; updated_at: string }
+type CompanyFolder = { id: string; name: string; domains: string[] }
 
 interface Props {
   role: UserRole
@@ -18,9 +19,10 @@ interface Props {
   postCount: number | null
   recentPosts: RecentPost[]
   recentPhones: RecentPhone[]
+  companies: CompanyFolder[]
 }
 
-export default function DashboardClient({ role, isScoped, websiteCount, phoneCount, postCount, recentPosts, recentPhones }: Props) {
+export default function DashboardClient({ role, isScoped, websiteCount, phoneCount, postCount, recentPosts, recentPhones, companies }: Props) {
   const { t } = useLanguage()
   const { setOpen: openCoxy } = useCoxy()
   const isWriter = role === 'writer'
@@ -174,6 +176,51 @@ export default function DashboardClient({ role, isScoped, websiteCount, phoneCou
           </Link>
         )}
       </div>
+
+      {/* Companies — primary navigation into per-site work */}
+      {companies.length > 0 && (
+        <>
+          <div className="flex items-center justify-between mt-8 mb-3">
+            <h2 className="text-sm font-semibold text-slate-700">Companies</h2>
+            <span className="text-[11px]" style={{ color: '#94a3b8' }}>{companies.length} folder{companies.length === 1 ? '' : 's'} · click to open</span>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {companies.map(c => (
+              <Link
+                key={c.id}
+                href={`/company/${c.id}`}
+                className="group rounded-xl border bg-white p-4 transition-all hover:border-[var(--primary)] hover:shadow-sm"
+                style={{ borderColor: '#e2e8f0' }}
+              >
+                <div className="flex items-start gap-3">
+                  <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: '#fef3c7' }}>
+                    <svg className="w-5 h-5" fill="none" stroke="#d97706" viewBox="0 0 24 24" strokeWidth="1.8">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V7z" />
+                    </svg>
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-semibold truncate" style={{ color: 'var(--foreground)' }}>{c.name}</p>
+                    <p className="text-[11px] mt-0.5" style={{ color: '#94a3b8' }}>{c.domains.length} website{c.domains.length === 1 ? '' : 's'}</p>
+                  </div>
+                  <svg className="w-4 h-4 flex-shrink-0 mt-1 opacity-0 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" style={{ color: 'var(--primary)' }}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                  </svg>
+                </div>
+                {c.domains.length > 0 && (
+                  <div className="mt-3 flex flex-wrap gap-1">
+                    {c.domains.slice(0, 3).map(d => (
+                      <span key={d} className="text-[10px] font-mono px-1.5 py-0.5 rounded truncate max-w-[180px]" style={{ background: '#f1f5f9', color: '#475569' }}>{d}</span>
+                    ))}
+                    {c.domains.length > 3 && (
+                      <span className="text-[10px] font-medium px-1.5 py-0.5 rounded" style={{ background: '#f1f5f9', color: '#94a3b8' }}>+{c.domains.length - 3}</span>
+                    )}
+                  </div>
+                )}
+              </Link>
+            ))}
+          </div>
+        </>
+      )}
 
       {/* Recent Activity */}
       <h2 className="text-sm font-semibold text-slate-700 mt-8 mb-3">{t('dashboard.recentActivity')}</h2>
