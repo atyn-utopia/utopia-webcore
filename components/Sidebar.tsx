@@ -192,7 +192,13 @@ const siteNavItems: SiteNavItem[] = [
 ]
 
 // Items that always show in the bottom group, regardless of site context
-const ALWAYS_VISIBLE_HREFS = new Set(['/api-keys', '/help', '/users', '/audit', '/tickets'])
+const ALWAYS_VISIBLE_HREFS = new Set(['/blog', '/api-keys', '/help', '/users', '/audit', '/tickets'])
+
+// Hrefs that are now reached exclusively via the per-site nav (Companies → site →
+// scoped tab). Hidden from the global sidebar so the home page is the canonical
+// entry point. The routes still work; users can deep-link or use stat-card
+// shortcuts on the home page for cross-site views.
+const HIDDEN_FROM_GLOBAL_NAV = new Set(['/websites', '/phone-numbers', '/products'])
 
 export default function Sidebar({ userEmail, userName, userRole, open, onClose }: SidebarProps) {
   const pathname = usePathname()
@@ -338,7 +344,7 @@ export default function Sidebar({ userEmail, userName, userRole, open, onClose }
             <p className="text-xs font-semibold uppercase tracking-wider px-3 mb-2" style={{ color: 'var(--sidebar-muted)' }}>
               {t('nav.manage')}
             </p>
-            {navItems.filter(item => item.roles.includes(userRole)).map(item => {
+            {navItems.filter(item => item.roles.includes(userRole) && !HIDDEN_FROM_GLOBAL_NAV.has(item.href)).map(item => {
               const active = item.href === '/' ? pathname === '/' : (pathname === item.href || pathname.startsWith(item.href + '/'))
               return (
                 <Link
