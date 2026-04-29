@@ -1,10 +1,12 @@
 'use client'
 
 import Link from 'next/link'
+import { useState } from 'react'
 import { useLanguage } from '@/contexts/LanguageContext'
 import { useCoxy } from '@/contexts/CoxyContext'
 import type { UserRole } from '@/contexts/UserContext'
 import type { TranslationKey } from '@/lib/i18n/en'
+import AddWebsiteModal from '@/components/AddWebsiteModal'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type RecentPost = { id: string; website: string; slug: string; status: string; updated_at: string; blog_translations?: any[] }
@@ -17,15 +19,18 @@ interface Props {
   websiteCount: number
   phoneCount: number | null
   postCount: number | null
+  productCount: number | null
   recentPosts: RecentPost[]
   recentPhones: RecentPhone[]
   companies: CompanyFolder[]
 }
 
-export default function DashboardClient({ role, isScoped, websiteCount, phoneCount, postCount, recentPosts, recentPhones, companies }: Props) {
+export default function DashboardClient({ role, isScoped, websiteCount, phoneCount, postCount, productCount, recentPosts, recentPhones, companies }: Props) {
   const { t } = useLanguage()
   const { setOpen: openCoxy } = useCoxy()
+  const [addOpen, setAddOpen] = useState(false)
   const isWriter = role === 'writer'
+  const canAddWebsite = role === 'admin' || role === 'designer'
 
   const welcomeKey = `dashboard.welcome.${role}` as TranslationKey
 
@@ -47,19 +52,9 @@ export default function DashboardClient({ role, isScoped, websiteCount, phoneCou
         </div>
       </div>
 
-      {/* Stats */}
-      <div className={`grid grid-cols-1 ${isWriter || isScoped ? 'sm:grid-cols-2' : 'sm:grid-cols-3'} gap-4 mb-8`}>
-        <div className="relative rounded-xl border border-slate-200 bg-white p-5">
-          <Link
-            href="/all/websites"
-            className="absolute top-3 right-3 w-9 h-9 flex items-center justify-center rounded-lg text-slate-400 hover:text-[var(--primary)] transition-colors"
-            aria-label="View all websites"
-            title="View all websites"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-            </svg>
-          </Link>
+      {/* Stats — info only, not links */}
+      <div className={`grid grid-cols-1 ${isWriter || isScoped ? 'sm:grid-cols-2' : 'sm:grid-cols-2 lg:grid-cols-4'} gap-4 mb-8`}>
+        <div className="rounded-xl border border-slate-200 bg-white p-5">
           <div className="flex items-center gap-3 mb-3">
             <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: '#f1f5f9' }}>
               <svg className="w-4.5 h-4.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8">
@@ -73,17 +68,7 @@ export default function DashboardClient({ role, isScoped, websiteCount, phoneCou
         </div>
 
         {!isWriter && (
-          <div className="relative rounded-xl border border-slate-200 bg-white p-5">
-            <Link
-              href="/all/phone-numbers"
-              className="absolute top-3 right-3 w-9 h-9 flex items-center justify-center rounded-lg text-slate-400 hover:text-[var(--primary)] transition-colors"
-              aria-label="View all phone numbers"
-              title="View all phone numbers"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-              </svg>
-            </Link>
+          <div className="rounded-xl border border-slate-200 bg-white p-5">
             <div className="flex items-center gap-3 mb-3">
               <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: '#eff6ff' }}>
                 <svg className="w-4.5 h-4.5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8">
@@ -97,18 +82,23 @@ export default function DashboardClient({ role, isScoped, websiteCount, phoneCou
           </div>
         )}
 
+        {!isWriter && (
+          <div className="rounded-xl border border-slate-200 bg-white p-5">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: '#fef3c7' }}>
+                <svg className="w-4.5 h-4.5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                </svg>
+              </div>
+              <span className="text-xs font-medium text-slate-400 uppercase tracking-wide">Products</span>
+            </div>
+            <p className="text-3xl font-bold text-slate-900 mb-0.5">{productCount ?? 0}</p>
+            <p className="text-xs text-slate-400">Catalog items across websites</p>
+          </div>
+        )}
+
         {!isScoped && (
-          <div className="relative rounded-xl border border-slate-200 bg-white p-5">
-            <Link
-              href="/all/blog"
-              className="absolute top-3 right-3 w-9 h-9 flex items-center justify-center rounded-lg text-slate-400 hover:text-[var(--primary)] transition-colors"
-              aria-label="View all blog posts"
-              title="View all blog posts"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-              </svg>
-            </Link>
+          <div className="rounded-xl border border-slate-200 bg-white p-5">
             <div className="flex items-center gap-3 mb-3">
               <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: '#f0fdf4' }}>
                 <svg className="w-4.5 h-4.5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8">
@@ -124,49 +114,61 @@ export default function DashboardClient({ role, isScoped, websiteCount, phoneCou
       </div>
 
       {/* Companies — primary navigation into per-site work */}
-      {companies.length > 0 && (
+      {(companies.length > 0 || canAddWebsite) && (
         <>
-          <div className="flex items-center justify-between mt-8 mb-3">
-            <h2 className="text-sm font-semibold text-slate-700">Companies</h2>
-            <span className="text-[11px]" style={{ color: '#94a3b8' }}>{companies.length} folder{companies.length === 1 ? '' : 's'} · click to open</span>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            {companies.map(c => (
-              <Link
-                key={c.id}
-                href={`/company/${c.id}`}
-                className="group rounded-xl border bg-white p-4 transition-all hover:border-[var(--primary)] hover:shadow-sm"
-                style={{ borderColor: '#e2e8f0' }}
+          <div className="flex items-center justify-between mt-8 mb-3 gap-3">
+            <div className="flex items-baseline gap-3">
+              <h2 className="text-sm font-semibold text-slate-700">Companies</h2>
+              {companies.length > 0 && (
+                <span className="text-[11px]" style={{ color: '#94a3b8' }}>{companies.length} folder{companies.length === 1 ? '' : 's'}</span>
+              )}
+            </div>
+            {canAddWebsite && (
+              <button
+                onClick={() => setAddOpen(true)}
+                className="inline-flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-md text-white transition-opacity hover:opacity-90"
+                style={{ background: 'var(--primary)' }}
               >
-                <div className="flex items-start gap-3">
-                  <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: '#fef3c7' }}>
-                    <svg className="w-5 h-5" fill="none" stroke="#d97706" viewBox="0 0 24 24" strokeWidth="1.8">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V7z" />
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" /></svg>
+                Add Website
+              </button>
+            )}
+          </div>
+          {companies.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              {companies.map(c => (
+                <Link
+                  key={c.id}
+                  href={`/company/${c.id}`}
+                  className="group rounded-xl border bg-white p-4 transition-all hover:border-[var(--primary)] hover:shadow-sm"
+                  style={{ borderColor: '#e2e8f0' }}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: '#fef3c7' }}>
+                      <svg className="w-5 h-5" fill="none" stroke="#d97706" viewBox="0 0 24 24" strokeWidth="1.8">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V7z" />
+                      </svg>
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-semibold truncate" style={{ color: 'var(--foreground)' }}>{c.name}</p>
+                      <p className="text-[11px] mt-0.5" style={{ color: '#94a3b8' }}>{c.domains.length} website{c.domains.length === 1 ? '' : 's'}</p>
+                    </div>
+                    <svg className="w-4 h-4 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" style={{ color: 'var(--primary)' }}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
                     </svg>
                   </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="text-sm font-semibold truncate" style={{ color: 'var(--foreground)' }}>{c.name}</p>
-                    <p className="text-[11px] mt-0.5" style={{ color: '#94a3b8' }}>{c.domains.length} website{c.domains.length === 1 ? '' : 's'}</p>
-                  </div>
-                  <svg className="w-4 h-4 flex-shrink-0 mt-1 opacity-0 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" style={{ color: 'var(--primary)' }}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-                  </svg>
-                </div>
-                {c.domains.length > 0 && (
-                  <div className="mt-3 flex flex-wrap gap-1">
-                    {c.domains.slice(0, 3).map(d => (
-                      <span key={d} className="text-[10px] font-mono px-1.5 py-0.5 rounded truncate max-w-[180px]" style={{ background: '#f1f5f9', color: '#475569' }}>{d}</span>
-                    ))}
-                    {c.domains.length > 3 && (
-                      <span className="text-[10px] font-medium px-1.5 py-0.5 rounded" style={{ background: '#f1f5f9', color: '#94a3b8' }}>+{c.domains.length - 3}</span>
-                    )}
-                  </div>
-                )}
-              </Link>
-            ))}
-          </div>
+                </Link>
+              ))}
+            </div>
+          ) : (
+            <div className="rounded-xl border bg-white p-8 text-center" style={{ borderColor: '#e2e8f0' }}>
+              <p className="text-sm" style={{ color: '#64748b' }}>No companies yet. Click <strong>Add Website</strong> to create one.</p>
+            </div>
+          )}
         </>
       )}
+
+      {canAddWebsite && <AddWebsiteModal open={addOpen} onClose={() => setAddOpen(false)} onCreated={() => { setAddOpen(false); window.location.reload() }} />}
 
       {/* Recent Activity */}
       <h2 className="text-sm font-semibold text-slate-700 mt-8 mb-3">{t('dashboard.recentActivity')}</h2>

@@ -23,6 +23,7 @@ export default async function DashboardPage() {
 
   let phoneCountRes: CountQuery = { count: 0 }
   let postCountRes: CountQuery = { count: 0 }
+  let productCountRes: CountQuery = { count: 0 }
   let websitesRes: WebsitesData = { data: [] }
   let recentPostsRes: RecentData = { data: [] }
   let recentPhonesRes: RecentData = { data: [] }
@@ -32,6 +33,7 @@ export default async function DashboardPage() {
   if (!noAccess) {
     const phoneCountQuery = service.from('phone_numbers').select('*', { count: 'exact', head: true })
     const postCountQuery = service.from('blog_posts').select('*', { count: 'exact', head: true })
+    const productCountQuery = service.from('products').select('*', { count: 'exact', head: true })
     const websitesQuery = service.from('phone_numbers').select('website')
     const recentPostsQuery = service.from('blog_posts').select('id, website, slug, status, updated_at, blog_translations(language, title)').order('updated_at', { ascending: false }).limit(5)
     const recentPhonesQuery = service.from('phone_numbers').select('id, website, phone_number, label, type, updated_at').order('updated_at', { ascending: false }).limit(5)
@@ -40,6 +42,7 @@ export default async function DashboardPage() {
     if (allowedDomains) {
       phoneCountQuery.in('website', allowedDomains)
       postCountQuery.in('website', allowedDomains)
+      productCountQuery.in('website', allowedDomains)
       websitesQuery.in('website', allowedDomains)
       recentPostsQuery.in('website', allowedDomains)
       recentPhonesQuery.in('website', allowedDomains)
@@ -53,13 +56,14 @@ export default async function DashboardPage() {
       }
     }
 
-    const results = await Promise.all([phoneCountQuery, postCountQuery, websitesQuery, recentPostsQuery, recentPhonesQuery, companiesQuery])
+    const results = await Promise.all([phoneCountQuery, postCountQuery, productCountQuery, websitesQuery, recentPostsQuery, recentPhonesQuery, companiesQuery])
     phoneCountRes = results[0] as CountQuery
     postCountRes = results[1] as CountQuery
-    websitesRes = results[2] as WebsitesData
-    recentPostsRes = results[3] as RecentData
-    recentPhonesRes = results[4] as RecentData
-    companiesRes = results[5] as { data: CompanyRow[] | null }
+    productCountRes = results[2] as CountQuery
+    websitesRes = results[3] as WebsitesData
+    recentPostsRes = results[4] as RecentData
+    recentPhonesRes = results[5] as RecentData
+    companiesRes = results[6] as { data: CompanyRow[] | null }
   }
 
   const websitesSet = new Set((websitesRes.data ?? []).map((r: { website: string }) => r.website))
@@ -79,6 +83,7 @@ export default async function DashboardPage() {
       websiteCount={websitesSet.size}
       phoneCount={phoneCountRes.count}
       postCount={postCountRes.count}
+      productCount={productCountRes.count}
       recentPosts={recentPostsRes.data ?? []}
       recentPhones={recentPhonesRes.data ?? []}
       companies={companies}
