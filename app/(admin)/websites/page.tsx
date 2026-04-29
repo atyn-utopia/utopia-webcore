@@ -727,7 +727,7 @@ function IntegrationsSection({ domain }: { domain: string }) {
   }
 
   return (
-    <div className="mt-5 rounded-xl border bg-white overflow-hidden" style={{ borderColor: '#e2e8f0' }}>
+    <div id="integrations" className="mt-5 rounded-xl border bg-white overflow-hidden scroll-mt-20" style={{ borderColor: '#e2e8f0' }}>
       <div className="px-5 py-3 flex items-center gap-2" style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
         <div className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: 'white', color: '#475569' }}>
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8"><path strokeLinecap="round" strokeLinejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" /></svg>

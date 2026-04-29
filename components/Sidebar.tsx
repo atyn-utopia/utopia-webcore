@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { usePathname, useRouter } from 'next/navigation'
+import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useWebsite } from '@/contexts/WebsiteContext'
@@ -136,12 +136,74 @@ const navItems: { href: string; labelKey: TranslationKey; roles: UserRole[]; ico
   },
 ]
 
+// Site-scoped nav: rendered when the URL has ?website=DOMAIN. Tabs target the
+// existing global pages with the filter pre-applied. Active state matches the
+// pathname only (the website param is shared across all of them).
+type SiteNavItem = {
+  basePath: string
+  hash?: string
+  label: string
+  roles: UserRole[]
+  icon: React.ReactNode
+}
+
+const siteNavItems: SiteNavItem[] = [
+  {
+    basePath: '/websites',
+    label: 'Dashboard',
+    roles: ['admin', 'designer', 'external_designer', 'writer', 'indoor_sales', 'manager'],
+    icon: (
+      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+      </svg>
+    ),
+  },
+  {
+    basePath: '/products',
+    label: 'Products',
+    roles: ['admin', 'designer', 'external_designer'],
+    icon: (
+      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+      </svg>
+    ),
+  },
+  {
+    basePath: '/phone-numbers',
+    label: 'Phone Numbers',
+    roles: ['admin', 'designer', 'external_designer', 'indoor_sales', 'manager'],
+    icon: (
+      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z" />
+      </svg>
+    ),
+  },
+  {
+    basePath: '/websites',
+    hash: 'integrations',
+    label: 'Integrations',
+    roles: ['admin', 'designer', 'external_designer'],
+    icon: (
+      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+      </svg>
+    ),
+  },
+]
+
+// Items that always show in the bottom group, regardless of site context
+const ALWAYS_VISIBLE_HREFS = new Set(['/api-keys', '/help', '/users', '/audit', '/tickets'])
+
 export default function Sidebar({ userEmail, userName, userRole, open, onClose }: SidebarProps) {
   const pathname = usePathname()
+  const searchParams = useSearchParams()
   const router = useRouter()
   const { t } = useLanguage()
   const { selectedWebsite, setSelectedWebsite } = useWebsite()
   const [websites, setWebsites] = useState<string[]>([])
+
+  const websiteParam = searchParams?.get('website') ?? ''
+  const inSiteContext = websiteParam.length > 0
 
   useEffect(() => {
     fetch('/api/websites')
@@ -196,30 +258,108 @@ export default function Sidebar({ userEmail, userName, userRole, open, onClose }
       </div>
 
       {/* Nav */}
-      <nav className="flex-1 px-3 py-4 space-y-1">
-        <p className="text-xs font-semibold uppercase tracking-wider px-3 mb-2" style={{ color: 'var(--sidebar-muted)' }}>
-          {t('nav.manage')}
-        </p>
-        {navItems.filter(item => item.roles.includes(userRole)).map(item => {
-          const active = item.href === '/' ? pathname === '/' : (pathname === item.href || pathname.startsWith(item.href + '/'))
-          return (
+      <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
+        {inSiteContext ? (
+          <>
+            {/* Site-context header */}
             <Link
-              key={item.href}
-              href={item.href}
+              href="/"
               onClick={onClose}
-              className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors"
-              style={{
-                background: active ? 'var(--sidebar-active)' : 'transparent',
-                color: active ? '#ffffff' : 'var(--sidebar-text)',
-              }}
-              onMouseEnter={e => { if (!active) (e.currentTarget as HTMLElement).style.background = 'var(--sidebar-hover)' }}
-              onMouseLeave={e => { if (!active) (e.currentTarget as HTMLElement).style.background = 'transparent' }}
+              className="flex items-center gap-2 px-3 py-1.5 mb-2 text-[10px] font-medium uppercase tracking-wider rounded-md transition-colors"
+              style={{ color: 'var(--sidebar-muted)' }}
+              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = '#ffffff' }}
+              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = 'var(--sidebar-muted)' }}
             >
-              {item.icon}
-              {t(item.labelKey)}
+              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+              </svg>
+              Back to home
             </Link>
-          )
-        })}
+            <div className="px-3 mb-3">
+              <p className="text-[10px] font-semibold uppercase tracking-wider mb-1" style={{ color: 'var(--sidebar-muted)' }}>Site</p>
+              <p className="text-xs font-mono truncate" style={{ color: '#ffffff' }} title={websiteParam}>{websiteParam}</p>
+            </div>
+
+            {/* Site-scoped tabs */}
+            {siteNavItems.filter(item => item.roles.includes(userRole)).map(item => {
+              const href = `${item.basePath}?website=${encodeURIComponent(websiteParam)}${item.hash ? `#${item.hash}` : ''}`
+              // Active state: pathname matches basePath; for the Integrations entry (which shares
+              // /websites with Dashboard), we don't try to disambiguate via hash — Dashboard wins.
+              const isDashboardEntry = item.basePath === '/websites' && !item.hash
+              const isIntegrationsEntry = item.basePath === '/websites' && item.hash === 'integrations'
+              const onTargetPath = pathname === item.basePath || pathname.startsWith(item.basePath + '/')
+              const active = isIntegrationsEntry ? false : (onTargetPath && (isDashboardEntry || true))
+              return (
+                <Link
+                  key={item.label}
+                  href={href}
+                  onClick={onClose}
+                  className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors"
+                  style={{
+                    background: active ? 'var(--sidebar-active)' : 'transparent',
+                    color: active ? '#ffffff' : 'var(--sidebar-text)',
+                  }}
+                  onMouseEnter={e => { if (!active) (e.currentTarget as HTMLElement).style.background = 'var(--sidebar-hover)' }}
+                  onMouseLeave={e => { if (!active) (e.currentTarget as HTMLElement).style.background = 'transparent' }}
+                >
+                  {item.icon}
+                  {item.label}
+                </Link>
+              )
+            })}
+
+            {/* Always-visible bottom group */}
+            <div className="pt-4 mt-4" style={{ borderTop: '1px solid rgba(255,255,255,0.08)' }}>
+              <p className="text-[10px] font-semibold uppercase tracking-wider px-3 mb-2" style={{ color: 'var(--sidebar-muted)' }}>Tools</p>
+              {navItems.filter(item => ALWAYS_VISIBLE_HREFS.has(item.href) && item.roles.includes(userRole)).map(item => {
+                const active = pathname === item.href || pathname.startsWith(item.href + '/')
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    onClick={onClose}
+                    className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors"
+                    style={{
+                      background: active ? 'var(--sidebar-active)' : 'transparent',
+                      color: active ? '#ffffff' : 'var(--sidebar-text)',
+                    }}
+                    onMouseEnter={e => { if (!active) (e.currentTarget as HTMLElement).style.background = 'var(--sidebar-hover)' }}
+                    onMouseLeave={e => { if (!active) (e.currentTarget as HTMLElement).style.background = 'transparent' }}
+                  >
+                    {item.icon}
+                    {t(item.labelKey)}
+                  </Link>
+                )
+              })}
+            </div>
+          </>
+        ) : (
+          <>
+            <p className="text-xs font-semibold uppercase tracking-wider px-3 mb-2" style={{ color: 'var(--sidebar-muted)' }}>
+              {t('nav.manage')}
+            </p>
+            {navItems.filter(item => item.roles.includes(userRole)).map(item => {
+              const active = item.href === '/' ? pathname === '/' : (pathname === item.href || pathname.startsWith(item.href + '/'))
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  onClick={onClose}
+                  className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors"
+                  style={{
+                    background: active ? 'var(--sidebar-active)' : 'transparent',
+                    color: active ? '#ffffff' : 'var(--sidebar-text)',
+                  }}
+                  onMouseEnter={e => { if (!active) (e.currentTarget as HTMLElement).style.background = 'var(--sidebar-hover)' }}
+                  onMouseLeave={e => { if (!active) (e.currentTarget as HTMLElement).style.background = 'transparent' }}
+                >
+                  {item.icon}
+                  {t(item.labelKey)}
+                </Link>
+              )
+            })}
+          </>
+        )}
       </nav>
 
       {/* Footer */}
