@@ -598,8 +598,6 @@ export default function WebsitesPage() {
 
     <IntegrationsSection domain={openWebsite} />
 
-    <RevalidationSection domain={openWebsite} />
-
     {siteInfo && !isWriter && (
       <div className="mt-5 rounded-xl border bg-white p-4 flex items-center justify-between" style={{ borderColor: '#e2e8f0' }}>
         <div><p className="text-xs font-medium" style={{ color: '#475569' }}>Phone Numbers</p><p className="text-[10px]" style={{ color: '#94a3b8' }}>{siteInfo.phone_count} total · {siteInfo.active_phone_count} active{siteInfo.leads_mode && LEADS_MODE[siteInfo.leads_mode] ? ` · ${LEADS_MODE[siteInfo.leads_mode].label} mode` : ''}</p></div>
@@ -880,6 +878,8 @@ function IntegrationsSection({ domain }: { domain: string }) {
           )}
         </div>
       )}
+
+      <RevalidationRow domain={domain} />
     </div>
   )
 }
@@ -1144,13 +1144,14 @@ interface RevalidationSettings {
   revalidate_secret: string | null
 }
 
-function RevalidationSection({ domain }: { domain: string }) {
+function RevalidationRow({ domain }: { domain: string }) {
   const [settings, setSettings] = useState<RevalidationSettings | null>(null)
   const [loading, setLoading] = useState(true)
   const [urlInput, setUrlInput] = useState('')
   const [saving, setSaving] = useState(false)
   const [rotating, setRotating] = useState(false)
   const [showSecret, setShowSecret] = useState(false)
+  const [expanded, setExpanded] = useState(false)
   const [flash, setFlash] = useState<{ kind: 'success' | 'error'; text: string } | null>(null)
 
   function load() {
@@ -1224,24 +1225,48 @@ function RevalidationSection({ domain }: { domain: string }) {
       .catch(() => setFlash({ kind: 'error', text: 'Copy failed' }))
   }
 
+  const isActive = !!settings?.revalidate_url
+
   return (
-    <div className="mt-5 rounded-xl border bg-white p-4" style={{ borderColor: '#e2e8f0' }}>
-      <div className="flex items-start justify-between gap-3 mb-3">
-        <div>
-          <h3 className="text-sm font-semibold" style={{ color: 'var(--foreground)' }}>Live revalidation</h3>
-          <p className="text-[11px] mt-0.5" style={{ color: '#64748b' }}>
-            When products, phone numbers, or blog posts change in webcore, ping the designer site so it flushes its cache instantly.
+    <>
+      <div className="px-5 py-4 flex items-center justify-between gap-4 flex-wrap" style={{ borderTop: '1px solid #e2e8f0' }}>
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="inline-flex items-center gap-1.5 leading-none">
+              <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="#7c3aed" viewBox="0 0 24 24" strokeWidth="1.8" aria-hidden>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+              <span className="text-xs font-medium tracking-tight" style={{ color: '#202124' }}>Live revalidation</span>
+            </span>
+            {loading ? (
+              <span className="text-[10px] font-medium px-1.5 py-0.5 rounded" style={{ background: '#f1f5f9', color: '#94a3b8' }}>Loading…</span>
+            ) : isActive ? (
+              <span className="text-[10px] font-medium px-1.5 py-0.5 rounded" style={{ background: '#dcfce7', color: '#15803d' }}>Active</span>
+            ) : (
+              <span className="text-[10px] font-medium px-1.5 py-0.5 rounded" style={{ background: '#f1f5f9', color: '#64748b' }}>Not configured</span>
+            )}
+          </div>
+          <p className="text-[11px] mt-1 truncate" style={{ color: '#94a3b8' }}>
+            {isActive
+              ? `Pings ${settings?.revalidate_url} on every product / phone / blog change.`
+              : 'Push instant cache invalidation to the designer site when content changes here.'}
           </p>
         </div>
-        {settings?.revalidate_url && (
-          <span className="text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full flex-shrink-0" style={{ background: '#dcfce7', color: '#166534' }}>Active</span>
-        )}
+        <div className="flex items-center gap-2 flex-shrink-0">
+          <button
+            type="button"
+            onClick={() => setExpanded(v => !v)}
+            disabled={loading}
+            className="text-[11px] font-medium px-3 py-1.5 rounded-md border disabled:opacity-50 transition-colors hover:bg-slate-50"
+            style={{ borderColor: '#e2e8f0', color: '#475569', background: 'white' }}
+          >
+            {expanded ? 'Hide' : isActive ? 'Edit' : 'Configure'}
+          </button>
+        </div>
       </div>
 
-      {loading ? (
-        <p className="text-xs" style={{ color: '#94a3b8' }}>Loading…</p>
-      ) : (
-        <>
+      {expanded && !loading && (
+        <div className="px-5 py-4" style={{ background: '#fafbfc', borderTop: '1px solid #e2e8f0' }}>
           <label className="block text-[11px] font-semibold mb-1" style={{ color: '#475569' }}>Designer site revalidate URL</label>
           <div className="flex gap-2">
             <input
@@ -1250,7 +1275,7 @@ function RevalidationSection({ domain }: { domain: string }) {
               onChange={e => setUrlInput(e.target.value)}
               placeholder="https://designersite.com/api/revalidate"
               className="flex-1 text-xs px-3 py-2 rounded-md outline-none focus:border-[var(--primary)]"
-              style={{ border: '1px solid #e2e8f0', color: 'var(--foreground)' }}
+              style={{ border: '1px solid #e2e8f0', color: 'var(--foreground)', background: 'white' }}
               disabled={saving}
             />
             <button
@@ -1263,9 +1288,7 @@ function RevalidationSection({ domain }: { domain: string }) {
             </button>
           </div>
           <div className="text-[10px] mt-2 space-y-1" style={{ color: '#64748b' }}>
-            <p><span className="font-semibold" style={{ color: '#475569' }}>What to paste:</span> the designer site&apos;s deployed origin + <code className="font-mono">/api/revalidate</code>.</p>
-            <p>Example: <code className="font-mono px-1 py-0.5 rounded" style={{ background: '#f1f5f9', color: '#475569' }}>https://{domain.replace(/^www\./, '')}/api/revalidate</code></p>
-            <p><span className="font-semibold" style={{ color: '#475569' }}>Where to find it:</span> the designer&apos;s Vercel project URL — usually the custom domain, or the <code className="font-mono">.vercel.app</code> URL if no custom domain yet. Path stays <code className="font-mono">/api/revalidate</code> (it&apos;s shipped in the setup bundle).</p>
+            <p><span className="font-semibold" style={{ color: '#475569' }}>What to paste:</span> the designer site&apos;s deployed origin + <code className="font-mono">/api/revalidate</code>. Example: <code className="font-mono px-1 py-0.5 rounded" style={{ background: '#f1f5f9', color: '#475569' }}>https://{domain.replace(/^www\./, '')}/api/revalidate</code></p>
             <p><span className="font-semibold" style={{ color: '#475569' }}>Heads up:</span> the designer site must have <code className="font-mono">WEBCORE_REVALIDATE_SECRET</code> set in its production env (Vercel → Project → Settings → Environment Variables) and be redeployed. Without that, pings return 401 and content stays stale.</p>
             <p>Leave blank to disable.</p>
           </div>
@@ -1283,13 +1306,13 @@ function RevalidationSection({ domain }: { domain: string }) {
                 </button>
               </div>
               <div className="flex gap-2">
-                <code className="flex-1 text-[11px] font-mono px-3 py-2 rounded-md truncate" style={{ background: '#f8fafc', border: '1px solid #e2e8f0', color: 'var(--foreground)' }}>
+                <code className="flex-1 text-[11px] font-mono px-3 py-2 rounded-md truncate" style={{ background: 'white', border: '1px solid #e2e8f0', color: 'var(--foreground)' }}>
                   {showSecret ? settings.revalidate_secret : '••••••••••••••••••••••••••••••••'}
                 </code>
                 <button
                   onClick={copySecret}
                   className="text-xs font-medium px-3 py-2 rounded-md border"
-                  style={{ borderColor: '#e2e8f0', color: '#475569' }}
+                  style={{ borderColor: '#e2e8f0', color: '#475569', background: 'white' }}
                 >
                   Copy
                 </button>
@@ -1297,7 +1320,7 @@ function RevalidationSection({ domain }: { domain: string }) {
                   onClick={rotate}
                   disabled={rotating}
                   className="text-xs font-medium px-3 py-2 rounded-md border disabled:opacity-40"
-                  style={{ borderColor: '#fecaca', color: '#b91c1c' }}
+                  style={{ borderColor: '#fecaca', color: '#b91c1c', background: 'white' }}
                 >
                   {rotating ? '…' : 'Rotate'}
                 </button>
@@ -1312,8 +1335,8 @@ function RevalidationSection({ domain }: { domain: string }) {
               {flash.text}
             </div>
           )}
-        </>
+        </div>
       )}
-    </div>
+    </>
   )
 }
