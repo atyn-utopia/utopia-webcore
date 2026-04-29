@@ -78,7 +78,7 @@ export default async function CompanyFolderPage({ params }: { params: Promise<{ 
           <p className="text-xs mt-1" style={{ color: '#94a3b8' }}>Add a website from the Websites page or via Onboard Designer.</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
           {cards.map(c => (
             <WebsiteCard key={c.domain} card={c} />
           ))}
@@ -90,8 +90,7 @@ export default async function CompanyFolderPage({ params }: { params: Promise<{ 
 
 function WebsiteCard({ card }: { card: SiteCard }) {
   const siteUrl = `https://${card.domain}`
-  // mshots is the same screenshot service the websites page uses
-  const thumbUrl = `https://s.wordpress.com/mshots/v1/${encodeURIComponent(siteUrl)}?w=600`
+  const thumbUrl = `https://s.wordpress.com/mshots/v1/${encodeURIComponent(siteUrl)}?w=400`
   const friendlyName = card.domain.replace(/^www\./, '').split('.')[0]
     .split('-').map(s => s.charAt(0).toUpperCase() + s.slice(1)).join(' ')
   const hasActivity = card.activePhoneCount > 0 || card.publishedBlogCount > 0
@@ -99,30 +98,30 @@ function WebsiteCard({ card }: { card: SiteCard }) {
   return (
     <Link
       href={`/websites?website=${encodeURIComponent(card.domain)}`}
-      className="group rounded-xl border bg-white overflow-hidden transition-all hover:border-[var(--primary)] hover:shadow-md"
+      className="group rounded-lg border bg-white overflow-hidden transition-all hover:border-[var(--primary)] hover:shadow-sm"
       style={{ borderColor: '#e2e8f0' }}
     >
       <div className="relative aspect-[16/10] overflow-hidden" style={{ background: '#f8fafc' }}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={thumbUrl} alt={card.domain} loading="lazy"
           className="w-full h-full object-cover object-top transition-transform group-hover:scale-105" />
-        <div className="absolute top-2 left-2 flex items-center gap-1">
-          <span className="text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded text-white"
+        <div className="absolute top-1.5 left-1.5">
+          <span className="text-[8px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded text-white"
             style={{ background: hasActivity ? '#7c3aed' : '#94a3b8' }}>
             {hasActivity ? 'Active' : 'Idle'}
           </span>
         </div>
       </div>
-      <div className="p-4">
-        <p className="text-sm font-semibold truncate" style={{ color: 'var(--foreground)' }}>{friendlyName}</p>
-        <p className="text-[11px] mt-0.5 truncate" style={{ color: '#64748b' }}>{siteUrl}</p>
-        <div className="mt-3 flex items-center gap-3 text-[11px]" style={{ color: '#94a3b8' }}>
-          <span className="flex items-center gap-1">
-            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>
+      <div className="p-2.5">
+        <p className="text-xs font-semibold truncate leading-tight" style={{ color: 'var(--foreground)' }}>{friendlyName}</p>
+        <p className="text-[10px] mt-0.5 truncate" style={{ color: '#64748b' }}>{card.domain}</p>
+        <div className="mt-1.5 flex items-center gap-2 text-[10px]" style={{ color: '#94a3b8' }}>
+          <span className="flex items-center gap-0.5">
+            <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>
             {card.activePhoneCount}/{card.phoneCount}
           </span>
-          <span className="flex items-center gap-1">
-            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
+          <span className="flex items-center gap-0.5">
+            <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
             {card.publishedBlogCount}/{card.blogCount}
           </span>
         </div>

@@ -123,60 +123,6 @@ export default function DashboardClient({ role, isScoped, websiteCount, phoneCou
         )}
       </div>
 
-      {/* Quick Actions */}
-      <h2 className="text-sm font-semibold text-slate-700 mb-3">{t('dashboard.quickActions')}</h2>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        {!isWriter && !isScoped && (
-          <Link href="/phone-numbers/new" className="flex items-center gap-3 p-3 rounded-lg border border-slate-200 hover:border-slate-300 hover:bg-slate-50 transition-colors">
-            <div className="w-8 h-8 rounded-md flex items-center justify-center bg-blue-50">
-              <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" /></svg>
-            </div>
-            <div>
-              <p className="text-sm font-medium text-slate-800">{t('dashboard.action.addPhone')}</p>
-              <p className="text-xs text-slate-400">{t('dashboard.action.addPhone.desc')}</p>
-            </div>
-          </Link>
-        )}
-
-        {!isScoped && (
-          <Link href="/blog/new" className="flex items-center gap-3 p-3 rounded-lg border border-slate-200 hover:border-slate-300 hover:bg-slate-50 transition-colors">
-            <div className="w-8 h-8 rounded-md flex items-center justify-center bg-green-50">
-              <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" /></svg>
-            </div>
-            <div>
-              <p className="text-sm font-medium text-slate-800">{t('dashboard.action.newPost')}</p>
-              <p className="text-xs text-slate-400">{t('dashboard.action.newPost.desc')}</p>
-            </div>
-          </Link>
-        )}
-
-        <Link href="/websites" className="flex items-center gap-3 p-3 rounded-lg border border-slate-200 hover:border-slate-300 hover:bg-slate-50 transition-colors">
-          <div className="w-8 h-8 rounded-md flex items-center justify-center bg-slate-100">
-            <svg className="w-4 h-4 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
-              <rect x="2" y="3" width="20" height="14" rx="2" /><path d="M2 7h20" strokeLinecap="round" /><path d="M8 21h8M12 17v4" strokeLinecap="round" />
-            </svg>
-          </div>
-          <div>
-            <p className="text-sm font-medium text-slate-800">{isScoped ? t('dashboard.action.viewWebsites') : t('dashboard.action.manageWebsites')}</p>
-            <p className="text-xs text-slate-400">{isScoped ? t('dashboard.action.viewWebsites.desc') : t('dashboard.action.manageWebsites.desc')}</p>
-          </div>
-        </Link>
-
-        {!isWriter && (
-          <Link href="/phone-numbers" className="flex items-center gap-3 p-3 rounded-lg border border-slate-200 hover:border-slate-300 hover:bg-slate-50 transition-colors">
-            <div className="w-8 h-8 rounded-md flex items-center justify-center bg-blue-50">
-              <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-              </svg>
-            </div>
-            <div>
-              <p className="text-sm font-medium text-slate-800">{isScoped ? t('dashboard.action.viewPhones') : t('dashboard.action.configurePct')}</p>
-              <p className="text-xs text-slate-400">{isScoped ? t('dashboard.action.viewPhones.desc') : t('dashboard.action.configurePct.desc')}</p>
-            </div>
-          </Link>
-        )}
-      </div>
-
       {/* Companies — primary navigation into per-site work */}
       {companies.length > 0 && (
         <>
