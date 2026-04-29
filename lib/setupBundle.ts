@@ -240,10 +240,14 @@ The flow:
 
 **Required setup checklist**:
 
-- \`WEBCORE_REVALIDATE_SECRET\` MUST be set in production env (Vercel project settings, not just \`.env.local\`).
-- Every webcore fetch MUST include the right \`next.tags\` (already done in \`lib/webcore.ts\`).
-- After deploying, the webcore admin must paste this site's deployed URL + \`/api/revalidate\` into webcore admin → website detail → Live revalidation.
-- Test by editing a product in webcore and refreshing this site within ~2s.
+1. **Set \`WEBCORE_REVALIDATE_SECRET\` in production env, not just \`.env.local\`.** Local-only env files do NOT reach production builds.
+   - Vercel: project → **Settings** → **Environment Variables** → add \`WEBCORE_REVALIDATE_SECRET\` with the value the webcore admin gave you. Tick **Production** (and Preview if you want it working in preview deploys too). **Save**.
+   - **Then redeploy** so the new env var is baked in. Just adding the variable does NOT update existing deployments — trigger a new deploy (push a commit, or click Redeploy in the Vercel dashboard).
+   - Sanity check: \`curl -i -X POST https://YOUR-DOMAIN/api/revalidate -H "x-webcore-secret: SECRET" -H "content-type: application/json" -d '{"tags":["webcore-products"]}'\` should return \`200 {"revalidated":["webcore-products"]}\`. \`401\` = secret mismatch. \`500\` = env var not set / not redeployed. \`404\` = route file missing.
+2. **Every webcore fetch MUST include the right \`next.tags\`** (already done in \`lib/webcore.ts\`). If you add custom fetches, tag them too.
+3. **Admin pastes this site's deployed URL + \`/api/revalidate\` into webcore admin → website detail → Live revalidation.**
+4. **Don't ship a page with \`export const revalidate = N\` if it consumes \`lib/webcore.ts\`.** That re-introduces time-based caching and visitors will see stale content for up to N seconds even after webcore pings.
+5. **Test:** edit a product in webcore → refresh the live site within ~2 seconds. If it doesn't change, run the curl above first to isolate webcore vs designer-site failure.
 
 **Don't reintroduce time-based revalidation.** Specifically: don't put \`export const revalidate = 60\` on a page that consumes \`lib/webcore.ts\`, and don't change the \`tags:\` calls into \`revalidate:\` numbers. Time-based revalidation defeats the point — visitors will see stale content for up to N seconds even though webcore already told us to flush.
 
