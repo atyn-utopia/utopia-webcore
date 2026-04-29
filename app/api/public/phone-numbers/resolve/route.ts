@@ -1,5 +1,6 @@
 import { createServiceClient } from '@/lib/supabase/service'
 import { NextResponse } from 'next/server'
+import { formatWhatsAppText } from '@/lib/formatWhatsApp'
 
 /**
  * PUBLIC endpoint — no auth required.
@@ -74,7 +75,8 @@ export async function GET(request: Request) {
 
     if (locPhones && locPhones.length > 0) {
       const chosen = weightedPick(locPhones as PhoneRow[])
-      return NextResponse.json({ ...chosen, percentage: undefined, source: 'location' }, { headers: CORS })
+      const whatsapp_text = formatWhatsAppText({ website, locationSlug: chosen.location_slug, whatsappText: chosen.whatsapp_text })
+      return NextResponse.json({ ...chosen, whatsapp_text, percentage: undefined, source: 'location' }, { headers: CORS })
     }
   }
 
@@ -88,7 +90,8 @@ export async function GET(request: Request) {
 
   if (allPhones && allPhones.length > 0) {
     const chosen = weightedPick(allPhones as PhoneRow[])
-    return NextResponse.json({ ...chosen, percentage: undefined, source: 'all' }, { headers: CORS })
+    const whatsapp_text = formatWhatsAppText({ website, locationSlug: chosen.location_slug, whatsappText: chosen.whatsapp_text })
+    return NextResponse.json({ ...chosen, whatsapp_text, percentage: undefined, source: 'all' }, { headers: CORS })
   }
 
   // 3. Last resort: the admin 'default' row for this website (may be inactive).
@@ -105,7 +108,8 @@ export async function GET(request: Request) {
 
     if (defaultPhones && defaultPhones.length > 0) {
       const chosen = defaultPhones[0] as PhoneRow
-      return NextResponse.json({ ...chosen, percentage: undefined, source: 'default_fallback' }, { headers: CORS })
+      const whatsapp_text = formatWhatsAppText({ website, locationSlug: chosen.location_slug, whatsappText: chosen.whatsapp_text })
+      return NextResponse.json({ ...chosen, whatsapp_text, percentage: undefined, source: 'default_fallback' }, { headers: CORS })
     }
   }
 

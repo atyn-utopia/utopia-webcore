@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server'
 import { validateApiKey } from '@/lib/validateApiKey'
 import { updateLeadsMode } from '@/lib/updateLeadsMode'
 import { notifyWebsite } from '@/lib/notifyWebsite'
+import { formatWhatsAppText } from '@/lib/formatWhatsApp'
 
 /**
  * PUBLIC endpoints for phone numbers.
@@ -55,7 +56,11 @@ export async function GET(request: Request) {
   const { data, error } = await query
   if (error) return json({ error: error.message }, 500)
 
-  return json(data ?? [])
+  const formatted = (data ?? []).map(row => ({
+    ...row,
+    whatsapp_text: formatWhatsAppText({ website, locationSlug: row.location_slug, whatsappText: row.whatsapp_text }),
+  }))
+  return json(formatted)
 }
 
 /**
