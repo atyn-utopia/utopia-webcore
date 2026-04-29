@@ -140,3 +140,80 @@ export async function POST(request: Request) {
     tracking_snippet: `<script defer src="https://utopia-webcore.vercel.app/t.js" data-website="${cleanDomain}"></script>`,
   }, { status: 201 })
 }
+
+/**
+ * DELETE /api/company-websites?domain=DOMAIN
+ *
+ * Manual remove — used when the underlying site no longer exists (e.g. deleted
+ * from Vercel). Mirrors the auto-sweep but doesn't require the "no usage"
+ * preconditions, since the human is in the loop.
+ *
+ * Removes the company_websites link only. Phones / products / blog / events
+ * for this domain stay in the DB by design (matches sweep behaviour); a full
+ * purge is out of scope for this endpoint.
+ *
+ * Who can use:
+ *   - admin, designer  → any website
+ *   - everyone else    → blocked
+ */
+export async function DELETE(request: Request) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+  const scope = await getUserScope(user.id)
+  if (!ALLOWED_ROLES.has(scope.role)) {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  }
+
+  const { searchParams } = new URL(request.url)
+  const domain = searchParams.get('domain')
+  if (!domain) return NextResponse.json({ error: 'domain is required' }, { status: 400 })
+
+  const service = createServiceClient()
+  const { data: cw } = await service
+    .from('company_websites')
+    .select('id, company_id')
+    .eq('domain', domain)
+    .maybeSingle()
+  if (!cw) return NextResponse.json({ error: 'Website not linked to any company' }, { status: 404 })
+
+  const { data: company } = await service.from('companies').select('name').eq('id', cw.company_id).maybeSingle()
+
+  // Snapshot orphan counts for the audit log (and so the UI can show what was kept)
+  const [phoneRes, productRes, blogRes, integrationRes, keyRes] = await Promise.all([
+    service.from('phone_numbers').select('*', { count: 'exact', head: true }).eq('website', domain),
+    service.from('products').select('*', { count: 'exact', head: true }).eq('website', domain),
+    service.from('blog_posts').select('*', { count: 'exact', head: true }).eq('website', domain),
+    service.from('website_integrations').select('*', { count: 'exact', head: true }).eq('website', domain),
+    service.from('api_keys').select('*', { count: 'exact', head: true }).eq('website', domain),
+  ])
+  const orphans = {
+    phone_numbers: phoneRes.count ?? 0,
+    products: productRes.count ?? 0,
+    blog_posts: blogRes.count ?? 0,
+    website_integrations: integrationRes.count ?? 0,
+    api_keys: keyRes.count ?? 0,
+  }
+
+  const { error: delErr } = await service.from('company_websites').delete().eq('domain', domain)
+  if (delErr) return NextResponse.json({ error: delErr.message }, { status: 500 })
+
+  const actor = await resolveActor(user.id)
+  await writeAuditLog({
+    actor,
+    entityType: 'website',
+    entityId: cw.id,
+    action: 'delete',
+    website: domain,
+    label: domain,
+    metadata: {
+      reason: 'manual remove from /websites dashboard',
+      company_id: cw.company_id,
+      company_name: company?.name ?? null,
+      orphans,
+    },
+  })
+
+  return NextResponse.json({ success: true, domain, orphans })
+}

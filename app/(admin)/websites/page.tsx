@@ -5,6 +5,8 @@ import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { useUser } from '@/contexts/UserContext'
 import { useLanguage } from '@/contexts/LanguageContext'
+import { useConfirm } from '@/contexts/ConfirmContext'
+import { useToast } from '@/contexts/ToastContext'
 import { useRouter } from 'next/navigation'
 import PageHeader from '@/components/PageHeader'
 import ViewToggle, { type ViewMode } from '@/components/ViewToggle'
@@ -604,6 +606,8 @@ export default function WebsitesPage() {
         <Link href={`/phone-numbers/edit?website=${encodeURIComponent(openWebsite)}`} className="text-xs font-medium px-3 py-1.5 rounded-md border border-[#e2e8f0] text-[#475569] transition-colors hover:border-[var(--primary)] hover:text-[var(--primary)]">Manage</Link>
       </div>
     )}
+
+    {canAddWebsite && <DangerZoneSection domain={openWebsite} />}
   </div>)
 }
 
@@ -1060,6 +1064,68 @@ function SearchConsoleCard({ domain, period }: { domain: string; period: string 
         })}
       </div>
     </Container>
+  )
+}
+
+function DangerZoneSection({ domain }: { domain: string }) {
+  const router = useRouter()
+  const confirm = useConfirm()
+  const toast = useToast()
+  const [busy, setBusy] = useState(false)
+
+  async function remove() {
+    const ok = await confirm({
+      title: `Remove ${domain} from webcore?`,
+      message: `This unlinks ${domain} from its company so it stops appearing in dropdowns and analytics. Phone numbers, products, blog posts, and tracking events for this domain stay in the database — re-adding the site will surface them again. The action is logged in /audit.`,
+      confirmLabel: 'Remove from webcore',
+      variant: 'danger',
+    })
+    if (!ok) return
+
+    setBusy(true)
+    try {
+      const res = await fetch(`/api/company-websites?domain=${encodeURIComponent(domain)}`, { method: 'DELETE' })
+      const data = await res.json()
+      if (!res.ok) {
+        toast.error(data.error ?? 'Failed to remove', 'Remove failed')
+        return
+      }
+      const orphans = data.orphans ?? {}
+      const kept: string[] = []
+      if (orphans.phone_numbers) kept.push(`${orphans.phone_numbers} phone${orphans.phone_numbers === 1 ? '' : 's'}`)
+      if (orphans.products) kept.push(`${orphans.products} product${orphans.products === 1 ? '' : 's'}`)
+      if (orphans.blog_posts) kept.push(`${orphans.blog_posts} blog post${orphans.blog_posts === 1 ? '' : 's'}`)
+      if (orphans.website_integrations) kept.push(`${orphans.website_integrations} integration${orphans.website_integrations === 1 ? '' : 's'}`)
+      if (orphans.api_keys) kept.push(`${orphans.api_keys} API key${orphans.api_keys === 1 ? '' : 's'}`)
+      const msg = kept.length > 0 ? `Removed ${domain}. Kept in DB: ${kept.join(', ')}.` : `Removed ${domain}.`
+      toast.success(msg, 'Website removed')
+      router.push('/websites')
+    } catch (e) {
+      toast.error((e as Error).message, 'Remove failed')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  return (
+    <div className="mt-5 rounded-xl border bg-white p-4" style={{ borderColor: '#fecaca' }}>
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <h3 className="text-sm font-semibold" style={{ color: '#b91c1c' }}>Remove from webcore</h3>
+          <p className="text-[11px] mt-0.5 leading-relaxed" style={{ color: '#64748b' }}>
+            Use when this site has been deleted from Vercel (or you otherwise no longer want webcore tracking it). Unlinks the domain from its company; data stays in the DB and is recoverable by re-adding the site.
+          </p>
+        </div>
+        <button
+          onClick={remove}
+          disabled={busy}
+          className="text-xs font-medium px-3 py-1.5 rounded-md text-white transition-opacity disabled:opacity-50 flex-shrink-0"
+          style={{ background: '#dc2626' }}
+        >
+          {busy ? 'Removing…' : 'Remove'}
+        </button>
+      </div>
+    </div>
   )
 }
 
