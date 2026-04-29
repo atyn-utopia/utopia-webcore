@@ -179,6 +179,17 @@ const siteNavItems: SiteNavItem[] = [
     ),
   },
   {
+    basePath: '/blog',
+    label: 'Blog',
+    roles: ['admin', 'designer', 'external_designer', 'writer'],
+    icon: (
+      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+        <path strokeLinecap="round" strokeWidth={1.8} d="M7 13h3M7 9h7"/>
+      </svg>
+    ),
+  },
+  {
     basePath: '/integrations',
     label: 'Integrations',
     roles: ['admin', 'designer', 'external_designer'],
@@ -190,8 +201,10 @@ const siteNavItems: SiteNavItem[] = [
   },
 ]
 
-// Items that always show in the bottom group, regardless of site context
-const ALWAYS_VISIBLE_HREFS = new Set(['/blog', '/api-keys', '/help', '/users', '/audit', '/tickets'])
+// Items that always show in the bottom group, regardless of site context.
+// /blog is intentionally excluded — it's now a per-site tab too, so listing it
+// in both groups would duplicate.
+const ALWAYS_VISIBLE_HREFS = new Set(['/api-keys', '/help', '/users', '/audit', '/tickets'])
 
 // Hrefs that are now reached exclusively via the per-site nav (Companies → site →
 // scoped tab). Hidden from the global sidebar so the home page is the canonical

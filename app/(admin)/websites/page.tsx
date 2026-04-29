@@ -596,13 +596,6 @@ export default function WebsitesPage() {
 
     <SearchConsoleCard domain={openWebsite} period={period} />
 
-    {siteInfo && !isWriter && (
-      <div className="mt-5 rounded-xl border bg-white p-4 flex items-center justify-between" style={{ borderColor: '#e2e8f0' }}>
-        <div><p className="text-xs font-medium" style={{ color: '#475569' }}>Phone Numbers</p><p className="text-[10px]" style={{ color: '#94a3b8' }}>{siteInfo.phone_count} total · {siteInfo.active_phone_count} active{siteInfo.leads_mode && LEADS_MODE[siteInfo.leads_mode] ? ` · ${LEADS_MODE[siteInfo.leads_mode].label} mode` : ''}</p></div>
-        <Link href={`/phone-numbers/edit?website=${encodeURIComponent(openWebsite)}`} className="text-xs font-medium px-3 py-1.5 rounded-md border border-[#e2e8f0] text-[#475569] transition-colors hover:border-[var(--primary)] hover:text-[var(--primary)]">Manage</Link>
-      </div>
-    )}
-
     {canAddWebsite && <DangerZoneSection domain={openWebsite} />}
   </div>)
 }

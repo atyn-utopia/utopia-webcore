@@ -18,15 +18,11 @@ export default async function DashboardPage() {
 
   type CountQuery = { count: number | null }
   type WebsitesData = { data: { website: string }[] | null }
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  type RecentData = { data: any[] | null }
 
   let phoneCountRes: CountQuery = { count: 0 }
   let postCountRes: CountQuery = { count: 0 }
   let productCountRes: CountQuery = { count: 0 }
   let websitesRes: WebsitesData = { data: [] }
-  let recentPostsRes: RecentData = { data: [] }
-  let recentPhonesRes: RecentData = { data: [] }
   type CompanyRow = { id: string; name: string; company_websites: { domain: string }[] }
   let companiesRes: { data: CompanyRow[] | null } = { data: [] }
 
@@ -35,8 +31,6 @@ export default async function DashboardPage() {
     const postCountQuery = service.from('blog_posts').select('*', { count: 'exact', head: true })
     const productCountQuery = service.from('products').select('*', { count: 'exact', head: true })
     const websitesQuery = service.from('phone_numbers').select('website')
-    const recentPostsQuery = service.from('blog_posts').select('id, website, slug, status, updated_at, blog_translations(language, title)').order('updated_at', { ascending: false }).limit(5)
-    const recentPhonesQuery = service.from('phone_numbers').select('id, website, phone_number, label, type, updated_at').order('updated_at', { ascending: false }).limit(5)
     const companiesQuery = service.from('companies').select('id, name, company_websites(domain)').order('name')
 
     if (allowedDomains) {
@@ -44,8 +38,6 @@ export default async function DashboardPage() {
       postCountQuery.in('website', allowedDomains)
       productCountQuery.in('website', allowedDomains)
       websitesQuery.in('website', allowedDomains)
-      recentPostsQuery.in('website', allowedDomains)
-      recentPhonesQuery.in('website', allowedDomains)
     }
     if (scope.isScoped) {
       const ids = scope.companyIds ?? []
@@ -56,14 +48,12 @@ export default async function DashboardPage() {
       }
     }
 
-    const results = await Promise.all([phoneCountQuery, postCountQuery, productCountQuery, websitesQuery, recentPostsQuery, recentPhonesQuery, companiesQuery])
+    const results = await Promise.all([phoneCountQuery, postCountQuery, productCountQuery, websitesQuery, companiesQuery])
     phoneCountRes = results[0] as CountQuery
     postCountRes = results[1] as CountQuery
     productCountRes = results[2] as CountQuery
     websitesRes = results[3] as WebsitesData
-    recentPostsRes = results[4] as RecentData
-    recentPhonesRes = results[5] as RecentData
-    companiesRes = results[6] as { data: CompanyRow[] | null }
+    companiesRes = results[4] as { data: CompanyRow[] | null }
   }
 
   const websitesSet = new Set((websitesRes.data ?? []).map((r: { website: string }) => r.website))
@@ -84,8 +74,6 @@ export default async function DashboardPage() {
       phoneCount={phoneCountRes.count}
       postCount={postCountRes.count}
       productCount={productCountRes.count}
-      recentPosts={recentPostsRes.data ?? []}
-      recentPhones={recentPhonesRes.data ?? []}
       companies={companies}
     />
   )

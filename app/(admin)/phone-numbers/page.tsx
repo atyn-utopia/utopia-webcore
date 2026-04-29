@@ -273,52 +273,26 @@ export default function PhoneNumbersPage() {
         description={openCompany ? t('page.phoneNumbers.description.scoped') : t('page.phoneNumbers.description')}
       />
 
-      {/* Search + website filter */}
+      {/* Search */}
       <div className="rounded-xl border p-4 sm:p-5 mb-5" style={{ borderColor: '#cbd5e1', background: '#f8fafc' }}>
-        <div className="flex flex-col sm:flex-row sm:items-end gap-4">
-          <div className="flex-1 min-w-0">
-          <label className="block text-xs font-medium mb-1.5" style={{ color: '#475569' }}>Search</label>
-          <div className="relative">
-            <svg className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: '#475569' }}>
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
-            <input
-              type="text"
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-              placeholder="Search by domain, location, or number…"
-              className="w-full pl-9 pr-9 py-2 text-sm rounded-lg border outline-none focus:ring-2 focus:ring-offset-0"
-              style={{ borderColor: '#cbd5e1', background: 'white', ['--tw-ring-color' as string]: 'rgba(30, 58, 95, 0.2)' }}
-            />
-            {search && (
-              <button onClick={() => setSearch('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 flex items-center justify-center rounded-full hover:bg-slate-200 transition-colors" style={{ background: '#e2e8f0', color: '#64748b' }}>
-                <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
-              </button>
-            )}
-          </div>
-        </div>
-        <div className="sm:w-56 flex-shrink-0">
-          <label className="block text-xs font-medium mb-1.5" style={{ color: '#475569' }}>Website</label>
-          <div className="relative">
-            <select
-              value={filterWebsite}
-              onChange={e => setFilterWebsite(e.target.value)}
-              className="cursor-pointer text-sm rounded-lg border outline-none focus:ring-2 focus:ring-offset-0 w-full"
-              style={{
-                appearance: 'none', WebkitAppearance: 'none', MozAppearance: 'none',
-                borderColor: '#cbd5e1', background: 'white', color: '#475569',
-                paddingTop: '0.5rem', paddingBottom: '0.5rem', paddingLeft: '0.75rem', paddingRight: '2.25rem',
-                ['--tw-ring-color' as string]: 'rgba(30, 58, 95, 0.2)',
-              }}
-            >
-              <option value="">All websites</option>
-              {websites.map(w => <option key={w} value={w}>{w}</option>)}
-            </select>
-            <svg className="w-3.5 h-3.5 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: '#475569' }}>
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-            </svg>
-          </div>
-        </div>
+        <label className="block text-xs font-medium mb-1.5" style={{ color: '#475569' }}>Search</label>
+        <div className="relative">
+          <svg className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: '#475569' }}>
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+          <input
+            type="text"
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            placeholder="Search by domain, location, or number…"
+            className="w-full pl-9 pr-9 py-2 text-sm rounded-lg border outline-none focus:ring-2 focus:ring-offset-0"
+            style={{ borderColor: '#cbd5e1', background: 'white', ['--tw-ring-color' as string]: 'rgba(30, 58, 95, 0.2)' }}
+          />
+          {search && (
+            <button onClick={() => setSearch('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 flex items-center justify-center rounded-full hover:bg-slate-200 transition-colors" style={{ background: '#e2e8f0', color: '#64748b' }}>
+              <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+            </button>
+          )}
         </div>
       </div>
 
