@@ -61,8 +61,8 @@ function FactPill({ label, value, tone = 'neutral', href }: {
     <div className="inline-flex items-center gap-2 h-8 px-2.5 rounded-md text-xs transition-colors"
       style={{ background: 'white', border: '1px solid #e2e8f0' }}>
       <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: FACT_DOT[tone] }} />
-      <span className="text-[10px] font-semibold uppercase tracking-wider leading-none" style={{ color: '#94a3b8' }}>{label}</span>
-      <span className="text-xs font-medium leading-none" style={{ color: 'var(--foreground)' }}>{value}</span>
+      <span className="text-[11px] font-medium leading-none" style={{ color: '#94a3b8' }}>{label}</span>
+      <span className="text-xs font-normal leading-none" style={{ color: 'var(--foreground)' }}>{value}</span>
     </div>
   )
   if (href) return <Link href={href} className="inline-flex hover:brightness-[0.98] transition">{inner}</Link>
@@ -568,18 +568,11 @@ export default function WebsitesPage() {
 
           {/* Quick-fact strip — clean single-line pills, all h-8 */}
           <div className="flex flex-wrap items-center gap-2">
-            <div className="flex flex-col gap-0.5">
-              <FactPill
-                label="Tracker"
-                value={trackerSeenToday ? 'Active today' : trackerSeenYesterday ? 'Active yesterday' : 'No recent activity'}
-                tone={trackerSeenToday ? 'success' : trackerSeenYesterday ? 'neutral' : 'warning'}
-              />
-              {analytics?.firstEventAt && (
-                <span className="text-[10px] pl-3" style={{ color: '#94a3b8' }}>
-                  Live since {formatDate(analytics.firstEventAt)}
-                </span>
-              )}
-            </div>
+            <FactPill
+              label="Tracker"
+              value={trackerSeenToday ? 'Active today' : trackerSeenYesterday ? 'Active yesterday' : 'No recent activity'}
+              tone={trackerSeenToday ? 'success' : trackerSeenYesterday ? 'neutral' : 'warning'}
+            />
             {!isWriter && lm && (
               <FactPill label="Leads mode" value={lm.label} tone="info" />
             )}
