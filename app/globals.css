@@ -9,13 +9,13 @@
   --header-text-strong: #ffffff;
   --header-hover: rgba(255,255,255,0.08);
   --header-divider: rgba(255,255,255,0.08);
-  --sidebar-bg: #1e293b;
+  --sidebar-bg: #14181f;
   --sidebar-hover: rgba(255,255,255,0.08);
   --sidebar-active: rgba(255,255,255,0.15);
   --sidebar-text: #94a3b8;
   --sidebar-muted: #64748b;
-  --primary: #1e3a5f;
-  --primary-hover: #162d4a;
+  --primary: #2975cc;
+  --primary-hover: #2061b3;
   --border: #e2e8f0;
   --card: #ffffff;
   --font-inter: 'Inter', sans-serif;

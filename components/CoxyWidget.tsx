@@ -13,15 +13,15 @@ const SUGGESTIONS = [
   'How do I connect Google Search Console?',
 ]
 
-const POS_STORAGE_KEY = 'coxy-floating-pos'
 const DRAG_THRESHOLD = 5 // px moved before click is suppressed and we treat it as a drag
 const BUBBLE_SIZE = 120 // approx width/height so we can clamp to the viewport
 
 type Anchor = 'top' | 'bottom'
 type Pos = { anchor: Anchor; right: number; y: number }
 
+// Default position: bottom-right (everywhere except the home dashboard).
 const DEFAULT_POS: Pos = { anchor: 'bottom', right: 20, y: 26 }
-// Dashboard default: sits roughly where the old character.gif lived in the welcome banner
+// Dashboard default: sits roughly where the old character.gif lived in the welcome banner.
 const DASHBOARD_POS: Pos = { anchor: 'top', right: 80, y: 150 }
 
 export default function CoxyWidget() {
@@ -36,26 +36,11 @@ export default function CoxyWidget() {
   const dragRef = useRef<{ startX: number; startY: number; startRight: number; startPosY: number; anchor: Anchor; moved: boolean } | null>(null)
   const [isDragging, setIsDragging] = useState(false)
 
-  // Reset position when route changes: dashboard has its own default, other pages use saved/default
+  // Reset position on every route change. Home dashboard pins Coxy near the
+  // welcome banner; everywhere else falls back to bottom-right. Drag still
+  // works during a session but doesn't persist across navigations.
   useEffect(() => {
-    if (isDashboard) {
-      setPos(DASHBOARD_POS)
-      return
-    }
-    try {
-      const saved = localStorage.getItem(POS_STORAGE_KEY)
-      if (saved) {
-        const parsed = JSON.parse(saved)
-        // Migrate legacy bottom-only storage shape
-        if (parsed.anchor) setPos(parsed)
-        else if (typeof parsed.bottom === 'number') setPos({ anchor: 'bottom', right: parsed.right ?? 20, y: parsed.bottom })
-        else setPos(DEFAULT_POS)
-      } else {
-        setPos(DEFAULT_POS)
-      }
-    } catch {
-      setPos(DEFAULT_POS)
-    }
+    setPos(isDashboard ? DASHBOARD_POS : DEFAULT_POS)
   }, [isDashboard])
 
   function onBubblePointerDown(e: React.PointerEvent<HTMLButtonElement>) {
@@ -93,10 +78,9 @@ export default function CoxyWidget() {
     setIsDragging(false)
     if (!wasMoved) {
       setOpen(true)
-    } else if (!isDashboard) {
-      // Persist new position — dashboard always resets on visit, so we don't save it
-      try { localStorage.setItem(POS_STORAGE_KEY, JSON.stringify(pos)) } catch {}
     }
+    // Drag-to-move is session-only; no persistence so Coxy always opens at
+    // its default (bottom-right, or dashboard hero on /) on every navigation.
   }
 
   const { messages, sendMessage, status, error } = useChat({
