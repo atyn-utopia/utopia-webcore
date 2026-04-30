@@ -288,6 +288,20 @@ export async function GET(request: Request) {
     }
   }
 
+  // First tracking event for the active scope — used for "Live since" label
+  // on the per-site dashboard. Only fetched when a single website is in scope.
+  let firstEventAt: string | null = null
+  if (website) {
+    const { data: firstEvent } = await service
+      .from('page_events')
+      .select('created_at')
+      .eq('website', website)
+      .order('created_at', { ascending: true })
+      .limit(1)
+      .maybeSingle()
+    firstEventAt = (firstEvent?.created_at as string | undefined) ?? null
+  }
+
   return NextResponse.json({
     period: { days, since, until },
     summary: {
@@ -306,5 +320,6 @@ export async function GET(request: Request) {
     topClicks,
     devices: deviceCounts,
     browsers: browserCounts,
+    firstEventAt,
   })
 }

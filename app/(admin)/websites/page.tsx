@@ -23,7 +23,7 @@ interface WebsiteStat { website: string; pageviews: number; clicks: number; impr
 interface DailyStat { date: string; pageviews: number; clicks: number; impressions: number }
 interface Insight { icon: string; text: string; type: 'positive' | 'negative' | 'neutral' | 'warning' }
 interface DayStats { pageviews: number; clicks: number; impressions: number; sessions: number }
-interface AnalyticsData { summary: { pageviews: number; clicks: number; impressions: number; sessions: number }; today: DayStats; yesterday: DayStats; insights: Insight[]; websiteStats: WebsiteStat[]; dailyStats: DailyStat[]; topPages: { path: string; count: number }[]; topReferrers: { source: string; count: number }[]; topClicks: { label: string; count: number }[]; devices: Record<string, number>; browsers: Record<string, number> }
+interface AnalyticsData { summary: { pageviews: number; clicks: number; impressions: number; sessions: number }; today: DayStats; yesterday: DayStats; insights: Insight[]; websiteStats: WebsiteStat[]; dailyStats: DailyStat[]; topPages: { path: string; count: number }[]; topReferrers: { source: string; count: number }[]; topClicks: { label: string; count: number }[]; devices: Record<string, number>; browsers: Record<string, number>; firstEventAt: string | null }
 interface RecentPost { id: string; website: string; title: string; status: string; updated_at: string; slug: string }
 interface RecentPhone { id: string; website: string; phone_number: string; label: string | null; type: string }
 
@@ -560,11 +560,18 @@ export default function WebsitesPage() {
 
           {/* Quick-fact strip — clean single-line pills, all h-8 */}
           <div className="flex flex-wrap items-center gap-2">
-            <FactPill
-              label="Tracker"
-              value={trackerSeenToday ? 'Active today' : trackerSeenYesterday ? 'Active yesterday' : 'No recent activity'}
-              tone={trackerSeenToday ? 'success' : trackerSeenYesterday ? 'neutral' : 'warning'}
-            />
+            <div className="flex flex-col gap-0.5">
+              <FactPill
+                label="Tracker"
+                value={trackerSeenToday ? 'Active today' : trackerSeenYesterday ? 'Active yesterday' : 'No recent activity'}
+                tone={trackerSeenToday ? 'success' : trackerSeenYesterday ? 'neutral' : 'warning'}
+              />
+              {analytics?.firstEventAt && (
+                <span className="text-[10px] pl-3" style={{ color: '#94a3b8' }}>
+                  Live since {formatDate(analytics.firstEventAt)}
+                </span>
+              )}
+            </div>
             {!isWriter && lm && (
               <FactPill label="Leads mode" value={lm.label} tone="info" />
             )}

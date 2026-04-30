@@ -29,7 +29,10 @@ export default function SimpleChart({ data }: { data: DailyStat[] }) {
   if (data.length === 0) {
     return (
       <div className="rounded-xl border border-slate-200 bg-white p-5 h-full">
-        <h3 className="text-sm font-semibold mb-4" style={{ color: 'var(--foreground)' }}>Activity over time</h3>
+        <div className="flex items-center gap-2 mb-4">
+          <ChartIcon />
+          <h3 className="text-sm font-semibold" style={{ color: 'var(--foreground)' }}>Activity over time</h3>
+        </div>
         <div className="h-40 flex items-center justify-center text-xs" style={{ color: '#94a3b8' }}>
           No activity in this period yet.
         </div>
@@ -81,9 +84,12 @@ export default function SimpleChart({ data }: { data: DailyStat[] }) {
   return (
     <div className="rounded-xl border border-slate-200 bg-white p-5 h-full flex flex-col">
       <div className="flex items-start justify-between gap-3 mb-4 flex-wrap">
-        <div>
-          <h3 className="text-sm font-semibold" style={{ color: 'var(--foreground)' }}>Activity over time</h3>
-          <p className="text-[11px] mt-0.5" style={{ color: '#94a3b8' }}>{data.length} day{data.length === 1 ? '' : 's'} of tracking events</p>
+        <div className="flex items-start gap-2.5">
+          <ChartIcon />
+          <div>
+            <h3 className="text-sm font-semibold" style={{ color: 'var(--foreground)' }}>Activity over time</h3>
+            <p className="text-[11px] mt-0.5" style={{ color: '#94a3b8' }}>{data.length} day{data.length === 1 ? '' : 's'} of tracking events</p>
+          </div>
         </div>
         {/* Legend — click to toggle. All chips h-7 for consistency */}
         <div className="flex items-center gap-1.5 flex-wrap">
@@ -214,6 +220,16 @@ export default function SimpleChart({ data }: { data: DailyStat[] }) {
           </div>
         )}
       </div>
+    </div>
+  )
+}
+
+function ChartIcon() {
+  return (
+    <div className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: '#eff6ff' }}>
+      <svg className="w-4 h-4" fill="none" stroke="#2979d6" viewBox="0 0 24 24" strokeWidth="1.8" aria-hidden>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+      </svg>
     </div>
   )
 }
