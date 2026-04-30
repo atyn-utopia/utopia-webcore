@@ -141,7 +141,7 @@ export default function CoxyWidget() {
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src="/coxy.png"
+            src="/character-floating.gif"
             alt="Coxy — click to chat"
             className="h-28 w-auto pointer-events-none select-none"
             draggable={false}
