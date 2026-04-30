@@ -3,7 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { createServiceClient } from '@/lib/supabase/service'
 import { getUserScope } from '@/lib/getUserScope'
 import PageHeader from '@/components/PageHeader'
-import WebsiteCard from '@/components/WebsiteCard'
+import CompanyWebsitesGrid from '@/components/CompanyWebsitesGrid'
 
 export const dynamic = 'force-dynamic'
 
@@ -30,8 +30,6 @@ export default async function CompanyFolderPage({ params }: { params: Promise<{ 
     .map((w: { domain: string }) => w.domain)
     .filter((d: string) => !allowedDomains || allowedDomains.includes(d))
 
-  const sortedDomains = [...domains].sort((a, b) => a.localeCompare(b))
-
   return (
     <div>
       <PageHeader
@@ -39,7 +37,7 @@ export default async function CompanyFolderPage({ params }: { params: Promise<{ 
         description={`${domains.length} website${domains.length === 1 ? '' : 's'} · click any card to open its dashboard`}
       />
 
-      {sortedDomains.length === 0 ? (
+      {domains.length === 0 ? (
         <div className="rounded-xl border bg-white p-10 text-center" style={{ borderColor: '#e2e8f0' }}>
           <div className="w-14 h-14 mx-auto rounded-full flex items-center justify-center mb-3" style={{ background: '#f1f5f9' }}>
             <svg className="w-7 h-7" fill="none" stroke="#94a3b8" viewBox="0 0 24 24" strokeWidth="1.5">
@@ -50,11 +48,7 @@ export default async function CompanyFolderPage({ params }: { params: Promise<{ 
           <p className="text-xs mt-1" style={{ color: '#94a3b8' }}>Add a website from the Websites page or via Onboard Designer.</p>
         </div>
       ) : (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
-          {sortedDomains.map(d => (
-            <WebsiteCard key={d} domain={d} />
-          ))}
-        </div>
+        <CompanyWebsitesGrid domains={domains} />
       )}
     </div>
   )
