@@ -1,0 +1,113 @@
+'use client'
+
+import Link from 'next/link'
+import { useEffect, useRef, useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { createClient } from '@/lib/supabase/client'
+import { useUser, type UserRole } from '@/contexts/UserContext'
+import { useLanguage } from '@/contexts/LanguageContext'
+import type { TranslationKey } from '@/lib/i18n/en'
+
+const ROLE_KEY: Record<UserRole, TranslationKey> = {
+  admin: 'role.admin',
+  designer: 'role.designer',
+  external_designer: 'role.external_designer',
+  writer: 'role.writer',
+  indoor_sales: 'role.indoor_sales',
+  manager: 'role.manager',
+}
+
+/**
+ * Wix-style avatar dropdown for the top-right of the header. Shows the user's
+ * initial; click opens a panel with profile info + a sign-out button.
+ */
+export default function UserMenu() {
+  const router = useRouter()
+  const { name, email, role } = useUser()
+  const { t } = useLanguage()
+  const [open, setOpen] = useState(false)
+  const containerRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!open) return
+    function onClick(e: MouseEvent) {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) setOpen(false)
+    }
+    document.addEventListener('mousedown', onClick)
+    return () => document.removeEventListener('mousedown', onClick)
+  }, [open])
+
+  async function handleSignOut() {
+    const supabase = createClient()
+    await supabase.auth.signOut()
+    router.push('/login')
+    router.refresh()
+  }
+
+  return (
+    <div className="relative" ref={containerRef}>
+      <button
+        onClick={() => setOpen(v => !v)}
+        className="w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold text-white transition-all"
+        style={{
+          background: 'linear-gradient(135deg, #1a3a6e, #2979d6)',
+          boxShadow: open ? '0 0 0 2px rgba(255,255,255,0.4)' : 'none',
+        }}
+        aria-haspopup="menu"
+        aria-expanded={open}
+        title={`${name} · ${t(ROLE_KEY[role] ?? 'role.admin')}`}
+      >
+        {name[0]?.toUpperCase() ?? '?'}
+      </button>
+
+      {open && (
+        <div className="absolute right-0 top-11 w-64 rounded-md shadow-lg z-50 overflow-hidden" style={{ background: 'white', border: '1px solid #e2e8f0' }}>
+          {/* Identity header */}
+          <div className="px-4 py-3 flex items-center gap-3" style={{ borderBottom: '1px solid #f1f5f9' }}>
+            <div className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold text-white flex-shrink-0" style={{ background: 'linear-gradient(135deg, #1a3a6e, #2979d6)' }}>
+              {name[0]?.toUpperCase() ?? '?'}
+            </div>
+            <div className="min-w-0">
+              <p className="text-sm font-semibold truncate" style={{ color: 'var(--foreground)' }}>{name}</p>
+              <p className="text-[11px] truncate" style={{ color: '#64748b' }}>{email}</p>
+            </div>
+          </div>
+
+          {/* Role + meta */}
+          <div className="px-4 py-2 flex items-center gap-2" style={{ borderBottom: '1px solid #f1f5f9' }}>
+            <span className="text-[10px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded" style={{ background: '#eff6ff', color: '#1e40af' }}>
+              {t(ROLE_KEY[role] ?? 'role.admin')}
+            </span>
+          </div>
+
+          {/* Menu items — Help link is the only useful destination right now */}
+          <div className="py-1">
+            <Link
+              href="/help"
+              onClick={() => setOpen(false)}
+              className="flex items-center gap-2.5 px-4 py-2 text-xs transition-colors hover:bg-slate-50"
+              style={{ color: '#475569' }}
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8"><path strokeLinecap="round" strokeLinejoin="round" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+              Help &amp; feedback
+            </Link>
+          </div>
+
+          {/* Sign out */}
+          <div style={{ borderTop: '1px solid #f1f5f9' }}>
+            <button
+              onClick={handleSignOut}
+              className="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs font-medium transition-colors hover:bg-red-50"
+              style={{ color: '#b91c1c' }}
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+              </svg>
+              {t('nav.signOut')}
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}

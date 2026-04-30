@@ -82,8 +82,6 @@ export default function AdminShell({ userEmail, userName, userRole, children }: 
         )}
 
         <Sidebar
-          userEmail={userEmail}
-          userName={userName}
           userRole={userRole}
           open={sidebarOpen}
           onClose={() => setSidebarOpen(false)}

@@ -1,31 +1,19 @@
 'use client'
 
 import Link from 'next/link'
-import { usePathname, useRouter, useSearchParams } from 'next/navigation'
+import { usePathname, useSearchParams } from 'next/navigation'
 import { useEffect, useState } from 'react'
-import { createClient } from '@/lib/supabase/client'
 import { useWebsite } from '@/contexts/WebsiteContext'
 import type { UserRole } from '@/contexts/UserContext'
 import { useLanguage } from '@/contexts/LanguageContext'
 import type { TranslationKey } from '@/lib/i18n/en'
 
 interface SidebarProps {
-  userEmail: string
-  userName: string
   userRole: UserRole
   open?: boolean
   onClose?: () => void
   collapsed?: boolean
   onCollapsedChange?: (next: boolean) => void
-}
-
-const ROLE_KEY: Record<UserRole, TranslationKey> = {
-  admin: 'role.admin',
-  designer: 'role.designer',
-  external_designer: 'role.external_designer',
-  writer: 'role.writer',
-  indoor_sales: 'role.indoor_sales',
-  manager: 'role.manager',
 }
 
 const navItems: { href: string; labelKey: TranslationKey; roles: UserRole[]; icon: React.ReactNode }[] = [
@@ -225,10 +213,9 @@ const ALWAYS_VISIBLE_HREFS = new Set(['/api-keys', '/help', '/users', '/audit', 
 // shortcuts on the home page for cross-site views.
 const HIDDEN_FROM_GLOBAL_NAV = new Set(['/websites', '/phone-numbers', '/products'])
 
-export default function Sidebar({ userEmail, userName, userRole, open, onClose, collapsed = false, onCollapsedChange }: SidebarProps) {
+export default function Sidebar({ userRole, open, onClose, collapsed = false, onCollapsedChange }: SidebarProps) {
   const pathname = usePathname()
   const searchParams = useSearchParams()
-  const router = useRouter()
   const { t } = useLanguage()
   const { selectedWebsite, setSelectedWebsite } = useWebsite()
   const [websites, setWebsites] = useState<string[]>([])
@@ -249,13 +236,6 @@ export default function Sidebar({ userEmail, userName, userRole, open, onClose, 
       })
       .catch(() => {})
   }, [])
-
-  async function handleSignOut() {
-    const supabase = createClient()
-    await supabase.auth.signOut()
-    router.push('/login')
-    router.refresh()
-  }
 
   const sidebarWidth = collapsed ? 'md:w-16' : 'md:w-60'
 
@@ -436,33 +416,6 @@ export default function Sidebar({ userEmail, userName, userRole, open, onClose, 
         )}
       </nav>
 
-      {/* Footer */}
-      <div className={`${collapsed ? 'px-2' : 'px-3'} py-4 pb-8 md:pb-4 border-t`} style={{ borderColor: 'rgba(255,255,255,0.1)' }}>
-        <div className={`${collapsed ? 'px-0 justify-center' : 'px-3'} mb-3 flex items-center gap-2.5`}>
-          <div className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold text-white flex-shrink-0" style={{ background: 'linear-gradient(135deg, #1a3a6e, #2979d6)' }} title={collapsed ? `${userName} · ${t(ROLE_KEY[userRole] ?? 'role.admin')}` : undefined}>
-            {userName[0]?.toUpperCase()}
-          </div>
-          {!collapsed && (
-            <div className="min-w-0">
-              <p className="text-xs font-medium text-white truncate">{userName}</p>
-              <p className="text-[10px] truncate" style={{ color: 'var(--sidebar-muted)' }}>{t(ROLE_KEY[userRole] ?? 'role.admin')}</p>
-            </div>
-          )}
-        </div>
-        <button
-          onClick={handleSignOut}
-          title={collapsed ? t('nav.signOut') : undefined}
-          className={`flex items-center w-full rounded-lg transition-colors ${collapsed ? 'justify-center px-2 py-2' : 'gap-2 sm:gap-3 px-3 py-1.5 sm:py-2'} text-xs sm:text-sm`}
-          style={{ color: 'var(--sidebar-text)' }}
-          onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'var(--sidebar-hover)'; (e.currentTarget as HTMLElement).style.color = '#ffffff' }}
-          onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'transparent'; (e.currentTarget as HTMLElement).style.color = 'var(--sidebar-text)' }}
-        >
-          <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-          </svg>
-          {!collapsed && t('nav.signOut')}
-        </button>
-      </div>
     </aside>
   )
 }

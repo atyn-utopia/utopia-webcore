@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { Suspense } from 'react'
 import SiteSelector from './SiteSelector'
 import TopBar from './TopBar'
+import UserMenu from './UserMenu'
 
 interface Props {
   onMobileMenuOpen?: () => void
@@ -65,6 +66,11 @@ export default function HeaderBar({ onMobileMenuOpen }: Props) {
       <Suspense fallback={null}>
         <TopBar />
       </Suspense>
+
+      {/* Avatar + sign-out menu (Wix-style top-right) */}
+      <div className="ml-1 pl-2" style={{ borderLeft: '1px solid var(--header-divider)' }}>
+        <UserMenu />
+      </div>
     </div>
   )
 }
