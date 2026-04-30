@@ -12,9 +12,9 @@ interface CrumbItem {
 export default function Breadcrumb() {
   const pathname = usePathname()
   const searchParams = useSearchParams()
-  const company = searchParams.get('company') ?? ''
   const website = searchParams.get('website') ?? ''
   const [postTitle, setPostTitle] = useState('')
+  const [companyName, setCompanyName] = useState('')
 
   // Fetch post title for blog edit/view pages
   useEffect(() => {
@@ -32,90 +32,90 @@ export default function Breadcrumb() {
     }
   }, [pathname])
 
+  // Fetch company name for /company/[id]
+  useEffect(() => {
+    const match = pathname.match(/^\/company\/([^/]+)$/)
+    if (!match) { setCompanyName(''); return }
+    const id = match[1]
+    fetch('/api/companies')
+      .then(r => r.json())
+      .then((rows: { id: string; name: string }[]) => {
+        if (Array.isArray(rows)) {
+          const found = rows.find(c => c.id === id)
+          setCompanyName(found?.name ?? '')
+        }
+      })
+      .catch(() => setCompanyName(''))
+  }, [pathname])
+
   function getCrumbs(): CrumbItem[] {
-    // Websites
-    if (pathname === '/websites' && website) {
-      const crumbs: CrumbItem[] = [{ label: 'Websites', href: '/websites' }]
-      if (company) crumbs.push({ label: company, href: `/websites?company=${encodeURIComponent(company)}` })
-      crumbs.push({ label: website })
-      return crumbs
+    // ─── Site context (?website=…) — Home > {site} > {tab} ─────────────
+    if (website) {
+      const dashboardHref = `/websites?website=${encodeURIComponent(website)}`
+      const siteCrumb: CrumbItem = { label: website, href: dashboardHref }
+
+      // /websites with website param IS the per-site dashboard — just one crumb
+      if (pathname === '/websites') return [{ label: website }]
+
+      // Products under a site
+      if (pathname === '/products') return [siteCrumb, { label: 'Products' }]
+      if (pathname === '/products/new') return [siteCrumb, { label: 'Products', href: `/products?website=${encodeURIComponent(website)}` }, { label: 'New Product' }]
+      if (/^\/products\/.+\/edit$/.test(pathname)) return [siteCrumb, { label: 'Products', href: `/products?website=${encodeURIComponent(website)}` }, { label: 'Edit Product' }]
+
+      // Phone numbers under a site
+      if (pathname === '/phone-numbers' || pathname === '/phone-numbers/edit') return [siteCrumb, { label: 'Phone Numbers' }]
+      if (pathname === '/phone-numbers/new') return [siteCrumb, { label: 'Phone Numbers', href: `/phone-numbers?website=${encodeURIComponent(website)}` }, { label: 'Add Number' }]
+
+      // Blog under a site
+      if (pathname === '/blog') return [siteCrumb, { label: 'Blog' }]
+      if (pathname === '/blog/new') return [siteCrumb, { label: 'Blog', href: `/blog?website=${encodeURIComponent(website)}` }, { label: 'New Post' }]
+      if (/^\/blog\/.+\/edit$/.test(pathname)) return [siteCrumb, { label: 'Blog', href: `/blog?website=${encodeURIComponent(website)}` }, { label: postTitle || 'Edit Post' }]
+      if (/^\/blog\/.+\/view$/.test(pathname)) return [siteCrumb, { label: 'Blog', href: `/blog?website=${encodeURIComponent(website)}` }, { label: postTitle || 'Preview' }]
+
+      // Integrations under a site
+      if (pathname === '/integrations') return [siteCrumb, { label: 'Integrations' }]
+
+      // Analytics under a site
+      if (pathname === '/analytics') return [siteCrumb, { label: 'Analytics' }]
     }
-    if (pathname === '/websites' && company) {
-      return [{ label: 'Websites', href: '/websites' }, { label: company }]
+
+    // ─── Company folder ────────────────────────────────────────────────
+    if (/^\/company\/[^/]+$/.test(pathname)) {
+      return [{ label: companyName || 'Company' }]
     }
+
+    // ─── Non-site-context (global pages) ───────────────────────────────
     if (pathname === '/websites') return [{ label: 'Websites' }]
 
-    // Phone Numbers
-    if (pathname === '/phone-numbers/new') {
-      const crumbs: CrumbItem[] = [{ label: 'Phone Numbers', href: '/phone-numbers' }]
-      if (company) crumbs.splice(1, 0, { label: company, href: `/phone-numbers?company=${encodeURIComponent(company)}` })
-      crumbs.push({ label: 'Add Number' })
-      return crumbs
-    }
-    if (pathname === '/phone-numbers/edit' && website) {
-      const crumbs: CrumbItem[] = [{ label: 'Phone Numbers', href: '/phone-numbers' }]
-      if (company) crumbs.push({ label: company, href: `/phone-numbers?company=${encodeURIComponent(company)}` })
-      crumbs.push({ label: website })
-      return crumbs
-    }
-    if (pathname === '/phone-numbers' && website) {
-      const crumbs: CrumbItem[] = [{ label: 'Phone Numbers', href: '/phone-numbers' }]
-      if (company) crumbs.push({ label: company, href: `/phone-numbers?company=${encodeURIComponent(company)}` })
-      crumbs.push({ label: website })
-      return crumbs
-    }
-    if (pathname === '/phone-numbers' && company) {
-      return [{ label: 'Phone Numbers', href: '/phone-numbers' }, { label: company }]
-    }
-    if (pathname === '/phone-numbers') return [{ label: 'Phone Numbers' }]
-
-    // Blog
-    if (pathname === '/blog/new') {
-      return [{ label: 'Blog Analytics', href: '/blog' }, { label: 'New Post' }]
-    }
-    if (/^\/blog\/.+\/view$/.test(pathname)) {
-      return [{ label: 'Blog Analytics', href: '/blog' }, { label: postTitle || 'Preview' }]
-    }
-    if (/^\/blog\/.+\/edit$/.test(pathname)) {
-      return [{ label: 'Blog Analytics', href: '/blog' }, { label: postTitle || 'Edit Post' }]
-    }
-    if (pathname === '/blog' && website) {
-      const crumbs: CrumbItem[] = [{ label: 'Blog Analytics', href: '/blog' }]
-      if (company) crumbs.push({ label: company, href: `/blog?company=${encodeURIComponent(company)}` })
-      crumbs.push({ label: website })
-      return crumbs
-    }
-    if (pathname === '/blog' && company) {
-      return [{ label: 'Blog Analytics', href: '/blog' }, { label: company }]
-    }
-    if (pathname === '/blog') return [{ label: 'Blog Analytics' }]
-
-    // All listing pages
-    if (pathname === '/all/websites') return [{ label: 'All Websites' }]
-    if (pathname === '/all/phone-numbers') return [{ label: 'All Phone Numbers' }]
-    if (pathname === '/all/blog') return [{ label: 'All Blog Analytics' }]
-
-    // Others
-    if (pathname === '/users') return [{ label: 'Users' }]
-    if (pathname === '/tickets') return [{ label: 'Tickets' }]
-    if (pathname === '/analytics') {
-      const analyticsCompany = searchParams.get('company') ?? ''
-      const analyticsWebsite = searchParams.get('website') ?? ''
-      if (analyticsWebsite) {
-        const crumbs: CrumbItem[] = [{ label: 'Analytics', href: '/analytics' }]
-        if (analyticsCompany) crumbs.push({ label: analyticsCompany, href: `/analytics?company=${encodeURIComponent(analyticsCompany)}` })
-        crumbs.push({ label: analyticsWebsite })
-        return crumbs
-      }
-      if (analyticsCompany) return [{ label: 'Analytics', href: '/analytics' }, { label: analyticsCompany }]
-      return [{ label: 'Analytics' }]
-    }
     if (pathname === '/products') return [{ label: 'Products' }]
     if (pathname === '/products/new') return [{ label: 'Products', href: '/products' }, { label: 'New Product' }]
     if (/^\/products\/.+\/edit$/.test(pathname)) return [{ label: 'Products', href: '/products' }, { label: 'Edit Product' }]
+
+    if (pathname === '/phone-numbers') return [{ label: 'Phone Numbers' }]
+    if (pathname === '/phone-numbers/edit') return [{ label: 'Phone Numbers' }]
+    if (pathname === '/phone-numbers/new') return [{ label: 'Phone Numbers', href: '/phone-numbers' }, { label: 'Add Number' }]
+
+    if (pathname === '/blog') return [{ label: 'Blog' }]
+    if (pathname === '/blog/new') return [{ label: 'Blog', href: '/blog' }, { label: 'New Post' }]
+    if (/^\/blog\/.+\/edit$/.test(pathname)) return [{ label: 'Blog', href: '/blog' }, { label: postTitle || 'Edit Post' }]
+    if (/^\/blog\/.+\/view$/.test(pathname)) return [{ label: 'Blog', href: '/blog' }, { label: postTitle || 'Preview' }]
+
+    if (pathname === '/integrations') return [{ label: 'Integrations' }]
+    if (pathname === '/analytics') return [{ label: 'Analytics' }]
+
+    // /all/* power-user cross-site views
+    if (pathname === '/all/websites') return [{ label: 'All Websites' }]
+    if (pathname === '/all/phone-numbers') return [{ label: 'All Phone Numbers' }]
+    if (pathname === '/all/blog') return [{ label: 'All Blog' }]
+
+    // Admin tools
+    if (pathname === '/users') return [{ label: 'Users' }]
+    if (pathname === '/users/onboard') return [{ label: 'Users', href: '/users' }, { label: 'Onboard Designer' }]
+    if (pathname === '/tickets') return [{ label: 'Tickets' }]
     if (pathname === '/api-keys') return [{ label: 'API Keys' }]
     if (pathname === '/audit') return [{ label: 'Audit Trail' }]
     if (pathname === '/help') return [{ label: 'Help & Feedback' }]
+
     return []
   }
 
@@ -146,7 +146,7 @@ export default function Breadcrumb() {
             {crumb.href ? (
               <Link
                 href={crumb.href}
-                className="transition-colors truncate max-w-[150px]"
+                className="transition-colors truncate max-w-[200px]"
                 style={{ color: '#475569' }}
                 title={crumb.label}
                 onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = 'var(--primary)'}
@@ -156,7 +156,7 @@ export default function Breadcrumb() {
               </Link>
             ) : (
               <span
-                className={`font-medium ${isLast ? 'truncate max-w-[200px]' : ''}`}
+                className={`font-medium ${isLast ? 'truncate max-w-[240px]' : ''}`}
                 style={{ color: isLast ? 'var(--primary)' : 'var(--foreground)' }}
                 title={crumb.label}
               >
