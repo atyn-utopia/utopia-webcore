@@ -3,6 +3,12 @@
 :root {
   --background: #ffffff;
   --foreground: #1a1a2e;
+  --page-bg: #f1f4f8;        /* soft gray page background (Wix-style) */
+  --header-bg: #14181f;      /* near-black top header */
+  --header-text: #cbd5e1;
+  --header-text-strong: #ffffff;
+  --header-hover: rgba(255,255,255,0.08);
+  --header-divider: rgba(255,255,255,0.08);
   --sidebar-bg: #1e293b;
   --sidebar-hover: rgba(255,255,255,0.08);
   --sidebar-active: rgba(255,255,255,0.15);

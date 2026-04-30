@@ -106,21 +106,21 @@ export default function TopBar() {
   }
 
   return (
-    <div className="flex items-center gap-1">
+    <div className="flex items-center gap-1.5">
       {/* Universal search */}
       <div className="relative hidden sm:block" ref={searchRef}>
         <div className="relative">
-          <svg className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: '#cbd5e1' }} strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+          <svg className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: 'rgba(255,255,255,0.4)' }} strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
           <input
             type="text"
             value={searchQuery}
             onChange={e => { setSearchQuery(e.target.value); setShowSearch(true) }}
             onFocus={() => setShowSearch(true)}
-            placeholder="Search…"
-            className="w-48 lg:w-64 pl-8 pr-3 py-1.5 text-xs rounded-lg border focus:outline-none focus:border-[var(--primary)] transition-colors"
-            style={{ borderColor: '#e2e8f0', background: '#f8fafc' }}
+            placeholder="Search for sites, posts, phones…"
+            className="w-48 lg:w-72 pl-8 pr-3 py-2 text-xs rounded-md focus:outline-none transition-colors placeholder:text-white/40"
+            style={{ border: '1px solid rgba(255,255,255,0.12)', background: 'rgba(255,255,255,0.06)', color: 'var(--header-text-strong)' }}
           />
-          {searching && <div className="absolute right-2.5 top-1/2 -translate-y-1/2 w-3 h-3 rounded-full border border-slate-300 border-t-[var(--primary)] animate-spin" />}
+          {searching && <div className="absolute right-2.5 top-1/2 -translate-y-1/2 w-3 h-3 rounded-full border border-white/30 border-t-white animate-spin" />}
         </div>
         {showSearch && searchQuery && (
           <div className="absolute top-9 left-0 right-0 rounded-xl border shadow-lg z-50 overflow-hidden" style={{ background: 'white', borderColor: '#e2e8f0' }}>
@@ -152,20 +152,22 @@ export default function TopBar() {
       </div>
 
       {/* Back */}
-      <button onClick={() => router.back()} className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-slate-100 transition-colors" style={{ color: '#94a3b8' }} title="Go back">
+      <button onClick={() => router.back()} className="w-9 h-9 flex items-center justify-center rounded-md transition-colors" style={{ color: 'var(--header-text)' }} onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = 'var(--header-hover)'} onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'} title="Go back">
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>
       </button>
 
       {/* Forward */}
-      <button onClick={() => router.forward()} className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-slate-100 transition-colors" style={{ color: '#94a3b8' }} title="Go forward">
+      <button onClick={() => router.forward()} className="w-9 h-9 flex items-center justify-center rounded-md transition-colors" style={{ color: 'var(--header-text)' }} onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = 'var(--header-hover)'} onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'} title="Go forward">
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></svg>
       </button>
 
       {/* Language switcher — simple toggle */}
       <button
         onClick={() => setLanguage(language === 'en' ? 'ms' : 'en')}
-        className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-slate-100 transition-colors text-[11px] font-semibold"
-        style={{ color: '#94a3b8' }}
+        className="w-9 h-9 flex items-center justify-center rounded-md transition-colors text-[11px] font-semibold"
+        style={{ color: 'var(--header-text)' }}
+        onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = 'var(--header-hover)'}
+        onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'}
         title={t('lang.switcher.title')}
       >
         {language === 'en' ? 'EN' : 'BM'}
@@ -173,10 +175,10 @@ export default function TopBar() {
 
       {/* Notification bell */}
       <div className="relative" ref={panelRef}>
-        <button onClick={() => setShowPanel(!showPanel)} className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-slate-100 transition-colors relative" style={{ color: '#94a3b8' }} title="Notifications">
+        <button onClick={() => setShowPanel(!showPanel)} className="w-9 h-9 flex items-center justify-center rounded-md transition-colors relative" style={{ color: 'var(--header-text)' }} onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = 'var(--header-hover)'} onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'} title="Notifications">
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
           {unreadCount > 0 && (
-            <span className="absolute -top-0.5 -right-0.5 w-4 h-4 flex items-center justify-center rounded-full text-[9px] font-bold text-white" style={{ background: '#ef4444' }}>{unreadCount > 9 ? '9+' : unreadCount}</span>
+            <span className="absolute top-1 right-1 w-4 h-4 flex items-center justify-center rounded-full text-[9px] font-bold text-white" style={{ background: '#ef4444' }}>{unreadCount > 9 ? '9+' : unreadCount}</span>
           )}
         </button>
 
