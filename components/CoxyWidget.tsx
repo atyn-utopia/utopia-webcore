@@ -94,10 +94,13 @@ export default function CoxyWidget() {
     if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight
   }, [messages, status])
 
-  // Focus input when opening
+  // Focus input when opening, and again whenever Coxy finishes a response so
+  // the user can keep typing without clicking back into the textarea.
   useEffect(() => {
-    if (open) setTimeout(() => inputRef.current?.focus(), 100)
-  }, [open])
+    if (!open) return
+    if (isStreaming) return
+    setTimeout(() => inputRef.current?.focus(), 100)
+  }, [open, isStreaming])
 
   function submit(text: string) {
     if (!text.trim() || isStreaming) return
@@ -138,7 +141,7 @@ export default function CoxyWidget() {
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src="/character-floating.gif"
+            src="/coxy.png"
             alt="Coxy — click to chat"
             className="h-28 w-auto pointer-events-none select-none"
             draggable={false}
@@ -163,7 +166,7 @@ export default function CoxyWidget() {
           <div className="px-4 py-3 flex items-center gap-3 flex-shrink-0" style={{ borderBottom: '1px solid #e2e8f0', background: 'linear-gradient(to right, #f0f4f8, #ffffff)' }}>
             <div className="w-10 h-10 flex-shrink-0 flex items-center justify-center">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/character-logo.png" alt="" className="w-full h-full object-contain" />
+              <img src="/coxy.png" alt="" className="w-full h-full object-contain" />
             </div>
             <div className="min-w-0 flex-1">
               <h3 className="text-sm font-semibold flex items-center gap-1.5" style={{ color: 'var(--foreground)' }}>
@@ -211,7 +214,7 @@ export default function CoxyWidget() {
               <div className="flex gap-2">
                 <div className="w-7 h-7 flex-shrink-0 flex items-center justify-center">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src="/character-floating.gif" alt="" className="w-full h-full object-contain" />
+                  <img src="/coxy.png" alt="" className="w-full h-full object-contain" />
                 </div>
                 <div className="px-3 py-2 rounded-2xl rounded-tl-sm" style={{ background: 'white', border: '1px solid #e2e8f0' }}>
                   <div className="flex gap-1">
@@ -279,7 +282,7 @@ function MessageBubble({ role, parts }: { role: 'user' | 'assistant' | 'system';
     <div className="flex gap-2">
       <div className="w-7 h-7 flex-shrink-0 flex items-center justify-center">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/character-floating.gif" alt="" className="w-full h-full object-contain" />
+        <img src="/coxy.png" alt="" className="w-full h-full object-contain" />
       </div>
       <div className="max-w-[85%] px-3 py-2 rounded-2xl rounded-tl-sm text-sm whitespace-pre-wrap"
         style={{ background: 'white', border: '1px solid #e2e8f0', color: 'var(--foreground)' }}>
