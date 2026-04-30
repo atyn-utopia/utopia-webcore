@@ -234,7 +234,7 @@ export default function ProductsPage() {
   return (
     <div>
       <PageHeader
-        title={openWebsite}
+        title="Products"
         description={`${products.length} product${products.length !== 1 ? 's' : ''} on this website`}
         actions={
           <Link

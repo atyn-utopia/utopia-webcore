@@ -359,7 +359,7 @@ export default function BlogListPage() {
   return (
     <div>
       <PageHeader
-        title={openFolder}
+        title="Blog Posts"
         description={t('page.blogPosts.description.folder')}
         actions={
           <>
