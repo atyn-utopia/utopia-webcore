@@ -234,7 +234,6 @@ export default function CompanyWebsitesGrid({ domains }: { domains: string[] }) 
                 domain={s.domain}
                 leadsMode={s.leads_mode}
                 activePhones={s.active_phone_count}
-                publishedPosts={s.published_blog_count}
               />
             ))}
           </div>

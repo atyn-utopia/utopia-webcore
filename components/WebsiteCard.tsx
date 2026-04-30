@@ -6,7 +6,6 @@ interface Props {
   domain: string
   leadsMode?: string | null
   activePhones?: number
-  publishedPosts?: number
 }
 
 const LEADS_MODE_LABEL: Record<string, string> = {
@@ -16,7 +15,7 @@ const LEADS_MODE_LABEL: Record<string, string> = {
   hybrid: 'Hybrid',
 }
 
-export default function WebsiteCard({ domain, leadsMode, activePhones, publishedPosts }: Props) {
+export default function WebsiteCard({ domain, leadsMode, activePhones }: Props) {
   const siteUrl = `https://${domain}`
   const thumbUrl = `https://s.wordpress.com/mshots/v1/${encodeURIComponent(siteUrl)}?w=400`
   const friendlyName = domain.replace(/^www\./, '').split('.')[0]
@@ -55,11 +54,10 @@ export default function WebsiteCard({ domain, leadsMode, activePhones, published
         {siteUrl}
       </a>
       {/* Status pills — match the per-site hero FactPill style */}
-      {(lm || (activePhones !== undefined) || (publishedPosts !== undefined)) && (
+      {(lm || (activePhones !== undefined && activePhones > 0)) && (
         <div className="px-3 pt-2 pb-3 flex flex-wrap items-center gap-1.5">
           {lm && <CardPill label="Leads mode" value={lm} dot="#2563eb" />}
           {activePhones !== undefined && activePhones > 0 && <CardPill label="Phones" value={`${activePhones} Active`} dot="#16a34a" />}
-          {publishedPosts !== undefined && publishedPosts > 0 && <CardPill label="Blog" value={`${publishedPosts} Published`} dot="#2563eb" />}
         </div>
       )}
     </div>
