@@ -579,7 +579,7 @@ export default function WebsitesPage() {
             {!isWriter && siteInfo && (
               <FactPill
                 label="Phones"
-                value={`${siteInfo.active_phone_count} active`}
+                value={`${siteInfo.active_phone_count} Active`}
                 tone={siteInfo.active_phone_count > 0 ? 'success' : 'neutral'}
                 href={`/phone-numbers?website=${encodeURIComponent(openWebsite)}`}
               />
@@ -587,7 +587,7 @@ export default function WebsitesPage() {
             {siteInfo && (
               <FactPill
                 label="Blog"
-                value={`${siteInfo.published_blog_count} published`}
+                value={`${siteInfo.published_blog_count} Published`}
                 tone={siteInfo.published_blog_count > 0 ? 'info' : 'neutral'}
                 href={`/blog?website=${encodeURIComponent(openWebsite)}`}
               />
@@ -595,7 +595,7 @@ export default function WebsitesPage() {
             {todayStats && (
               <FactPill
                 label="Today"
-                value={`${todayStats.pageviews.toLocaleString()} views · ${todayStats.clicks} clicks`}
+                value={`${todayStats.pageviews.toLocaleString()} Views · ${todayStats.clicks} Clicks`}
                 tone={todayStats.pageviews >= (yesterdayStats?.pageviews ?? 0) ? 'success' : 'warning'}
               />
             )}
