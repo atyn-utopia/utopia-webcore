@@ -8,7 +8,7 @@ import type { UserRole } from '@/contexts/UserContext'
 import type { TranslationKey } from '@/lib/i18n/en'
 import AddWebsiteModal from '@/components/AddWebsiteModal'
 
-type CompanyFolder = { id: string; name: string; domains: string[] }
+type CompanyFolder = { id: string; name: string; logoUrl: string | null; domains: string[] }
 
 interface Props {
   role: UserRole
@@ -139,10 +139,15 @@ export default function DashboardClient({ role, isScoped, websiteCount, phoneCou
                   style={{ borderColor: '#e2e8f0' }}
                 >
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: '#fef3c7' }}>
-                      <svg className="w-5 h-5" fill="none" stroke="#d97706" viewBox="0 0 24 24" strokeWidth="1.8">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V7z" />
-                      </svg>
+                    <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 overflow-hidden" style={{ background: c.logoUrl ? '#f8fafc' : '#fef3c7', border: c.logoUrl ? '1px solid #f1f5f9' : 'none' }}>
+                      {c.logoUrl ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={c.logoUrl} alt="" className="w-full h-full object-contain" />
+                      ) : (
+                        <svg className="w-5 h-5" fill="none" stroke="#d97706" viewBox="0 0 24 24" strokeWidth="1.8">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V7z" />
+                        </svg>
+                      )}
                     </div>
                     <div className="min-w-0 flex-1">
                       <p className="text-sm font-semibold truncate" style={{ color: 'var(--foreground)' }}>{c.name}</p>

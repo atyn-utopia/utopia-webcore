@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { createServiceClient } from '@/lib/supabase/service'
 import { getUserScope } from '@/lib/getUserScope'
 import CompanyWebsitesGrid from '@/components/CompanyWebsitesGrid'
+import CompanyHeader from '@/components/CompanyHeader'
 
 export const dynamic = 'force-dynamic'
 
@@ -18,7 +19,7 @@ export default async function CompanyFolderPage({ params }: { params: Promise<{ 
   const service = createServiceClient()
   const { data: company } = await service
     .from('companies')
-    .select('id, name, company_websites(domain)')
+    .select('id, name, logo_url, company_websites(domain)')
     .eq('id', id)
     .maybeSingle()
 
@@ -31,6 +32,8 @@ export default async function CompanyFolderPage({ params }: { params: Promise<{ 
 
   return (
     <div>
+      <CompanyHeader id={company.id} name={company.name} logoUrl={company.logo_url ?? null} />
+
       {domains.length === 0 ? (
         <div className="rounded-xl border bg-white p-10 text-center" style={{ borderColor: '#e2e8f0' }}>
           <div className="w-14 h-14 mx-auto rounded-full flex items-center justify-center mb-3" style={{ background: '#f1f5f9' }}>

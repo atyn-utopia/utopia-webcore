@@ -23,7 +23,7 @@ export default async function DashboardPage() {
   let postCountRes: CountQuery = { count: 0 }
   let productCountRes: CountQuery = { count: 0 }
   let websitesRes: WebsitesData = { data: [] }
-  type CompanyRow = { id: string; name: string; company_websites: { domain: string }[] }
+  type CompanyRow = { id: string; name: string; logo_url: string | null; company_websites: { domain: string }[] }
   let companiesRes: { data: CompanyRow[] | null } = { data: [] }
 
   if (!noAccess) {
@@ -31,7 +31,7 @@ export default async function DashboardPage() {
     const postCountQuery = service.from('blog_posts').select('*', { count: 'exact', head: true })
     const productCountQuery = service.from('products').select('*', { count: 'exact', head: true })
     const websitesQuery = service.from('phone_numbers').select('website')
-    const companiesQuery = service.from('companies').select('id, name, company_websites(domain)').order('name')
+    const companiesQuery = service.from('companies').select('id, name, logo_url, company_websites(domain)').order('name')
 
     if (allowedDomains) {
       phoneCountQuery.in('website', allowedDomains)
@@ -63,6 +63,7 @@ export default async function DashboardPage() {
   const companies = (companiesRes.data ?? []).map(c => ({
     id: c.id,
     name: c.name,
+    logoUrl: c.logo_url ?? null,
     domains: (c.company_websites ?? []).map(w => w.domain).filter(d => !allowedDomains || allowedDomains.includes(d)),
   })).filter(c => !scope.isScoped || c.domains.length > 0)
 
