@@ -123,7 +123,7 @@ export default function TopBar() {
           {searching && <div className="absolute right-2.5 top-1/2 -translate-y-1/2 w-3 h-3 rounded-full border border-white/30 border-t-white animate-spin" />}
         </div>
         {showSearch && searchQuery && (
-          <div className="absolute top-9 left-0 right-0 rounded-xl border shadow-lg z-50 overflow-hidden" style={{ background: 'white', borderColor: '#e2e8f0' }}>
+          <div className="absolute top-11 left-0 right-0 rounded-md border shadow-lg z-50 overflow-hidden" style={{ background: 'white', borderColor: '#e2e8f0' }}>
             {searchResults.length === 0 && !searching ? (
               <p className="px-4 py-4 text-xs text-center" style={{ color: '#94a3b8' }}>No results for &quot;{searchQuery}&quot;</p>
             ) : (
@@ -183,7 +183,7 @@ export default function TopBar() {
         </button>
 
         {showPanel && (
-          <div className="absolute right-0 top-10 w-80 rounded-xl border shadow-lg z-50" style={{ background: 'white', borderColor: '#e2e8f0' }}>
+          <div className="absolute right-0 top-11 w-80 rounded-md border shadow-lg z-50" style={{ background: 'white', borderColor: '#e2e8f0' }}>
             <div className="px-4 py-3 flex items-center justify-between" style={{ borderBottom: '1px solid #f1f5f9' }}>
               <div className="flex items-center gap-2">
                 <span className="text-xs font-semibold" style={{ color: 'var(--foreground)' }}>Notifications</span>

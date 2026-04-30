@@ -93,17 +93,12 @@ export default function AdminShell({ userEmail, userName, userRole, children }: 
         />
 
         <main className="flex-1 overflow-y-auto" style={{ background: 'var(--page-bg)' }}>
-          {/* Desktop sticky breadcrumb strip */}
-          <div className="hidden md:flex md:items-center md:h-12 md:border-b md:border-[#e2e8f0] md:sticky md:top-0 md:z-20 md:bg-white md:px-6 lg:px-8">
-            <Breadcrumb />
-          </div>
-
-          {/* Mobile breadcrumb strip (compact) */}
-          <div className="md:hidden flex items-center h-12 border-b border-[#e2e8f0] bg-white px-4 sticky top-0 z-20">
-            <Breadcrumb />
-          </div>
-
           <div className="p-4 pb-24 sm:p-6 sm:pb-24 md:p-8 md:pb-8">
+            {/* Inline breadcrumb sits in the gray content area, just above the
+                page title (Wix Settings-page style). */}
+            <div className="mb-4 -mt-1">
+              <Breadcrumb />
+            </div>
             {children}
           </div>
         </main>

@@ -62,6 +62,7 @@ export default function BlogListPage() {
   const [loading, setLoading] = useState(true)
   const [postsLoading, setPostsLoading] = useState(false)
   const [search, setSearch] = useState('')
+  const [statusFilter, setStatusFilter] = useState<'all' | 'published' | 'draft'>('all')
   const [deleting, setDeleting] = useState<string | null>(null)
   const [viewMode, setViewMode] = useState<'list' | 'grid'>('list')
   type SortKey = 'title' | 'status' | 'updated_at'
@@ -135,6 +136,7 @@ export default function BlogListPage() {
 
   const filtered = posts
     .filter(p => {
+      if (statusFilter !== 'all' && p.status !== statusFilter) return false
       if (!search) return true
       const q = search.toLowerCase()
       return p.title.toLowerCase().includes(q) || p.slug.toLowerCase().includes(q) || (p.excerpt ?? '').toLowerCase().includes(q)
@@ -447,6 +449,36 @@ export default function BlogListPage() {
             <p className="text-xl font-bold text-red-500">{blogStats.summary.declining}</p>
             <p className="text-[10px] mt-0.5" style={{ color: '#94a3b8' }}>posts with decreasing views</p>
           </div>
+        </div>
+      )}
+
+      {/* Status tabs (Wix Posts page style) */}
+      {posts.length > 0 && (
+        <div className="mb-4 flex items-center gap-1" style={{ borderBottom: '1px solid #e2e8f0' }}>
+          {([
+            { key: 'all' as const, label: 'All', count: posts.length },
+            { key: 'published' as const, label: 'Published', count: posts.filter(p => p.status === 'published').length },
+            { key: 'draft' as const, label: 'Drafts', count: posts.filter(p => p.status === 'draft').length },
+          ]).map(tab => {
+            const active = statusFilter === tab.key
+            return (
+              <button
+                key={tab.key}
+                onClick={() => setStatusFilter(tab.key)}
+                className="relative px-3 py-2.5 text-sm font-medium transition-colors flex items-center gap-1.5"
+                style={{ color: active ? 'var(--primary)' : '#64748b' }}
+                onMouseEnter={e => { if (!active) (e.currentTarget as HTMLElement).style.color = 'var(--foreground)' }}
+                onMouseLeave={e => { if (!active) (e.currentTarget as HTMLElement).style.color = '#64748b' }}
+              >
+                {tab.label}
+                <span className="text-[11px] font-semibold px-1.5 py-0.5 rounded-full"
+                  style={{ background: active ? 'rgba(30, 58, 95, 0.1)' : '#f1f5f9', color: active ? 'var(--primary)' : '#94a3b8' }}>
+                  {tab.count}
+                </span>
+                {active && <span className="absolute bottom-0 left-0 right-0 h-0.5" style={{ background: 'var(--primary)' }} />}
+              </button>
+            )
+          })}
         </div>
       )}
 

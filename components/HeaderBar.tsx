@@ -37,15 +37,16 @@ export default function HeaderBar({ onMobileMenuOpen }: Props) {
       )}
 
       {/* Brand */}
-      <Link href="/" className="flex items-center gap-2 flex-shrink-0">
-        <div className="w-7 h-7 rounded-md flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #3b82f6, #2979d6)' }}>
-          <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 24 24">
+      <Link href="/" className="flex items-center gap-2.5 flex-shrink-0">
+        <div className="w-8 h-8 rounded-md flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #1a3a6e, #2979d6)' }}>
+          <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
             <path d="M12 2L9.5 9.5 2 12l7.5 2.5L12 22l2.5-7.5L22 12l-7.5-2.5z" />
           </svg>
         </div>
-        <span className="hidden sm:inline text-sm font-bold tracking-tight" style={{ color: 'var(--header-text-strong)' }}>
-          UTOPIA WEBCORE
-        </span>
+        <div className="hidden sm:block leading-tight">
+          <span className="block text-sm font-bold tracking-tight" style={{ color: 'var(--header-text-strong)' }}>Utopia Webcore</span>
+          <span className="block text-[10px]" style={{ color: 'var(--header-text)' }}>Web &amp; Content Ops</span>
+        </div>
       </Link>
 
       {/* Vertical divider */}

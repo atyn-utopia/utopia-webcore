@@ -157,12 +157,17 @@ export default function WebsitesPage() {
 
   function Stats() {
     if (!analytics) return null
-    const { summary: s, today: t, yesterday: y } = analytics
+    const { summary: s, today: t, yesterday: y, dailyStats } = analytics
+    // Build per-metric series from dailyStats for sparklines (Wix Highlights style).
+    // Sessions aren't in dailyStats — derive from pageviews trend as a proxy, or skip.
+    const pvSeries = dailyStats.map(d => d.pageviews)
+    const clickSeries = dailyStats.map(d => d.clicks)
+    const impSeries = dailyStats.map(d => d.impressions)
     return (<div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
-      <StatCard label="Pageviews" value={s.pageviews} color="#2979d6" hint="Total pages viewed" icon={ICON.eye} today={t.pageviews} yesterday={y.pageviews} trend={tr(t.pageviews, y.pageviews)} />
-      <StatCard label="Sessions" value={s.sessions} color="#16a34a" hint="Unique visitor sessions" icon={ICON.users} today={t.sessions} yesterday={y.sessions} trend={tr(t.sessions, y.sessions)} />
-      <StatCard label="Clicks" value={s.clicks} color="#f59e0b" hint="Button clicks (WhatsApp, Call)" icon={ICON.click} today={t.clicks} yesterday={y.clicks} trend={tr(t.clicks, y.clicks)} />
-      <StatCard label="Impressions" value={s.impressions} color="#7c3aed" hint="Product/content views" icon={ICON.image} today={t.impressions} yesterday={y.impressions} trend={tr(t.impressions, y.impressions)} />
+      <StatCard label="Pageviews" value={s.pageviews} color="#2979d6" hint="Total pages viewed" icon={ICON.eye} today={t.pageviews} yesterday={y.pageviews} trend={tr(t.pageviews, y.pageviews)} series={pvSeries} />
+      <StatCard label="Sessions" value={s.sessions} color="#16a34a" hint="Unique visitor sessions" icon={ICON.users} today={t.sessions} yesterday={y.sessions} trend={tr(t.sessions, y.sessions)} series={pvSeries} />
+      <StatCard label="Clicks" value={s.clicks} color="#f59e0b" hint="Button clicks (WhatsApp, Call)" icon={ICON.click} today={t.clicks} yesterday={y.clicks} trend={tr(t.clicks, y.clicks)} series={clickSeries} />
+      <StatCard label="Impressions" value={s.impressions} color="#7c3aed" hint="Product/content views" icon={ICON.image} today={t.impressions} yesterday={y.impressions} trend={tr(t.impressions, y.impressions)} series={impSeries} />
     </div>)
   }
 
