@@ -5,8 +5,6 @@ import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { useUser } from '@/contexts/UserContext'
 import { useLanguage } from '@/contexts/LanguageContext'
-import { useConfirm } from '@/contexts/ConfirmContext'
-import { useToast } from '@/contexts/ToastContext'
 import { useRouter } from 'next/navigation'
 import PageHeader from '@/components/PageHeader'
 import ViewToggle, { type ViewMode } from '@/components/ViewToggle'
@@ -41,31 +39,33 @@ const ICON = {
 function tr(today: number, yesterday: number): 'up' | 'down' | 'flat' { return today > yesterday ? 'up' : today < yesterday ? 'down' : 'flat' }
 function formatDate(d: string | null) { if (!d) return '—'; return new Date(d).toLocaleDateString('en-MY', { day: 'numeric', month: 'short', year: 'numeric' }) }
 
-const FACT_TONES: Record<string, { bg: string; text: string; icon: string }> = {
-  success: { bg: '#f0fdf4', text: '#166534', icon: '#16a34a' },
-  warning: { bg: '#fef3c7', text: '#92400e', icon: '#d97706' },
-  info:    { bg: '#eff6ff', text: '#1e40af', icon: '#2563eb' },
-  neutral: { bg: '#f8fafc', text: '#475569', icon: '#64748b' },
+const FACT_DOT: Record<string, string> = {
+  success: '#16a34a',
+  warning: '#d97706',
+  info:    '#2563eb',
+  neutral: '#94a3b8',
 }
 
-function FactPill({ icon, label, value, tone = 'neutral', href }: {
-  icon: React.ReactNode
+/**
+ * Compact single-line status pill: ● Label · Value
+ * All FactPills are h-8, same border/background, only the leading dot color
+ * differs by tone. Consistent heights across the row.
+ */
+function FactPill({ label, value, tone = 'neutral', href }: {
   label: string
   value: string
   tone?: 'success' | 'warning' | 'info' | 'neutral'
   href?: string
 }) {
-  const t = FACT_TONES[tone]
   const inner = (
-    <div className="inline-flex items-center gap-2 h-8 pl-2 pr-3 rounded-md text-xs transition-colors" style={{ background: t.bg }}>
-      <span className="inline-flex items-center justify-center w-5 h-5 rounded" style={{ color: t.icon }}>{icon}</span>
-      <span className="leading-none">
-        <span className="block text-[9px] font-semibold uppercase tracking-wider" style={{ color: t.icon }}>{label}</span>
-        <span className="block text-xs font-medium mt-0.5" style={{ color: t.text }}>{value}</span>
-      </span>
+    <div className="inline-flex items-center gap-2 h-8 px-2.5 rounded-md text-xs transition-colors"
+      style={{ background: 'white', border: '1px solid #e2e8f0' }}>
+      <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: FACT_DOT[tone] }} />
+      <span className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: '#94a3b8' }}>{label}</span>
+      <span className="text-xs font-medium" style={{ color: 'var(--foreground)' }}>{value}</span>
     </div>
   )
-  if (href) return <Link href={href} className="hover:brightness-95 transition">{inner}</Link>
+  if (href) return <Link href={href} className="inline-flex hover:brightness-[0.98] transition">{inner}</Link>
   return inner
 }
 
@@ -110,7 +110,7 @@ function DetailCard({ title, accent, bgTint, icon, items, emptyText }: {
   )
 }
 function PeriodSelector({ value, onChange }: { value: string; onChange: (v: '7d' | '30d' | '90d') => void }) {
-  return (<div className="flex items-center rounded-lg border overflow-hidden h-9" style={{ borderColor: '#cbd5e1' }}>{[{ v: '7d' as const, l: '7d' }, { v: '30d' as const, l: '30d' }, { v: '90d' as const, l: '90d' }].map((p, i) => (<button key={p.v} onClick={() => onChange(p.v)} className="px-3 h-full text-xs font-medium transition-colors" style={{ background: value === p.v ? 'var(--primary)' : 'white', color: value === p.v ? 'white' : '#64748b', borderLeft: i > 0 ? '1px solid #cbd5e1' : undefined }}>{p.l}</button>))}</div>)
+  return (<div className="flex items-center rounded-md border overflow-hidden h-9" style={{ borderColor: '#e2e8f0' }}>{[{ v: '7d' as const, l: '7d' }, { v: '30d' as const, l: '30d' }, { v: '90d' as const, l: '90d' }].map((p, i) => (<button key={p.v} onClick={() => onChange(p.v)} className="px-3 h-full text-xs font-medium transition-colors" style={{ background: value === p.v ? 'var(--primary)' : 'white', color: value === p.v ? 'white' : '#64748b', borderLeft: i > 0 ? '1px solid #e2e8f0' : undefined }}>{p.l}</button>))}</div>)
 }
 
 export default function WebsitesPage() {
@@ -549,7 +549,7 @@ export default function WebsitesPage() {
             {/* Action buttons */}
             <div className="flex items-center gap-2 flex-shrink-0">
               <button onClick={() => setCompareOpen(true)}
-                className="inline-flex items-center gap-1.5 text-xs font-medium px-3 h-8 rounded-md border transition-colors hover:bg-slate-50"
+                className="inline-flex items-center gap-1.5 text-xs font-medium px-3 h-9 rounded-md border transition-colors hover:bg-slate-50"
                 style={{ borderColor: '#e2e8f0', color: '#475569', background: 'white' }}>
                 <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8"><path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
                 Compare
@@ -558,25 +558,18 @@ export default function WebsitesPage() {
             </div>
           </div>
 
-          {/* Quick-fact strip — Wix-style status row (tracker / leads / phones / blog) */}
+          {/* Quick-fact strip — clean single-line pills, all h-8 */}
           <div className="flex flex-wrap items-center gap-2">
             <FactPill
-              icon={<svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064" /></svg>}
               label="Tracker"
               value={trackerSeenToday ? 'Active today' : trackerSeenYesterday ? 'Active yesterday' : 'No recent activity'}
               tone={trackerSeenToday ? 'success' : trackerSeenYesterday ? 'neutral' : 'warning'}
             />
             {!isWriter && lm && (
-              <FactPill
-                icon={<svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8"><path strokeLinecap="round" strokeLinejoin="round" d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z" /></svg>}
-                label="Leads mode"
-                value={lm.label}
-                tone="info"
-              />
+              <FactPill label="Leads mode" value={lm.label} tone="info" />
             )}
             {!isWriter && siteInfo && (
               <FactPill
-                icon={<svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8"><path strokeLinecap="round" strokeLinejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>}
                 label="Phones"
                 value={`${siteInfo.active_phone_count}/${siteInfo.phone_count} active`}
                 tone={siteInfo.active_phone_count > 0 ? 'success' : 'neutral'}
@@ -585,7 +578,6 @@ export default function WebsitesPage() {
             )}
             {siteInfo && (
               <FactPill
-                icon={<svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8"><path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>}
                 label="Blog"
                 value={`${siteInfo.published_blog_count}/${siteInfo.blog_count} published`}
                 tone={siteInfo.published_blog_count > 0 ? 'info' : 'neutral'}
@@ -594,7 +586,6 @@ export default function WebsitesPage() {
             )}
             {todayStats && (
               <FactPill
-                icon={<svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8"><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>}
                 label="Today"
                 value={`${todayStats.pageviews.toLocaleString()} views · ${todayStats.clicks} clicks`}
                 tone={todayStats.pageviews >= (yesterdayStats?.pageviews ?? 0) ? 'success' : 'warning'}
@@ -689,7 +680,6 @@ export default function WebsitesPage() {
 
     <SearchConsoleCard domain={openWebsite} period={period} />
 
-    {canAddWebsite && <DangerZoneSection domain={openWebsite} />}
   </div>)
 }
 
@@ -861,67 +851,6 @@ function SearchConsoleCard({ domain, period }: { domain: string; period: string 
   )
 }
 
-function DangerZoneSection({ domain }: { domain: string }) {
-  const router = useRouter()
-  const confirm = useConfirm()
-  const toast = useToast()
-  const [busy, setBusy] = useState(false)
-
-  async function remove() {
-    const ok = await confirm({
-      title: `Remove ${domain} from webcore?`,
-      message: `This unlinks ${domain} from its company so it stops appearing in dropdowns and analytics. Phone numbers, products, blog posts, and tracking events for this domain stay in the database — re-adding the site will surface them again. The action is logged in /audit.`,
-      confirmLabel: 'Remove from webcore',
-      variant: 'danger',
-    })
-    if (!ok) return
-
-    setBusy(true)
-    try {
-      const res = await fetch(`/api/company-websites?domain=${encodeURIComponent(domain)}`, { method: 'DELETE' })
-      const data = await res.json()
-      if (!res.ok) {
-        toast.error(data.error ?? 'Failed to remove', 'Remove failed')
-        return
-      }
-      const orphans = data.orphans ?? {}
-      const kept: string[] = []
-      if (orphans.phone_numbers) kept.push(`${orphans.phone_numbers} phone${orphans.phone_numbers === 1 ? '' : 's'}`)
-      if (orphans.products) kept.push(`${orphans.products} product${orphans.products === 1 ? '' : 's'}`)
-      if (orphans.blog_posts) kept.push(`${orphans.blog_posts} blog post${orphans.blog_posts === 1 ? '' : 's'}`)
-      if (orphans.website_integrations) kept.push(`${orphans.website_integrations} integration${orphans.website_integrations === 1 ? '' : 's'}`)
-      if (orphans.api_keys) kept.push(`${orphans.api_keys} API key${orphans.api_keys === 1 ? '' : 's'}`)
-      const msg = kept.length > 0 ? `Removed ${domain}. Kept in DB: ${kept.join(', ')}.` : `Removed ${domain}.`
-      toast.success(msg, 'Website removed')
-      router.push('/websites')
-    } catch (e) {
-      toast.error((e as Error).message, 'Remove failed')
-    } finally {
-      setBusy(false)
-    }
-  }
-
-  return (
-    <div className="mt-5 rounded-xl border bg-white p-4" style={{ borderColor: '#fecaca' }}>
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <h3 className="text-sm font-semibold" style={{ color: '#b91c1c' }}>Remove from webcore</h3>
-          <p className="text-[11px] mt-0.5 leading-relaxed" style={{ color: '#64748b' }}>
-            Use when this site has been deleted from Vercel (or you otherwise no longer want webcore tracking it). Unlinks the domain from its company; data stays in the DB and is recoverable by re-adding the site.
-          </p>
-        </div>
-        <button
-          onClick={remove}
-          disabled={busy}
-          className="text-xs font-medium px-3 py-1.5 rounded-md text-white transition-opacity disabled:opacity-50 flex-shrink-0"
-          style={{ background: '#dc2626' }}
-        >
-          {busy ? 'Removing…' : 'Remove'}
-        </button>
-      </div>
-    </div>
-  )
-}
 
 function GscStat({ label, value, color }: { label: string; value: string; color: string }) {
   return (
