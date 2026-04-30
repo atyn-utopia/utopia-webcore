@@ -41,6 +41,34 @@ const ICON = {
 function tr(today: number, yesterday: number): 'up' | 'down' | 'flat' { return today > yesterday ? 'up' : today < yesterday ? 'down' : 'flat' }
 function formatDate(d: string | null) { if (!d) return '—'; return new Date(d).toLocaleDateString('en-MY', { day: 'numeric', month: 'short', year: 'numeric' }) }
 
+const FACT_TONES: Record<string, { bg: string; text: string; icon: string }> = {
+  success: { bg: '#f0fdf4', text: '#166534', icon: '#16a34a' },
+  warning: { bg: '#fef3c7', text: '#92400e', icon: '#d97706' },
+  info:    { bg: '#eff6ff', text: '#1e40af', icon: '#2563eb' },
+  neutral: { bg: '#f8fafc', text: '#475569', icon: '#64748b' },
+}
+
+function FactPill({ icon, label, value, tone = 'neutral', href }: {
+  icon: React.ReactNode
+  label: string
+  value: string
+  tone?: 'success' | 'warning' | 'info' | 'neutral'
+  href?: string
+}) {
+  const t = FACT_TONES[tone]
+  const inner = (
+    <div className="inline-flex items-center gap-2 h-8 pl-2 pr-3 rounded-md text-xs transition-colors" style={{ background: t.bg }}>
+      <span className="inline-flex items-center justify-center w-5 h-5 rounded" style={{ color: t.icon }}>{icon}</span>
+      <span className="leading-none">
+        <span className="block text-[9px] font-semibold uppercase tracking-wider" style={{ color: t.icon }}>{label}</span>
+        <span className="block text-xs font-medium mt-0.5" style={{ color: t.text }}>{value}</span>
+      </span>
+    </div>
+  )
+  if (href) return <Link href={href} className="hover:brightness-95 transition">{inner}</Link>
+  return inner
+}
+
 const MEDAL_COLORS = ['#f59e0b', '#94a3b8', '#ea580c']
 function DetailCard({ title, accent, bgTint, icon, items, emptyText }: {
   title: string
@@ -471,52 +499,112 @@ export default function WebsitesPage() {
   // ═══ LEVEL 3: Website detail ═══
   const siteInfo = sites.find(s => s.domain === openWebsite)
   const siteUrl = `https://${openWebsite}`
-  const thumbUrl = `https://s.wordpress.com/mshots/v1/${encodeURIComponent(siteUrl)}?w=480`
+  const thumbUrl = `https://s.wordpress.com/mshots/v1/${encodeURIComponent(siteUrl)}?w=600`
+  const todayStats = analytics?.today
+  const yesterdayStats = analytics?.yesterday
+  const trackerSeenToday = (todayStats?.pageviews ?? 0) > 0 || (todayStats?.clicks ?? 0) > 0
+  const trackerSeenYesterday = (yesterdayStats?.pageviews ?? 0) > 0
+  const lm = siteInfo?.leads_mode && LEADS_MODE[siteInfo.leads_mode] ? LEADS_MODE[siteInfo.leads_mode] : null
+
   return (<div>
-    <div className="mb-6 rounded-xl border bg-white flex items-stretch gap-4 overflow-hidden" style={{ borderColor: '#e2e8f0' }}>
-      <a href={siteUrl} target="_blank" rel="noopener noreferrer"
-        className="flex-shrink-0 block border-r transition-opacity hover:opacity-90"
-        style={{ borderColor: '#e2e8f0', width: 140, background: '#f8fafc' }}
-        title={`Open ${openWebsite}`}>
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={thumbUrl} alt={openWebsite} loading="lazy"
-          className="w-full h-full object-cover" style={{ minHeight: 88 }} />
-      </a>
-      <div className="min-w-0 flex-1 py-3 pr-4 flex flex-col justify-center gap-1">
-        <div className="flex items-center gap-2 flex-wrap">
-          <h1 className="text-lg font-semibold truncate" style={{ color: 'var(--foreground)' }}>{openWebsite}</h1>
-          <span className="inline-flex items-center gap-1 text-[11px] font-medium" style={{ color: '#16a34a' }}>
-            <span className="w-1.5 h-1.5 rounded-full" style={{ background: '#22c55e' }} />
-            Live
-          </span>
-        </div>
-        <div className="flex items-center gap-3 flex-wrap text-xs">
-          {siteInfo?.company_name && (
-            <span className="inline-flex items-center gap-1.5" style={{ color: '#64748b' }}>
-              <span>{siteInfo.company_name}</span>
-            </span>
-          )}
-          {siteInfo?.company_name && <span style={{ color: '#cbd5e1' }}>|</span>}
-          <a href={siteUrl} target="_blank" rel="noopener noreferrer"
-            className="inline-flex items-center gap-1 truncate transition-colors hover:text-[var(--primary)]"
-            style={{ color: '#64748b' }}>
-            <span className="truncate">{siteUrl}</span>
-            <svg className="w-3 h-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-            </svg>
-          </a>
+    {/* Site hero — Wix-style large card with thumbnail, name, status pills, actions */}
+    <div className="mb-5 rounded-xl border bg-white overflow-hidden" style={{ borderColor: '#e2e8f0' }}>
+      <div className="flex items-stretch flex-col md:flex-row">
+        {/* Thumbnail */}
+        <a href={siteUrl} target="_blank" rel="noopener noreferrer"
+          className="flex-shrink-0 block relative md:border-r overflow-hidden"
+          style={{ borderColor: '#e2e8f0', width: '100%', maxWidth: 240, height: 150, background: '#f8fafc' }}
+          title={`Open ${openWebsite}`}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={thumbUrl} alt={openWebsite} loading="lazy"
+            className="w-full h-full object-cover object-top transition-transform hover:scale-105" />
+        </a>
+
+        {/* Identity + status + actions */}
+        <div className="min-w-0 flex-1 p-5 flex flex-col gap-3">
+          <div className="flex items-start justify-between gap-3 flex-wrap">
+            <div className="min-w-0">
+              <div className="flex items-center gap-2.5 flex-wrap">
+                <h1 className="text-2xl font-bold tracking-tight truncate" style={{ color: 'var(--foreground)' }}>
+                  {openWebsite.replace(/^www\./, '').split('.')[0].split('-').map(s => s.charAt(0).toUpperCase() + s.slice(1)).join(' ')}
+                </h1>
+                <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold px-2 py-0.5 rounded-full" style={{ background: trackerSeenToday ? '#dcfce7' : '#f1f5f9', color: trackerSeenToday ? '#15803d' : '#94a3b8' }}>
+                  <span className={`w-1.5 h-1.5 rounded-full ${trackerSeenToday ? 'animate-pulse' : ''}`} style={{ background: trackerSeenToday ? '#22c55e' : '#cbd5e1' }} />
+                  {trackerSeenToday ? 'Live' : 'Quiet'}
+                </span>
+              </div>
+              <a href={siteUrl} target="_blank" rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 mt-1 text-xs transition-colors hover:text-[var(--primary)]"
+                style={{ color: '#64748b' }}>
+                <span className="truncate">{siteUrl}</span>
+                <svg className="w-3 h-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8"><path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
+                {siteInfo?.company_name && (
+                  <>
+                    <span style={{ color: '#cbd5e1' }}>·</span>
+                    <span>{siteInfo.company_name}</span>
+                  </>
+                )}
+              </a>
+            </div>
+            {/* Action buttons */}
+            <div className="flex items-center gap-2 flex-shrink-0">
+              <button onClick={() => setCompareOpen(true)}
+                className="inline-flex items-center gap-1.5 text-xs font-medium px-3 h-8 rounded-md border transition-colors hover:bg-slate-50"
+                style={{ borderColor: '#e2e8f0', color: '#475569', background: 'white' }}>
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8"><path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                Compare
+              </button>
+              <PeriodSelector value={period} onChange={setPeriod} />
+            </div>
+          </div>
+
+          {/* Quick-fact strip — Wix-style status row (tracker / leads / phones / blog) */}
+          <div className="flex flex-wrap items-center gap-2">
+            <FactPill
+              icon={<svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064" /></svg>}
+              label="Tracker"
+              value={trackerSeenToday ? 'Active today' : trackerSeenYesterday ? 'Active yesterday' : 'No recent activity'}
+              tone={trackerSeenToday ? 'success' : trackerSeenYesterday ? 'neutral' : 'warning'}
+            />
+            {!isWriter && lm && (
+              <FactPill
+                icon={<svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8"><path strokeLinecap="round" strokeLinejoin="round" d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z" /></svg>}
+                label="Leads mode"
+                value={lm.label}
+                tone="info"
+              />
+            )}
+            {!isWriter && siteInfo && (
+              <FactPill
+                icon={<svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8"><path strokeLinecap="round" strokeLinejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>}
+                label="Phones"
+                value={`${siteInfo.active_phone_count}/${siteInfo.phone_count} active`}
+                tone={siteInfo.active_phone_count > 0 ? 'success' : 'neutral'}
+                href={`/phone-numbers?website=${encodeURIComponent(openWebsite)}`}
+              />
+            )}
+            {siteInfo && (
+              <FactPill
+                icon={<svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8"><path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>}
+                label="Blog"
+                value={`${siteInfo.published_blog_count}/${siteInfo.blog_count} published`}
+                tone={siteInfo.published_blog_count > 0 ? 'info' : 'neutral'}
+                href={`/blog?website=${encodeURIComponent(openWebsite)}`}
+              />
+            )}
+            {todayStats && (
+              <FactPill
+                icon={<svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8"><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>}
+                label="Today"
+                value={`${todayStats.pageviews.toLocaleString()} views · ${todayStats.clicks} clicks`}
+                tone={todayStats.pageviews >= (yesterdayStats?.pageviews ?? 0) ? 'success' : 'warning'}
+              />
+            )}
+          </div>
         </div>
       </div>
     </div>
-    <div className="mb-5 flex items-center justify-end gap-2">
-      <button onClick={() => setCompareOpen(true)}
-        className="inline-flex items-center gap-2 text-sm font-medium px-4 h-9 rounded-lg border transition-colors hover:bg-slate-50"
-        style={{ borderColor: '#cbd5e1', color: '#475569' }}>
-        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8"><path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-        Compare
-      </button>
-      <PeriodSelector value={period} onChange={setPeriod} />
-    </div>
+
     <CompareModal open={compareOpen} onClose={() => setCompareOpen(false)} preselect={[openWebsite]} />
     <Stats />
     <Chart />
