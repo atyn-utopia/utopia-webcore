@@ -262,6 +262,26 @@ export default function ProductsPage() {
               )}
             </div>
           </div>
+
+          <div className="flex items-center rounded-lg border overflow-hidden h-9 flex-shrink-0" style={{ borderColor: '#cbd5e1', background: 'white' }}>
+            <button
+              onClick={() => setViewMode('grid')}
+              className="w-9 h-full flex items-center justify-center transition-colors"
+              style={{ background: viewMode === 'grid' ? 'var(--primary)' : 'white', color: viewMode === 'grid' ? 'white' : '#94a3b8' }}
+              title="Grid view"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><rect x="3" y="3" width="7" height="7" rx="1" /><rect x="14" y="3" width="7" height="7" rx="1" /><rect x="3" y="14" width="7" height="7" rx="1" /><rect x="14" y="14" width="7" height="7" rx="1" /></svg>
+            </button>
+            <button
+              onClick={() => setViewMode('list')}
+              className="w-9 h-full flex items-center justify-center transition-colors"
+              style={{ background: viewMode === 'list' ? 'var(--primary)' : 'white', color: viewMode === 'list' ? 'white' : '#94a3b8', borderLeft: '1px solid #cbd5e1' }}
+              title="Table view"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="18" x2="21" y2="18" /></svg>
+            </button>
+          </div>
+
           <Link
             href={`/products/new?website=${encodeURIComponent(openWebsite)}${openCompany ? `&company=${encodeURIComponent(openCompany)}` : ''}`}
             className="inline-flex items-center justify-center gap-2 text-white text-sm font-medium px-4 h-9 rounded-lg transition-opacity hover:opacity-90 flex-shrink-0"
@@ -278,6 +298,87 @@ export default function ProductsPage() {
       ) : filtered.length === 0 ? (
         <div className="p-12 text-center rounded-xl border" style={{ borderColor: '#e2e8f0' }}>
           <p className="text-sm" style={{ color: '#94a3b8' }}>{products.length === 0 ? 'No products yet. Add your first one.' : 'No products match your search.'}</p>
+        </div>
+      ) : viewMode === 'list' ? (
+        <div className="rounded-xl border bg-white overflow-hidden" style={{ borderColor: '#e2e8f0' }}>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm min-w-[700px]">
+              <thead>
+                <tr className="text-left" style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
+                  <th className="px-4 py-3 text-[10px] sm:text-xs font-medium" style={{ color: '#94a3b8' }}>Product</th>
+                  <th className="px-4 py-3 text-[10px] sm:text-xs font-medium" style={{ color: '#94a3b8' }}>Slug</th>
+                  <th className="px-4 py-3 text-[10px] sm:text-xs font-medium" style={{ color: '#94a3b8' }}>Status</th>
+                  <th className="px-4 py-3 text-[10px] sm:text-xs font-medium" style={{ color: '#94a3b8' }}>Sale</th>
+                  <th className="px-4 py-3 text-[10px] sm:text-xs font-medium" style={{ color: '#94a3b8' }}>Rental</th>
+                  <th className="px-4 py-3 text-[10px] sm:text-xs font-medium" style={{ color: '#94a3b8' }}>Photos</th>
+                  <th className="px-4 py-3 text-[10px] sm:text-xs font-medium text-right" style={{ color: '#94a3b8' }}></th>
+                </tr>
+              </thead>
+              <tbody>
+                {filtered.map((product, i) => (
+                  <tr key={product.id} className="hover:bg-[#f8fafc] transition-colors" style={{ borderBottom: i < filtered.length - 1 ? '1px solid #f1f5f9' : 'none' }}>
+                    <td className="px-4 py-3 align-middle">
+                      <div className="flex items-center gap-3 min-w-0">
+                        {product.photos.length > 0 ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={product.photos[0].url} alt={product.photos[0].alt_text ?? product.name} className="w-10 h-10 rounded-md object-cover flex-shrink-0" style={{ background: '#f1f5f9' }} />
+                        ) : (
+                          <div className="w-10 h-10 rounded-md flex items-center justify-center flex-shrink-0" style={{ background: '#f8fafc' }}>
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: '#cbd5e1' }} strokeWidth="1.5">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                          </div>
+                        )}
+                        <p className="text-sm font-medium truncate" style={{ color: 'var(--foreground)' }}>{product.name}</p>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3 align-middle">
+                      <span className="text-xs font-mono" style={{ color: '#64748b' }}>/{product.slug}</span>
+                    </td>
+                    <td className="px-4 py-3 align-middle">
+                      <span className="inline-flex items-center gap-1 text-[10px] font-medium px-1.5 py-0.5 rounded-full" style={product.is_active ? { background: '#dcfce7', color: '#16a34a' } : { background: '#f1f5f9', color: '#94a3b8' }}>
+                        <span className="w-1.5 h-1.5 rounded-full" style={{ background: product.is_active ? '#16a34a' : '#94a3b8' }} />
+                        {product.is_active ? 'Active' : 'Off'}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 align-middle">
+                      <span className="text-xs" style={{ color: product.sale_price !== null ? 'var(--foreground)' : '#cbd5e1' }}>
+                        {product.sale_price !== null ? formatPrice(product.sale_price) : '—'}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 align-middle">
+                      <span className="text-xs" style={{ color: product.rental_price !== null ? 'var(--foreground)' : '#cbd5e1' }}>
+                        {product.rental_price !== null ? formatPrice(product.rental_price) : '—'}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 align-middle">
+                      <span className="text-xs" style={{ color: '#475569' }}>{product.photo_count}</span>
+                      {product.sub_product_count > 0 && <span className="text-[10px] ml-2" style={{ color: '#94a3b8' }}>· {product.sub_product_count} sub</span>}
+                    </td>
+                    <td className="px-4 py-3 align-middle">
+                      <div className="flex items-center gap-1.5 justify-end">
+                        <Link
+                          href={`/products/${product.id}/edit`}
+                          className="text-xs font-medium px-3 h-8 inline-flex items-center justify-center rounded-md border transition-colors hover:border-[var(--primary)] hover:text-[var(--primary)]"
+                          style={{ borderColor: '#e2e8f0', color: '#475569' }}
+                        >
+                          Edit
+                        </Link>
+                        <button
+                          type="button"
+                          onClick={() => deleteProduct(product.id, product.name)}
+                          className="text-xs font-medium px-3 h-8 inline-flex items-center justify-center rounded-md border transition-colors hover:bg-red-50 hover:border-red-200 hover:text-red-600"
+                          style={{ borderColor: '#e2e8f0', color: '#94a3b8' }}
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">

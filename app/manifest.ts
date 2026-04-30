@@ -7,8 +7,8 @@ export default function manifest(): MetadataRoute.Manifest {
     description: 'Web & Content Operations Platform — For Internal Use Only',
     start_url: '/',
     display: 'standalone',
-    background_color: '#ffffff',
-    theme_color: '#1e293b',
+    background_color: '#14181f',
+    theme_color: '#14181f',
     icons: [
       { src: '/icon.svg', sizes: 'any', type: 'image/svg+xml' },
       { src: '/icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'maskable' },

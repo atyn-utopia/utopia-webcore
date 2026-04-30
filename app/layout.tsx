@@ -38,7 +38,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" className={`h-full ${inter.variable} ${nunito.variable}`}>
       <head>
-        <meta name="theme-color" content="#1e293b" />
+        <meta name="theme-color" content="#14181f" />
         <link rel="apple-touch-icon" href="/icon-192.png" />
       </head>
       <body className="min-h-full font-inter">
