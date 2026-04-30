@@ -9,14 +9,17 @@ interface CrumbItem {
   href?: string
 }
 
+interface SiteCompany { domain: string; company_id: string | null; company_name: string | null }
+
 export default function Breadcrumb() {
   const pathname = usePathname()
   const searchParams = useSearchParams()
   const website = searchParams.get('website') ?? ''
   const [postTitle, setPostTitle] = useState('')
   const [companyName, setCompanyName] = useState('')
+  const [siteCompany, setSiteCompany] = useState<{ name: string; id: string | null } | null>(null)
 
-  // Fetch post title for blog edit/view pages
+  // Post title for blog edit/view pages
   useEffect(() => {
     const match = pathname.match(/^\/blog\/([^/]+)\/(edit|view)$/)
     if (match) {
@@ -32,7 +35,7 @@ export default function Breadcrumb() {
     }
   }, [pathname])
 
-  // Fetch company name for /company/[id]
+  // Company name for /company/[id]
   useEffect(() => {
     const match = pathname.match(/^\/company\/([^/]+)$/)
     if (!match) { setCompanyName(''); return }
@@ -48,35 +51,52 @@ export default function Breadcrumb() {
       .catch(() => setCompanyName(''))
   }, [pathname])
 
+  // Resolve the active website's company so the breadcrumb can read
+  // home › Company › domain on every site-scoped page.
+  useEffect(() => {
+    if (!website) { setSiteCompany(null); return }
+    fetch('/api/websites')
+      .then(r => r.json())
+      .then((rows: SiteCompany[]) => {
+        if (!Array.isArray(rows)) return
+        const found = rows.find(s => s.domain === website)
+        if (found?.company_name) setSiteCompany({ name: found.company_name, id: found.company_id })
+        else setSiteCompany(null)
+      })
+      .catch(() => setSiteCompany(null))
+  }, [website])
+
   function getCrumbs(): CrumbItem[] {
-    // ─── Site context (?website=…) — Home > {site} > {tab} ─────────────
+    // ─── Site context (?website=…) ─────────────────────────────────────
+    // Crumb chain: Home › Company › domain › [Page name]
     if (website) {
       const dashboardHref = `/websites?website=${encodeURIComponent(website)}`
+      const crumbs: CrumbItem[] = []
+      if (siteCompany?.name) {
+        crumbs.push({ label: siteCompany.name, href: siteCompany.id ? `/company/${siteCompany.id}` : undefined })
+      }
+
+      // /websites with website param IS the per-site dashboard — domain is last
+      if (pathname === '/websites') return [...crumbs, { label: website }]
+
+      // For all other site-scoped pages, domain is a clickable middle crumb
       const siteCrumb: CrumbItem = { label: website, href: dashboardHref }
 
-      // /websites with website param IS the per-site dashboard — just one crumb
-      if (pathname === '/websites') return [{ label: website }]
+      if (pathname === '/products') return [...crumbs, siteCrumb, { label: 'Products' }]
+      if (pathname === '/products/new') return [...crumbs, siteCrumb, { label: 'Products', href: `/products?website=${encodeURIComponent(website)}` }, { label: 'New Product' }]
+      if (/^\/products\/.+\/edit$/.test(pathname)) return [...crumbs, siteCrumb, { label: 'Products', href: `/products?website=${encodeURIComponent(website)}` }, { label: 'Edit Product' }]
 
-      // Products under a site
-      if (pathname === '/products') return [siteCrumb, { label: 'Products' }]
-      if (pathname === '/products/new') return [siteCrumb, { label: 'Products', href: `/products?website=${encodeURIComponent(website)}` }, { label: 'New Product' }]
-      if (/^\/products\/.+\/edit$/.test(pathname)) return [siteCrumb, { label: 'Products', href: `/products?website=${encodeURIComponent(website)}` }, { label: 'Edit Product' }]
+      if (pathname === '/phone-numbers' || pathname === '/phone-numbers/edit') return [...crumbs, siteCrumb, { label: 'Phone Numbers' }]
+      if (pathname === '/phone-numbers/new') return [...crumbs, siteCrumb, { label: 'Phone Numbers', href: `/phone-numbers?website=${encodeURIComponent(website)}` }, { label: 'Add Number' }]
 
-      // Phone numbers under a site
-      if (pathname === '/phone-numbers' || pathname === '/phone-numbers/edit') return [siteCrumb, { label: 'Phone Numbers' }]
-      if (pathname === '/phone-numbers/new') return [siteCrumb, { label: 'Phone Numbers', href: `/phone-numbers?website=${encodeURIComponent(website)}` }, { label: 'Add Number' }]
+      if (pathname === '/blog') return [...crumbs, siteCrumb, { label: 'Blog' }]
+      if (pathname === '/blog/new') return [...crumbs, siteCrumb, { label: 'Blog', href: `/blog?website=${encodeURIComponent(website)}` }, { label: 'New Post' }]
+      if (/^\/blog\/.+\/edit$/.test(pathname)) return [...crumbs, siteCrumb, { label: 'Blog', href: `/blog?website=${encodeURIComponent(website)}` }, { label: postTitle || 'Edit Post' }]
+      if (/^\/blog\/.+\/view$/.test(pathname)) return [...crumbs, siteCrumb, { label: 'Blog', href: `/blog?website=${encodeURIComponent(website)}` }, { label: postTitle || 'Preview' }]
 
-      // Blog under a site
-      if (pathname === '/blog') return [siteCrumb, { label: 'Blog' }]
-      if (pathname === '/blog/new') return [siteCrumb, { label: 'Blog', href: `/blog?website=${encodeURIComponent(website)}` }, { label: 'New Post' }]
-      if (/^\/blog\/.+\/edit$/.test(pathname)) return [siteCrumb, { label: 'Blog', href: `/blog?website=${encodeURIComponent(website)}` }, { label: postTitle || 'Edit Post' }]
-      if (/^\/blog\/.+\/view$/.test(pathname)) return [siteCrumb, { label: 'Blog', href: `/blog?website=${encodeURIComponent(website)}` }, { label: postTitle || 'Preview' }]
-
-      // Integrations under a site
-      if (pathname === '/integrations') return [siteCrumb, { label: 'Integrations' }]
-
-      // Analytics under a site
-      if (pathname === '/analytics') return [siteCrumb, { label: 'Analytics' }]
+      if (pathname === '/integrations') return [...crumbs, siteCrumb, { label: 'Integrations' }]
+      if (pathname === '/site-settings') return [...crumbs, siteCrumb, { label: 'Settings' }]
+      if (pathname === '/analytics') return [...crumbs, siteCrumb, { label: 'Analytics' }]
     }
 
     // ─── Company folder ────────────────────────────────────────────────
@@ -101,6 +121,7 @@ export default function Breadcrumb() {
     if (/^\/blog\/.+\/view$/.test(pathname)) return [{ label: 'Blog', href: '/blog' }, { label: postTitle || 'Preview' }]
 
     if (pathname === '/integrations') return [{ label: 'Integrations' }]
+    if (pathname === '/site-settings') return [{ label: 'Settings' }]
     if (pathname === '/analytics') return [{ label: 'Analytics' }]
 
     // /all/* power-user cross-site views
@@ -127,9 +148,9 @@ export default function Breadcrumb() {
       <Link
         href="/"
         className="flex items-center transition-colors flex-shrink-0"
-        style={{ color: crumbs.length === 0 ? 'var(--primary)' : '#475569' }}
-        onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = 'var(--primary)'}
-        onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = crumbs.length === 0 ? 'var(--primary)' : '#475569'}
+        style={{ color: crumbs.length === 0 ? 'var(--foreground)' : '#94a3b8' }}
+        onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = 'var(--foreground)'}
+        onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = crumbs.length === 0 ? 'var(--foreground)' : '#94a3b8'}
       >
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
@@ -143,21 +164,21 @@ export default function Breadcrumb() {
             <svg className="w-3 h-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: '#cbd5e1' }}>
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
             </svg>
-            {crumb.href ? (
+            {crumb.href && !isLast ? (
               <Link
                 href={crumb.href}
                 className="transition-colors truncate max-w-[200px]"
-                style={{ color: '#475569' }}
+                style={{ color: '#94a3b8' }}
                 title={crumb.label}
-                onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = 'var(--primary)'}
-                onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = '#475569'}
+                onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = 'var(--foreground)'}
+                onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = '#94a3b8'}
               >
                 {crumb.label}
               </Link>
             ) : (
               <span
-                className={`font-medium ${isLast ? 'truncate max-w-[240px]' : ''}`}
-                style={{ color: isLast ? 'var(--primary)' : 'var(--foreground)' }}
+                className={`${isLast ? 'font-semibold truncate max-w-[260px]' : 'font-medium'}`}
+                style={{ color: isLast ? 'var(--foreground)' : '#94a3b8' }}
                 title={crumb.label}
               >
                 {crumb.label}
