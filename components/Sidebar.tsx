@@ -248,14 +248,35 @@ export default function Sidebar({ userEmail, userName, userRole, open, onClose, 
 
   const sidebarWidth = collapsed ? 'md:w-16' : 'md:w-60'
 
+  // Auto-close the Quick Actions popover whenever the sidebar collapses
+  useEffect(() => { if (collapsed) setQuickActionsOpen(false) }, [collapsed])
+
   return (
     <aside
-      className={`w-60 flex-shrink-0 flex flex-col fixed inset-y-0 left-0 z-40 transition-all duration-200 md:relative md:translate-x-0 ${sidebarWidth} ${open ? 'translate-x-0' : '-translate-x-full'}`}
+      className={`group/sidebar w-60 flex-shrink-0 flex flex-col fixed inset-y-0 left-0 z-40 transition-all duration-200 md:relative md:translate-x-0 ${sidebarWidth} ${open ? 'translate-x-0' : '-translate-x-full'}`}
       style={{ background: 'var(--sidebar-bg)' }}
     >
-      {/* Top row — Quick Actions pill (Wix style) + collapse toggle */}
+      {/* Floating edge collapse button — Wix-style pill on the sidebar's outer
+          edge. Always visible (not hover-only) so it's discoverable. */}
+      {onCollapsedChange && (
+        <button
+          onClick={() => onCollapsedChange(!collapsed)}
+          className="hidden md:flex absolute top-6 -right-3 z-10 w-6 h-6 items-center justify-center rounded-full shadow-md transition-all"
+          style={{ background: 'var(--sidebar-bg)', color: 'rgba(255,255,255,0.7)', border: '1px solid rgba(255,255,255,0.15)' }}
+          onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = '#ffffff'; (e.currentTarget as HTMLElement).style.background = '#0f172a' }}
+          onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = 'rgba(255,255,255,0.7)'; (e.currentTarget as HTMLElement).style.background = 'var(--sidebar-bg)' }}
+          title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+        >
+          <svg className={`w-3 h-3 transition-transform ${collapsed ? '' : 'rotate-180'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+          </svg>
+        </button>
+      )}
+
+      {/* Top row — Quick Actions pill (full width when expanded, icon-only when collapsed) */}
       <div className="px-3 pt-4 pb-2 flex items-center gap-2">
-        {!collapsed && (
+        {!collapsed ? (
           <button
             onClick={() => setQuickActionsOpen(v => !v)}
             className="flex-1 flex items-center justify-center gap-1.5 h-9 rounded-full text-xs font-semibold transition-colors"
@@ -266,27 +287,16 @@ export default function Sidebar({ userEmail, userName, userRole, open, onClose, 
               <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
             </svg>
             Quick Actions
-            <svg className="w-3 h-3 ml-0.5 opacity-60" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
+            <svg className={`w-3 h-3 ml-0.5 opacity-60 transition-transform ${quickActionsOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
           </button>
-        )}
-        {collapsed && (
+        ) : (
           <button
-            onClick={() => setQuickActionsOpen(v => !v)}
-            className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0"
+            onClick={() => onCollapsedChange?.(false)}
+            className="mx-auto w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0"
             style={{ background: 'white', color: '#0f172a' }}
-            title="Quick actions"
+            title="Quick actions (expand sidebar)"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
-          </button>
-        )}
-        {/* Desktop collapse toggle */}
-        {onCollapsedChange && (
-          <button
-            onClick={() => onCollapsedChange(!collapsed)}
-            className="hidden md:flex w-7 h-7 items-center justify-center rounded-md text-white/60 hover:text-white hover:bg-white/10 transition-colors flex-shrink-0"
-            title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-          >
-            <svg className={`w-4 h-4 transition-transform ${collapsed ? '' : 'rotate-180'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></svg>
           </button>
         )}
         {/* Mobile close */}
@@ -298,8 +308,8 @@ export default function Sidebar({ userEmail, userName, userRole, open, onClose, 
         </button>
       </div>
 
-      {/* Quick Actions popover (placeholder — wires up real actions in Phase B) */}
-      {quickActionsOpen && (
+      {/* Quick Actions popover — only visible when sidebar expanded */}
+      {!collapsed && quickActionsOpen && (
         <div className="mx-3 mb-2 rounded-lg p-2 space-y-1" style={{ background: 'rgba(255,255,255,0.06)' }}>
           <Link href="/api-keys" onClick={() => { setQuickActionsOpen(false); onClose?.() }} className="block px-2 py-1.5 text-xs rounded-md text-white/80 hover:bg-white/10 transition-colors">Generate API key</Link>
           <Link href="/blog/new" onClick={() => { setQuickActionsOpen(false); onClose?.() }} className="block px-2 py-1.5 text-xs rounded-md text-white/80 hover:bg-white/10 transition-colors">New blog post</Link>
