@@ -61,8 +61,8 @@ function FactPill({ label, value, tone = 'neutral', href }: {
     <div className="inline-flex items-center gap-2 h-8 px-2.5 rounded-md text-xs transition-colors"
       style={{ background: 'white', border: '1px solid #e2e8f0' }}>
       <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: FACT_DOT[tone] }} />
-      <span className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: '#94a3b8' }}>{label}</span>
-      <span className="text-xs font-medium" style={{ color: 'var(--foreground)' }}>{value}</span>
+      <span className="text-[10px] font-semibold uppercase tracking-wider leading-none" style={{ color: '#94a3b8' }}>{label}</span>
+      <span className="text-xs font-medium leading-none" style={{ color: 'var(--foreground)' }}>{value}</span>
     </div>
   )
   if (href) return <Link href={href} className="inline-flex hover:brightness-[0.98] transition">{inner}</Link>
@@ -571,7 +571,7 @@ export default function WebsitesPage() {
             {!isWriter && siteInfo && (
               <FactPill
                 label="Phones"
-                value={`${siteInfo.active_phone_count}/${siteInfo.phone_count} active`}
+                value={`${siteInfo.active_phone_count} active`}
                 tone={siteInfo.active_phone_count > 0 ? 'success' : 'neutral'}
                 href={`/phone-numbers?website=${encodeURIComponent(openWebsite)}`}
               />
@@ -579,7 +579,7 @@ export default function WebsitesPage() {
             {siteInfo && (
               <FactPill
                 label="Blog"
-                value={`${siteInfo.published_blog_count}/${siteInfo.blog_count} published`}
+                value={`${siteInfo.published_blog_count} published`}
                 tone={siteInfo.published_blog_count > 0 ? 'info' : 'neutral'}
                 href={`/blog?website=${encodeURIComponent(openWebsite)}`}
               />
