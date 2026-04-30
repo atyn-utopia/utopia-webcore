@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import WebsiteCard from './WebsiteCard'
 
 interface SiteRow {
@@ -23,11 +23,19 @@ const LEADS_MODE: Record<string, string> = {
 type Activity = 'all' | 'active' | 'idle'
 type ViewMode = 'grid' | 'list'
 
+const ACTIVITY_LABEL: Record<Activity, string> = { all: 'All sites', active: 'Active sites', idle: 'Idle sites' }
+
 export default function CompanyWebsitesGrid({ domains }: { domains: string[] }) {
   const [all, setAll] = useState<SiteRow[]>([])
   const [search, setSearch] = useState('')
   const [activity, setActivity] = useState<Activity>('all')
+  const [leadsMode, setLeadsMode] = useState<string>('')
   const [viewMode, setViewMode] = useState<ViewMode>('grid')
+
+  const [scopeOpen, setScopeOpen] = useState(false)
+  const [filterOpen, setFilterOpen] = useState(false)
+  const scopeRef = useRef<HTMLDivElement>(null)
+  const filterRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     fetch('/api/websites')
@@ -36,85 +44,162 @@ export default function CompanyWebsitesGrid({ domains }: { domains: string[] }) 
       .catch(() => {})
   }, [])
 
+  useEffect(() => {
+    function onClick(e: MouseEvent) {
+      if (scopeRef.current && !scopeRef.current.contains(e.target as Node)) setScopeOpen(false)
+      if (filterRef.current && !filterRef.current.contains(e.target as Node)) setFilterOpen(false)
+    }
+    document.addEventListener('mousedown', onClick)
+    return () => document.removeEventListener('mousedown', onClick)
+  }, [])
+
   const domainSet = useMemo(() => new Set(domains), [domains])
   const sites = useMemo(() => {
-    // Use the API rows when available; fall back to a stub for any domain we
-    // haven't fetched stats for yet so the card still renders.
     const byDomain = new Map(all.filter(s => domainSet.has(s.domain)).map(s => [s.domain, s]))
     return [...domains]
       .sort((a, b) => a.localeCompare(b))
       .map(d => byDomain.get(d) ?? { domain: d, leads_mode: null, phone_count: 0, active_phone_count: 0, blog_count: 0, published_blog_count: 0 } as SiteRow)
   }, [all, domains, domainSet])
 
-  const filtered = sites.filter(s => {
+  const scoped = sites.filter(s => {
     if (activity === 'active' && s.active_phone_count === 0 && s.published_blog_count === 0) return false
     if (activity === 'idle' && (s.active_phone_count > 0 || s.published_blog_count > 0)) return false
-    if (search) {
-      const q = search.toLowerCase()
-      const friendly = s.domain.replace(/^www\./, '').split('.')[0].replace(/-/g, ' ').toLowerCase()
-      if (!s.domain.toLowerCase().includes(q) && !friendly.includes(q)) return false
-    }
+    if (leadsMode && s.leads_mode !== leadsMode) return false
     return true
   })
 
-  const hasActiveFilters = !!(search || activity !== 'all')
+  const filtered = scoped.filter(s => {
+    if (!search) return true
+    const q = search.toLowerCase()
+    const friendly = s.domain.replace(/^www\./, '').split('.')[0].replace(/-/g, ' ').toLowerCase()
+    return s.domain.toLowerCase().includes(q) || friendly.includes(q)
+  })
 
-  function clearFilters() { setSearch(''); setActivity('all') }
+  const filterCount = (activity !== 'all' ? 1 : 0) + (leadsMode ? 1 : 0)
+  const hasActiveFilters = filterCount > 0 || !!search
+
+  function clearFilters() { setSearch(''); setActivity('all'); setLeadsMode('') }
 
   return (
-    <div>
-      {/* Toolbar — every control is h-9 for consistency */}
-      <div className="flex flex-wrap items-center gap-2 mb-4">
-        {/* Search */}
-        <div className="relative flex-1 min-w-[220px] max-w-sm">
-          <svg className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: '#94a3b8' }}><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
-          <input type="text" value={search} onChange={e => setSearch(e.target.value)} placeholder="Search this company's websites…"
-            className="w-full pl-9 pr-8 h-9 text-sm rounded-md border focus:outline-none focus:border-[var(--primary)] transition-colors"
-            style={{ borderColor: '#e2e8f0', background: 'white' }} />
-          {search && (
-            <button onClick={() => setSearch('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 flex items-center justify-center rounded-full hover:bg-slate-200 transition-colors" style={{ background: '#e2e8f0', color: '#64748b' }}>
-              <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
-            </button>
+    <div className="rounded-xl border bg-white" style={{ borderColor: '#e2e8f0' }}>
+      {/* Toolbar — Wix-style pill bar */}
+      <div className="flex flex-wrap items-center gap-2 px-4 py-3" style={{ borderBottom: '1px solid #f1f5f9' }}>
+        {/* Scope dropdown — "All sites (N) ▾" */}
+        <div className="relative" ref={scopeRef}>
+          <button
+            onClick={() => setScopeOpen(v => !v)}
+            className="inline-flex items-center gap-2 h-9 pl-4 pr-3 rounded-full text-sm font-medium transition-colors"
+            style={{ background: 'white', border: '1px solid #e2e8f0', color: 'var(--foreground)' }}
+            onMouseEnter={e => (e.currentTarget as HTMLElement).style.borderColor = '#cbd5e1'}
+            onMouseLeave={e => (e.currentTarget as HTMLElement).style.borderColor = '#e2e8f0'}
+          >
+            <span>{ACTIVITY_LABEL[activity]}</span>
+            <span className="text-xs" style={{ color: '#94a3b8' }}>({scoped.length})</span>
+            <svg className={`w-3.5 h-3.5 transition-transform ${scopeOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
+          </button>
+          {scopeOpen && (
+            <div className="absolute top-11 left-0 w-44 rounded-md shadow-lg z-30 py-1" style={{ background: 'white', border: '1px solid #e2e8f0' }}>
+              {(['all', 'active', 'idle'] as Activity[]).map(opt => (
+                <button
+                  key={opt}
+                  onClick={() => { setActivity(opt); setScopeOpen(false) }}
+                  className="w-full flex items-center justify-between px-3 py-2 text-xs hover:bg-slate-50 transition-colors"
+                  style={{ color: activity === opt ? 'var(--primary)' : '#475569', fontWeight: activity === opt ? 600 : 500 }}
+                >
+                  {ACTIVITY_LABEL[opt]}
+                  {activity === opt && <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>}
+                </button>
+              ))}
+            </div>
           )}
         </div>
 
-        {/* Activity segmented */}
-        <div className="flex items-center rounded-md border h-9 overflow-hidden" style={{ borderColor: '#e2e8f0', background: 'white' }}>
-          {([
-            { key: 'all' as const, label: 'All' },
-            { key: 'active' as const, label: 'Active' },
-            { key: 'idle' as const, label: 'Idle' },
-          ]).map((opt, i) => {
-            const active = activity === opt.key
-            return (
-              <button key={opt.key} onClick={() => setActivity(opt.key)}
-                className="px-3 h-full text-xs font-medium transition-colors"
-                style={{
-                  background: active ? 'var(--primary)' : 'white',
-                  color: active ? 'white' : '#64748b',
-                  borderLeft: i > 0 ? '1px solid #e2e8f0' : undefined,
-                }}>
-                {opt.label}
-              </button>
-            )
-          })}
-        </div>
-
         {hasActiveFilters && (
-          <button onClick={clearFilters}
-            className="text-xs font-medium px-3 h-9 rounded-md transition-colors"
-            style={{ color: '#64748b' }}
-            onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = 'var(--primary)'}
-            onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = '#64748b'}
+          <button
+            onClick={clearFilters}
+            className="text-xs font-medium px-2 h-9 transition-colors"
+            style={{ color: 'var(--primary)' }}
           >
             Clear filters
           </button>
         )}
 
         <div className="ml-auto flex items-center gap-2">
-          <span className="text-[11px]" style={{ color: '#94a3b8' }}>
-            <strong style={{ color: '#475569' }}>{filtered.length}</strong> of {sites.length}
-          </span>
+          {/* Filter pill (popover) */}
+          <div className="relative" ref={filterRef}>
+            <button
+              onClick={() => setFilterOpen(v => !v)}
+              className="inline-flex items-center gap-1.5 h-9 px-4 rounded-full text-sm font-medium transition-colors"
+              style={{
+                background: filterCount > 0 ? '#eff6ff' : 'white',
+                border: `1px solid ${filterCount > 0 ? '#bfdbfe' : '#e2e8f0'}`,
+                color: filterCount > 0 ? 'var(--primary)' : 'var(--foreground)',
+              }}
+            >
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8"><path strokeLinecap="round" strokeLinejoin="round" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" /></svg>
+              Filter
+              {filterCount > 0 && (
+                <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full text-white tabular-nums" style={{ background: 'var(--primary)' }}>
+                  {filterCount}
+                </span>
+              )}
+            </button>
+            {filterOpen && (
+              <div className="absolute top-11 right-0 w-64 rounded-md shadow-lg z-30 p-3" style={{ background: 'white', border: '1px solid #e2e8f0' }}>
+                <p className="text-[10px] font-semibold uppercase tracking-wider mb-2" style={{ color: '#94a3b8' }}>Leads mode</p>
+                <div className="space-y-1">
+                  <button
+                    onClick={() => setLeadsMode('')}
+                    className="w-full flex items-center justify-between px-2 py-1.5 rounded-md text-xs hover:bg-slate-50 transition-colors"
+                    style={{ color: !leadsMode ? 'var(--primary)' : '#475569', fontWeight: !leadsMode ? 600 : 500 }}
+                  >
+                    All
+                    {!leadsMode && <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>}
+                  </button>
+                  {Object.entries(LEADS_MODE).map(([k, label]) => (
+                    <button
+                      key={k}
+                      onClick={() => setLeadsMode(k)}
+                      className="w-full flex items-center justify-between px-2 py-1.5 rounded-md text-xs hover:bg-slate-50 transition-colors"
+                      style={{ color: leadsMode === k ? 'var(--primary)' : '#475569', fontWeight: leadsMode === k ? 600 : 500 }}
+                    >
+                      {label}
+                      {leadsMode === k && <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>}
+                    </button>
+                  ))}
+                </div>
+                {(filterCount > 0) && (
+                  <div className="pt-2 mt-2" style={{ borderTop: '1px solid #f1f5f9' }}>
+                    <button
+                      onClick={() => { setLeadsMode(''); setActivity('all'); setFilterOpen(false) }}
+                      className="text-xs font-medium"
+                      style={{ color: 'var(--primary)' }}
+                    >
+                      Reset all filters
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Search */}
+          <div className="relative">
+            <svg className="w-3.5 h-3.5 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: '#94a3b8' }}><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+            <input
+              type="text"
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              placeholder="Search…"
+              className="h-9 w-44 lg:w-56 pl-9 pr-8 rounded-full text-sm focus:outline-none focus:border-[var(--primary)] transition-colors"
+              style={{ border: '1px solid #e2e8f0', background: 'white', color: 'var(--foreground)' }}
+            />
+            {search && (
+              <button onClick={() => setSearch('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 flex items-center justify-center rounded-full hover:bg-slate-200 transition-colors" style={{ background: '#e2e8f0', color: '#64748b' }}>
+                <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+              </button>
+            )}
+          </div>
 
           {/* View toggle */}
           <div className="flex items-center rounded-md border h-9 overflow-hidden" style={{ borderColor: '#e2e8f0', background: 'white' }}>
@@ -132,23 +217,25 @@ export default function CompanyWebsitesGrid({ domains }: { domains: string[] }) 
         </div>
       </div>
 
-      {/* Empty state */}
-      {filtered.length === 0 ? (
-        <div className="rounded-xl border bg-white p-10 text-center" style={{ borderColor: '#e2e8f0' }}>
-          <p className="text-sm font-medium" style={{ color: 'var(--foreground)' }}>No websites match your filters</p>
-          {hasActiveFilters && (
-            <button onClick={clearFilters} className="mt-2 text-xs font-medium" style={{ color: 'var(--primary)' }}>Clear filters</button>
-          )}
-        </div>
-      ) : viewMode === 'grid' ? (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
-          {filtered.map(s => <WebsiteCard key={s.domain} domain={s.domain} />)}
-        </div>
-      ) : (
-        <div className="rounded-xl border bg-white overflow-hidden" style={{ borderColor: '#e2e8f0' }}>
-          {filtered.map((s, i) => <SiteListRow key={s.domain} site={s} isLast={i === filtered.length - 1} />)}
-        </div>
-      )}
+      {/* Body */}
+      <div className="p-4">
+        {filtered.length === 0 ? (
+          <div className="p-10 text-center">
+            <p className="text-sm font-medium" style={{ color: 'var(--foreground)' }}>No websites match your filters</p>
+            {hasActiveFilters && (
+              <button onClick={clearFilters} className="mt-2 text-xs font-medium" style={{ color: 'var(--primary)' }}>Clear filters</button>
+            )}
+          </div>
+        ) : viewMode === 'grid' ? (
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+            {filtered.map(s => <WebsiteCard key={s.domain} domain={s.domain} />)}
+          </div>
+        ) : (
+          <div className="rounded-md border overflow-hidden" style={{ borderColor: '#f1f5f9' }}>
+            {filtered.map((s, i) => <SiteListRow key={s.domain} site={s} isLast={i === filtered.length - 1} />)}
+          </div>
+        )}
+      </div>
     </div>
   )
 }
