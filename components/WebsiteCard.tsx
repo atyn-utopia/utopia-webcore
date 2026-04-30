@@ -4,14 +4,25 @@ import Link from 'next/link'
 
 interface Props {
   domain: string
+  leadsMode?: string | null
+  activePhones?: number
+  publishedPosts?: number
 }
 
-export default function WebsiteCard({ domain }: Props) {
+const LEADS_MODE_LABEL: Record<string, string> = {
+  single: 'Single',
+  rotation: 'Rotation',
+  location: 'Location',
+  hybrid: 'Hybrid',
+}
+
+export default function WebsiteCard({ domain, leadsMode, activePhones, publishedPosts }: Props) {
   const siteUrl = `https://${domain}`
   const thumbUrl = `https://s.wordpress.com/mshots/v1/${encodeURIComponent(siteUrl)}?w=400`
   const friendlyName = domain.replace(/^www\./, '').split('.')[0]
     .split('-').map(s => s.charAt(0).toUpperCase() + s.slice(1)).join(' ')
   const dashboardHref = `/websites?website=${encodeURIComponent(domain)}`
+  const lm = leadsMode && LEADS_MODE_LABEL[leadsMode] ? LEADS_MODE_LABEL[leadsMode] : null
 
   return (
     <div className="rounded-xl border bg-white overflow-hidden transition-all hover:shadow-md" style={{ borderColor: '#e2e8f0' }}>
@@ -32,18 +43,35 @@ export default function WebsiteCard({ domain }: Props) {
           <p className="text-sm font-semibold truncate leading-tight" style={{ color: 'var(--foreground)' }}>{friendlyName}</p>
         </div>
       </Link>
-      {/* URL is its own clickable link → external site (new tab). Sibling of the
-          dashboard Link so nested-anchor rules aren't violated. */}
+      {/* External URL — its own clickable link to the live site (new tab) */}
       <a
         href={siteUrl}
         target="_blank"
         rel="noopener noreferrer"
-        className="block px-3 pb-2.5 text-[11px] truncate transition-colors hover:underline"
+        className="block px-3 mt-0.5 text-[11px] truncate transition-colors hover:underline"
         style={{ color: '#94a3b8' }}
         title={`Open ${siteUrl}`}
       >
         {siteUrl}
       </a>
+      {/* Status pills — match the per-site hero FactPill style */}
+      {(lm || (activePhones !== undefined) || (publishedPosts !== undefined)) && (
+        <div className="px-3 pt-2 pb-3 flex flex-wrap items-center gap-1.5">
+          {lm && <CardPill label="Leads mode" value={lm} dot="#2563eb" />}
+          {activePhones !== undefined && activePhones > 0 && <CardPill label="Phones" value={`${activePhones} Active`} dot="#16a34a" />}
+          {publishedPosts !== undefined && publishedPosts > 0 && <CardPill label="Blog" value={`${publishedPosts} Published`} dot="#2563eb" />}
+        </div>
+      )}
     </div>
+  )
+}
+
+function CardPill({ label, value, dot }: { label: string; value: string; dot: string }) {
+  return (
+    <span className="inline-flex items-center gap-1.5 h-6 px-2 rounded-md text-[10px]" style={{ background: 'white', border: '1px solid #e2e8f0' }}>
+      <span className="w-1 h-1 rounded-full flex-shrink-0" style={{ background: dot }} />
+      <span className="font-medium leading-none" style={{ color: '#94a3b8' }}>{label}</span>
+      <span className="leading-none" style={{ color: 'var(--foreground)' }}>{value}</span>
+    </span>
   )
 }

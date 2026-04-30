@@ -228,13 +228,32 @@ export default function CompanyWebsitesGrid({ domains }: { domains: string[] }) 
           </div>
         ) : viewMode === 'grid' ? (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
-            {filtered.map(s => <WebsiteCard key={s.domain} domain={s.domain} />)}
+            {filtered.map(s => (
+              <WebsiteCard
+                key={s.domain}
+                domain={s.domain}
+                leadsMode={s.leads_mode}
+                activePhones={s.active_phone_count}
+                publishedPosts={s.published_blog_count}
+              />
+            ))}
           </div>
         ) : (
           <div className="rounded-md border overflow-hidden" style={{ borderColor: '#f1f5f9' }}>
             {filtered.map((s, i) => <SiteListRow key={s.domain} site={s} isLast={i === filtered.length - 1} />)}
           </div>
         )}
+
+        {/* Footer summary — total counts across the visible/filtered set */}
+        {filtered.length > 0 && (() => {
+          const totalActivePhones = filtered.reduce((s, x) => s + x.active_phone_count, 0)
+          const totalPublishedPosts = filtered.reduce((s, x) => s + x.published_blog_count, 0)
+          const bits: string[] = []
+          bits.push(`${filtered.length} website${filtered.length === 1 ? '' : 's'}`)
+          if (totalActivePhones > 0) bits.push(`${totalActivePhones} active phone${totalActivePhones === 1 ? '' : 's'}`)
+          if (totalPublishedPosts > 0) bits.push(`${totalPublishedPosts} published post${totalPublishedPosts === 1 ? '' : 's'}`)
+          return <p className="mt-3 text-xs" style={{ color: '#94a3b8' }}>{bits.join(' · ')}</p>
+        })()}
       </div>
     </div>
   )

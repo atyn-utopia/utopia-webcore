@@ -1,4 +1,3 @@
-import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { createServiceClient } from '@/lib/supabase/service'
@@ -32,21 +31,6 @@ export default async function CompanyFolderPage({ params }: { params: Promise<{ 
 
   return (
     <div>
-      {/* Wix-style breadcrumb header — replaces the page title */}
-      <nav className="flex items-center gap-2 text-sm mb-4" aria-label="Breadcrumb">
-        <Link
-          href="/"
-          className="transition-colors hover:text-[var(--primary)]"
-          style={{ color: '#64748b' }}
-        >
-          Sites
-        </Link>
-        <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: '#cbd5e1' }} strokeWidth="2">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-        </svg>
-        <span className="font-semibold truncate" style={{ color: 'var(--foreground)' }} title={company.name}>{company.name}</span>
-      </nav>
-
       {domains.length === 0 ? (
         <div className="rounded-xl border bg-white p-10 text-center" style={{ borderColor: '#e2e8f0' }}>
           <div className="w-14 h-14 mx-auto rounded-full flex items-center justify-center mb-3" style={{ background: '#f1f5f9' }}>
