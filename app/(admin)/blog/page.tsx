@@ -361,44 +361,6 @@ export default function BlogListPage() {
       <PageHeader
         title="Blog Posts"
         description={t('page.blogPosts.description.folder')}
-        actions={
-          <>
-            <div className="flex items-center rounded-lg border overflow-hidden" style={{ borderColor: '#cbd5e1' }}>
-              <button
-                onClick={() => setViewMode('list')}
-                className="w-8 h-8 flex items-center justify-center transition-colors"
-                style={{ background: viewMode === 'list' ? 'var(--primary)' : 'white', color: viewMode === 'list' ? 'white' : '#94a3b8' }}
-                title="List view"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
-                  <line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="18" x2="21" y2="18" />
-                </svg>
-              </button>
-              <button
-                onClick={() => setViewMode('grid')}
-                className="w-8 h-8 flex items-center justify-center transition-colors"
-                style={{ background: viewMode === 'grid' ? 'var(--primary)' : 'white', color: viewMode === 'grid' ? 'white' : '#94a3b8', borderLeft: '1px solid #cbd5e1' }}
-                title="Grid view"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
-                  <rect x="3" y="3" width="7" height="7" rx="1" /><rect x="14" y="3" width="7" height="7" rx="1" /><rect x="3" y="14" width="7" height="7" rx="1" /><rect x="14" y="14" width="7" height="7" rx="1" />
-                </svg>
-              </button>
-            </div>
-            <Link
-              href={`/blog/new?website=${encodeURIComponent(openFolder)}${websites.find(w => w.domain === openFolder)?.company_name ? `&company=${encodeURIComponent(websites.find(w => w.domain === openFolder)!.company_name!)}` : ''}`}
-              className="inline-flex items-center gap-2 text-white text-sm font-medium px-4 h-9 rounded-lg transition-opacity"
-              style={{ background: 'var(--primary)' }}
-              onMouseEnter={e => (e.currentTarget as HTMLElement).style.opacity = '0.88'}
-              onMouseLeave={e => (e.currentTarget as HTMLElement).style.opacity = '1'}
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-              </svg>
-              {t('button.newPost')}
-            </Link>
-          </>
-        }
       />
 
       {/* Blog Analytics Stats */}
@@ -482,31 +444,66 @@ export default function BlogListPage() {
         </div>
       )}
 
-      {/* Search */}
-      {posts.length > 0 && (
-        <div className="mb-5">
-          <div className="relative max-w-sm">
-            <svg className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: '#475569' }}>
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
-            <input
-              type="text"
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-              placeholder="Search posts…"
-              className="w-full pl-9 pr-9 py-2 text-sm rounded-lg border focus:outline-none"
-              style={{ borderColor: '#cbd5e1', background: 'white' }}
-              onFocus={e => e.currentTarget.style.borderColor = 'var(--primary)'}
-              onBlur={e => e.currentTarget.style.borderColor = '#cbd5e1'}
-            />
-            {search && (
-              <button onClick={() => setSearch('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 flex items-center justify-center rounded-full hover:bg-slate-200 transition-colors" style={{ background: '#e2e8f0', color: '#64748b' }}>
-                <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
-              </button>
-            )}
+      {/* Search + view toggle + New Post — unified header card */}
+      <div className="rounded-xl border p-4 sm:p-5 mb-5" style={{ borderColor: '#cbd5e1', background: '#f8fafc' }}>
+        <div className="flex flex-col sm:flex-row sm:items-end gap-3">
+          <div className="flex-1 min-w-0">
+            <label className="block text-xs font-medium mb-1.5" style={{ color: '#475569' }}>Search</label>
+            <div className="relative">
+              <svg className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: '#475569' }}>
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+              <input
+                type="text"
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                placeholder="Search posts by title, slug, or excerpt…"
+                className="w-full h-9 pl-9 pr-9 text-sm rounded-lg border outline-none focus:ring-2 focus:ring-offset-0"
+                style={{ borderColor: '#cbd5e1', background: 'white', ['--tw-ring-color' as string]: 'rgba(41, 117, 204, 0.2)' }}
+              />
+              {search && (
+                <button onClick={() => setSearch('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 flex items-center justify-center rounded-full hover:bg-slate-200 transition-colors" style={{ background: '#e2e8f0', color: '#64748b' }}>
+                  <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                </button>
+              )}
+            </div>
           </div>
+
+          <div className="flex items-center rounded-lg border overflow-hidden h-9 flex-shrink-0" style={{ borderColor: '#cbd5e1', background: 'white' }}>
+            <button
+              onClick={() => setViewMode('list')}
+              className="w-9 h-full flex items-center justify-center transition-colors"
+              style={{ background: viewMode === 'list' ? 'var(--primary)' : 'white', color: viewMode === 'list' ? 'white' : '#94a3b8' }}
+              title="List view"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+                <line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="18" x2="21" y2="18" />
+              </svg>
+            </button>
+            <button
+              onClick={() => setViewMode('grid')}
+              className="w-9 h-full flex items-center justify-center transition-colors"
+              style={{ background: viewMode === 'grid' ? 'var(--primary)' : 'white', color: viewMode === 'grid' ? 'white' : '#94a3b8', borderLeft: '1px solid #cbd5e1' }}
+              title="Grid view"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+                <rect x="3" y="3" width="7" height="7" rx="1" /><rect x="14" y="3" width="7" height="7" rx="1" /><rect x="3" y="14" width="7" height="7" rx="1" /><rect x="14" y="14" width="7" height="7" rx="1" />
+              </svg>
+            </button>
+          </div>
+
+          <Link
+            href={`/blog/new?website=${encodeURIComponent(openFolder)}${websites.find(w => w.domain === openFolder)?.company_name ? `&company=${encodeURIComponent(websites.find(w => w.domain === openFolder)!.company_name!)}` : ''}`}
+            className="inline-flex items-center justify-center gap-2 text-white text-sm font-medium px-4 h-9 rounded-lg transition-opacity hover:opacity-90 flex-shrink-0"
+            style={{ background: 'var(--primary)' }}
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+            </svg>
+            {t('button.newPost')}
+          </Link>
         </div>
-      )}
+      </div>
 
       {/* Posts */}
       {postsLoading ? (
