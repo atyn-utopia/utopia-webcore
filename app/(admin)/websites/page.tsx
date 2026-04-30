@@ -521,7 +521,7 @@ export default function WebsitesPage() {
         </a>
 
         {/* Identity + status + actions */}
-        <div className="min-w-0 flex-1 p-5 flex flex-col gap-3">
+        <div className="min-w-0 flex-1 p-5 flex flex-col justify-center gap-3">
           <div className="flex items-start justify-between gap-3 flex-wrap">
             <div className="min-w-0">
               <div className="flex items-center gap-2.5 flex-wrap">
