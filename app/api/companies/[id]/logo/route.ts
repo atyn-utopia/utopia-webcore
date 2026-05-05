@@ -53,9 +53,24 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
   const path = `${id}/${Date.now()}-${crypto.randomUUID()}.${ext}`
   const buffer = Buffer.from(await file.arrayBuffer())
 
-  const { error: uploadError } = await service.storage
+  let { error: uploadError } = await service.storage
     .from(BUCKET)
     .upload(path, buffer, { contentType: file.type, upsert: false })
+
+  // First-run bootstrap — if the bucket doesn't exist yet (the migration may
+  // not have been applied, or the SQL insert silently no-op'd on some
+  // Supabase plans), create it with public read and retry the upload once.
+  if (uploadError && /bucket not found|the resource was not found/i.test(uploadError.message)) {
+    const { error: createError } = await service.storage.createBucket(BUCKET, { public: true })
+    if (createError && !/already exists/i.test(createError.message)) {
+      return NextResponse.json({ error: `Could not create storage bucket: ${createError.message}` }, { status: 500 })
+    }
+    const retry = await service.storage
+      .from(BUCKET)
+      .upload(path, buffer, { contentType: file.type, upsert: false })
+    uploadError = retry.error
+  }
+
   if (uploadError) {
     return NextResponse.json({ error: `Upload failed: ${uploadError.message}` }, { status: 500 })
   }
