@@ -25,8 +25,8 @@ type ViewMode = 'grid' | 'list'
 
 const ACTIVITY_LABEL: Record<Activity, string> = { all: 'All sites', active: 'Active sites', idle: 'Idle sites' }
 
-export default function CompanyWebsitesGrid({ domains }: { domains: string[] }) {
-  const [all, setAll] = useState<SiteRow[]>([])
+export default function CompanyWebsitesGrid({ domains, initialSites }: { domains: string[]; initialSites?: SiteRow[] }) {
+  const [all, setAll] = useState<SiteRow[]>(initialSites ?? [])
   const [search, setSearch] = useState('')
   const [activity, setActivity] = useState<Activity>('all')
   const [leadsMode, setLeadsMode] = useState<string>('')
@@ -37,12 +37,16 @@ export default function CompanyWebsitesGrid({ domains }: { domains: string[] }) 
   const scopeRef = useRef<HTMLDivElement>(null)
   const filterRef = useRef<HTMLDivElement>(null)
 
+  // Server-side prefetch covers leads_mode + counts for the company's
+  // domains, so we only fall back to the global /api/websites lookup when
+  // initialSites wasn't supplied.
   useEffect(() => {
+    if (initialSites && initialSites.length > 0) return
     fetch('/api/websites')
       .then(r => r.ok ? r.json() : [])
       .then(d => { if (Array.isArray(d)) setAll(d) })
       .catch(() => {})
-  }, [])
+  }, [initialSites])
 
   useEffect(() => {
     function onClick(e: MouseEvent) {
