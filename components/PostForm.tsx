@@ -186,6 +186,15 @@ export default function PostForm({ mode, initialData = {}, postId }: PostFormPro
         actions={
           <>
             {saved && <span className="text-xs text-green-600 font-medium mr-2">{tr('post.saved')}</span>}
+            <button
+              type="button"
+              onClick={() => router.push(website ? `/blog?website=${encodeURIComponent(website)}` : '/blog')}
+              disabled={saving}
+              className="inline-flex items-center gap-2 text-sm font-medium px-4 h-9 rounded-lg border transition-colors disabled:opacity-50 hover:bg-slate-50"
+              style={{ borderColor: '#e2e8f0', color: '#475569', background: 'white' }}
+            >
+              Cancel
+            </button>
             <button type="button" onClick={() => handleSave('draft')} disabled={saving}
               className="inline-flex items-center gap-2 text-sm font-medium px-4 h-9 rounded-lg border transition-colors disabled:opacity-50 hover:bg-slate-50"
               style={{ borderColor: '#cbd5e1', color: '#475569' }}>
