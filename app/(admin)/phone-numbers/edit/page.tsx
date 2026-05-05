@@ -454,9 +454,13 @@ export default function ManagePhoneNumbersPage() {
     () => companies.find(c => c.id === selectedCompany)?.name ?? prefillCompany ?? '',
     [companies, selectedCompany, prefillCompany],
   )
-  const cancelHref = companyName
-    ? `/phone-numbers?company=${encodeURIComponent(companyName)}`
-    : '/phone-numbers'
+  // Prefer the site we're managing — that's where the user came from. Falls
+  // back to the company explorer, then to the all-sites list.
+  const cancelHref = website
+    ? `/phone-numbers?website=${encodeURIComponent(website)}`
+    : companyName
+      ? `/phone-numbers?company=${encodeURIComponent(companyName)}`
+      : '/phone-numbers'
 
   return (
     <div className="max-w-6xl mx-auto w-full space-y-5">
