@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { sweepOrphanedWebsites } from '@/lib/sweepOrphanedWebsites'
+import { timingSafeEqualString } from '@/lib/timingSafeEqual'
 
 export const maxDuration = 60
 
@@ -19,7 +20,7 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: 'CRON_SECRET not configured' }, { status: 500 })
   }
   const auth = request.headers.get('authorization')
-  if (auth !== `Bearer ${secret}`) {
+  if (!timingSafeEqualString(auth, `Bearer ${secret}`)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 

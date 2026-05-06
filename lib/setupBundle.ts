@@ -740,6 +740,7 @@ export async function webcoreSeo({ path, fallback = {} }: WebcoreSeoOptions): Pr
 function revalidateRouteTs(): string {
   return `import { revalidateTag } from 'next/cache'
 import { NextResponse } from 'next/server'
+import crypto from 'crypto'
 
 /**
  * Webcore revalidation webhook.
@@ -754,13 +755,26 @@ import { NextResponse } from 'next/server'
  * Body:    { entity: 'product' | 'phone_number' | 'blog_post', tags: string[], website: string }
  * Header:  X-Webcore-Secret: <shared secret>
  */
+
+// Constant-time string compare so an attacker can't byte-by-byte time the
+// secret. crypto.timingSafeEqual throws on length mismatch, so we length-check
+// up front (the length itself is a 1-bit info leak, which is negligible for
+// our fixed-length secrets).
+function safeEqual(a: string | null, b: string | null): boolean {
+  if (typeof a !== 'string' || typeof b !== 'string') return false
+  const aBuf = Buffer.from(a)
+  const bBuf = Buffer.from(b)
+  if (aBuf.length !== bBuf.length) return false
+  return crypto.timingSafeEqual(aBuf, bBuf)
+}
+
 export async function POST(request: Request) {
   const secret = request.headers.get('x-webcore-secret')
   const expected = process.env.WEBCORE_REVALIDATE_SECRET
   if (!expected) {
     return NextResponse.json({ error: 'WEBCORE_REVALIDATE_SECRET not set on this site' }, { status: 500 })
   }
-  if (!secret || secret !== expected) {
+  if (!safeEqual(secret, expected)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
