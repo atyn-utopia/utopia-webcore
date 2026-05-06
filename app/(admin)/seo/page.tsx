@@ -21,6 +21,7 @@ interface Override {
   website: string
   path: string
   language: Language
+  is_pattern: boolean
   title: string | null
   description: string | null
   og_image: string | null
@@ -681,10 +682,14 @@ function Step2Card({
 }) {
   // Page list = sitemap paths ∪ override paths ∪ homepage. The sitemap is the
   // authoritative source of "every page that exists on this site"; overrides
-  // cover any extra pages an admin has registered manually.
+  // cover any extra pages an admin has registered manually. Pattern rows
+  // (is_pattern=true) live in a separate section above the per-page list,
+  // so we exclude them from the page enumeration here.
+  const exactOverrides = overrides.filter(o => !o.is_pattern)
+  const patternOverrides = overrides.filter(o => o.is_pattern)
   const paths = new Set<string>(['/'])
   ;(sitemap?.paths ?? []).forEach(p => paths.add(p))
-  overrides.forEach(o => paths.add(o.path))
+  exactOverrides.forEach(o => paths.add(o.path))
   const orderedPaths = [...paths].sort((a, b) => a === '/' ? -1 : b === '/' ? 1 : a.localeCompare(b))
   // Truncate the visible list to keep the section scannable. The "See all"
   // affordance (next to the "Add page" button) reveals the rest.
@@ -702,8 +707,16 @@ function Step2Card({
 
   let totalTasks = 0
   let doneTasks = 0
+  // Count saved patterns toward the active-language total so the progress
+  // pill reflects their existence; one row per pattern.
+  for (const p of patternOverrides) {
+    if (p.language === language) {
+      totalTasks += 1
+      if (p.title || p.description) doneTasks += 1
+    }
+  }
   for (const path of orderedPaths) {
-    const o = overrides.find(x => x.path === path && x.language === language) ?? null
+    const o = exactOverrides.find(x => x.path === path && x.language === language) ?? null
     totalTasks += 2 // title + description per page
     if (o?.title) doneTasks++
     if (o?.description) doneTasks++
@@ -725,9 +738,23 @@ function Step2Card({
       done={doneTasks}
       total={totalTasks}
     >
+      {/* Pattern rules — listed first so admins see the meta-rules that affect
+          every matching page below. Filtered to the active language. */}
+      {patternOverrides.filter(p => p.language === language).length > 0 && (
+        <div>
+          <div className="px-5 py-2.5 flex items-center gap-2" style={{ background: '#eff6ff', borderBottom: '1px solid #f1f5f9' }}>
+            <span className="text-xs font-semibold" style={{ color: 'var(--primary)' }}>Patterns</span>
+            <span className="text-[10px]" style={{ color: '#94a3b8' }}>Apply to every page that matches the wildcard</span>
+          </div>
+          {patternOverrides.filter(p => p.language === language).map(p => (
+            <PatternRow key={p.id} domain={domain} override={p} onRefresh={onRefresh} />
+          ))}
+        </div>
+      )}
+
       {visiblePaths.map(path => {
-        const o = overrides.find(x => x.path === path && x.language === language) ?? null
-        const otherLangs = overrides.filter(x => x.path === path && x.language !== language).map(x => x.language)
+        const o = exactOverrides.find(x => x.path === path && x.language === language) ?? null
+        const otherLangs = exactOverrides.filter(x => x.path === path && x.language !== language).map(x => x.language)
         const friendly = path === '/' ? 'Homepage' : path
         return (
           <div key={path}>
@@ -1357,6 +1384,138 @@ function AltRow({
 // ---------------------------------------------------------------------------
 
 // ---------------------------------------------------------------------------
+// Pattern row — displays a saved pattern override with edit + delete
+// ---------------------------------------------------------------------------
+
+function PatternRow({ domain, override, onRefresh }: { domain: string; override: Override; onRefresh: () => void }) {
+  const toast = useToast()
+  const confirm = useConfirm()
+  const [open, setOpen] = useState(false)
+  const [title, setTitle] = useState(override.title ?? '')
+  const [description, setDescription] = useState(override.description ?? '')
+  const [saving, setSaving] = useState(false)
+
+  // Show what {match} would render as for a sample slug
+  const sampleSubst = (s: string) => s.replace(/\{match\}/g, 'Shah Alam')
+
+  async function save() {
+    setSaving(true)
+    try {
+      const res = await fetch('/api/seo', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          website: domain,
+          path: override.path,
+          language: override.language,
+          is_pattern: true,
+          title: title.trim() || null,
+          description: description.trim() || null,
+        }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        toast.error(data.error ?? 'Save failed', 'Save failed')
+        return
+      }
+      toast.success(`Updated pattern ${data.path}`, 'Saved')
+      onRefresh()
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  async function remove() {
+    const ok = await confirm({
+      title: `Remove pattern ${override.path}?`,
+      message: 'Pages matching this pattern will fall back to whatever metadata the designer site renders.',
+      confirmLabel: 'Remove',
+      variant: 'danger',
+    })
+    if (!ok) return
+    const res = await fetch(`/api/seo?website=${encodeURIComponent(domain)}&path=${encodeURIComponent(override.path)}&language=${override.language}`, { method: 'DELETE' })
+    if (!res.ok) {
+      const d = await res.json().catch(() => ({}))
+      toast.error(d.error ?? 'Delete failed', 'Delete failed')
+      return
+    }
+    toast.success('Pattern removed.', 'Removed')
+    onRefresh()
+  }
+
+  return (
+    <div style={{ borderBottom: '1px solid #f1f5f9' }}>
+      <button
+        type="button"
+        onClick={() => setOpen(v => !v)}
+        className="w-full flex items-center gap-3 px-5 py-3 text-left hover:bg-slate-50 transition-colors"
+      >
+        <span className="w-5 h-5 rounded-full flex-shrink-0 flex items-center justify-center text-white" style={{ background: 'var(--primary)' }}>
+          <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3"><path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+        </span>
+        <code className="flex-1 text-xs font-mono truncate" style={{ color: '#475569' }}>{override.path}</code>
+        <span className="text-[10px] uppercase font-semibold tracking-wider px-1.5 py-0.5 rounded" style={{ background: '#dbeafe', color: '#1e40af' }}>{override.language === 'ms' ? 'BM' : 'EN'}</span>
+        <svg className={`w-3.5 h-3.5 transition-transform ${open ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" style={{ color: '#94a3b8' }}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
+      {open && (
+        <div className="px-5 py-4 space-y-3" style={{ background: '#fafbfc', borderTop: '1px solid #f1f5f9' }}>
+          <div>
+            <label className="block text-[11px] font-medium mb-1" style={{ color: '#475569' }}>Title template</label>
+            <input
+              type="text"
+              value={title}
+              onChange={e => setTitle(e.target.value)}
+              placeholder="{match} Aircond Service | Brand"
+              className="w-full h-8 px-2.5 text-xs rounded border outline-none focus:border-[var(--primary)]"
+              style={{ borderColor: '#e2e8f0', background: 'white' }}
+            />
+            {title.includes('{match}') && (
+              <p className="text-[10px] mt-1" style={{ color: 'var(--primary)' }}>Preview: <strong>{sampleSubst(title)}</strong></p>
+            )}
+          </div>
+          <div>
+            <label className="block text-[11px] font-medium mb-1" style={{ color: '#475569' }}>Description template</label>
+            <textarea
+              value={description}
+              onChange={e => setDescription(e.target.value)}
+              rows={2}
+              placeholder="Find {match} aircond services. Same-day install…"
+              className="w-full px-2.5 py-1.5 text-xs rounded border outline-none focus:border-[var(--primary)] resize-y"
+              style={{ borderColor: '#e2e8f0', background: 'white' }}
+            />
+            {description.includes('{match}') && (
+              <p className="text-[10px] mt-1" style={{ color: 'var(--primary)' }}>Preview: <strong>{sampleSubst(description)}</strong></p>
+            )}
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={save}
+              disabled={saving}
+              className="text-[11px] font-medium px-2.5 h-7 rounded text-white transition-opacity disabled:opacity-40 hover:opacity-90"
+              style={{ background: 'var(--primary)' }}
+            >
+              {saving ? 'Saving…' : 'Save'}
+            </button>
+            <button
+              type="button"
+              onClick={remove}
+              className="text-[11px] font-medium px-2.5 h-7 rounded border transition-colors hover:bg-red-50 hover:border-red-200 hover:text-red-600"
+              style={{ borderColor: '#e2e8f0', color: '#94a3b8', background: 'white' }}
+            >
+              Remove
+            </button>
+            <p className="text-[10px] ml-auto" style={{ color: '#94a3b8' }}>Use <code className="font-mono">{'{match}'}</code> to insert the wildcard portion.</p>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ---------------------------------------------------------------------------
 // Heading detail — per-level breakdown + structural recommendation
 // ---------------------------------------------------------------------------
 
@@ -1504,8 +1663,14 @@ function SeoOverrideModal({ domain, row, onClose, onSaved }: { domain: string; r
   const [path, setPath] = useState(row.path ?? '/')
   const [title, setTitle] = useState(row.title ?? '')
   const [description, setDescription] = useState(row.description ?? '')
+  const [isPattern, setIsPattern] = useState(row.is_pattern ?? false)
   const [saving, setSaving] = useState(false)
   const language: Language = (row.language as Language) ?? 'en'
+
+  // Live preview of how the {match} placeholder substitutes for a pattern.
+  const previewCapture = isPattern ? 'shah-alam' : ''
+  const titlePreview = isPattern && previewCapture ? title.replace(/\{match\}/g, 'Shah Alam') : title
+  const descPreview = isPattern && previewCapture ? description.replace(/\{match\}/g, 'Shah Alam') : description
 
   async function save() {
     setSaving(true)
@@ -1517,6 +1682,7 @@ function SeoOverrideModal({ domain, row, onClose, onSaved }: { domain: string; r
           website: domain,
           path: path.trim() || '/',
           language,
+          is_pattern: isPattern,
           title: title.trim() || null,
           description: description.trim() || null,
         }),
@@ -1526,7 +1692,7 @@ function SeoOverrideModal({ domain, row, onClose, onSaved }: { domain: string; r
         toast.error(data.error ?? 'Save failed', 'Save failed')
         return
       }
-      toast.success(`Saved override for ${data.path}`, 'SEO override saved')
+      toast.success(`Saved ${data.is_pattern ? 'pattern' : 'override'} for ${data.path}`, 'SEO override saved')
       onSaved()
     } finally {
       setSaving(false)
@@ -1544,17 +1710,34 @@ function SeoOverrideModal({ domain, row, onClose, onSaved }: { domain: string; r
         </div>
 
         <div className="px-5 py-4 space-y-4">
+          <label className="flex items-start gap-2 text-xs cursor-pointer rounded-md p-2.5" style={{ background: '#fafbfc', border: '1px solid #f1f5f9' }}>
+            <input
+              type="checkbox"
+              checked={isPattern}
+              onChange={e => setIsPattern(e.target.checked)}
+              className="mt-0.5"
+            />
+            <div>
+              <p className="font-medium" style={{ color: 'var(--foreground)' }}>Apply to many pages with a pattern</p>
+              <p className="text-[11px] mt-0.5" style={{ color: '#64748b' }}>Use <code className="font-mono">*</code> as a wildcard (e.g. <code className="font-mono">/aircond-service-*</code>) and <code className="font-mono">{'{match}'}</code> in the title/description to insert the captured value (e.g. <code className="font-mono">{'{match} Aircond Service | Brand'}</code> → <em>Shah Alam Aircond Service | Brand</em>).</p>
+            </div>
+          </label>
+
           <div>
-            <label className="block text-xs font-medium mb-1.5" style={{ color: '#475569' }}>Page path</label>
+            <label className="block text-xs font-medium mb-1.5" style={{ color: '#475569' }}>{isPattern ? 'Path pattern' : 'Page path'}</label>
             <input
               type="text"
               value={path}
               onChange={e => setPath(e.target.value)}
-              placeholder="/products"
-              className="w-full h-9 px-3 text-sm rounded-md border outline-none focus:border-[var(--primary)]"
+              placeholder={isPattern ? '/aircond-service-*' : '/products'}
+              className="w-full h-9 px-3 text-sm rounded-md border outline-none focus:border-[var(--primary)] font-mono"
               style={{ borderColor: '#e2e8f0', background: 'white' }}
             />
-            <p className="text-[10px] mt-1" style={{ color: '#94a3b8' }}>Use a leading slash. Examples: <code>/products</code>, <code>/blog/some-post</code>.</p>
+            <p className="text-[10px] mt-1" style={{ color: '#94a3b8' }}>
+              {isPattern
+                ? <>Must contain a single <code>*</code> wildcard. The matched portion becomes <code>{'{match}'}</code>.</>
+                : <>Use a leading slash. Examples: <code>/products</code>, <code>/blog/some-post</code>.</>}
+            </p>
           </div>
 
           <div>
@@ -1563,10 +1746,13 @@ function SeoOverrideModal({ domain, row, onClose, onSaved }: { domain: string; r
               type="text"
               value={title}
               onChange={e => setTitle(e.target.value)}
-              placeholder="Leave blank to use the live title"
+              placeholder={isPattern ? '{match} Aircond Service | Brand' : 'Leave blank to use the live title'}
               className="w-full h-9 px-3 text-sm rounded-md border outline-none focus:border-[var(--primary)]"
               style={{ borderColor: '#e2e8f0', background: 'white' }}
             />
+            {isPattern && title.includes('{match}') && (
+              <p className="text-[10px] mt-1" style={{ color: 'var(--primary)' }}>Preview: <strong>{titlePreview}</strong></p>
+            )}
           </div>
 
           <div>
@@ -1575,12 +1761,15 @@ function SeoOverrideModal({ domain, row, onClose, onSaved }: { domain: string; r
               value={description}
               onChange={e => setDescription(e.target.value)}
               rows={3}
-              placeholder="Leave blank to use the live description"
+              placeholder={isPattern ? 'Find {match} aircond services. Same-day install…' : 'Leave blank to use the live description'}
               className="w-full px-3 py-2 text-sm rounded-md border outline-none focus:border-[var(--primary)] resize-y"
               style={{ borderColor: '#e2e8f0', background: 'white' }}
             />
+            {isPattern && description.includes('{match}') && (
+              <p className="text-[10px] mt-1" style={{ color: 'var(--primary)' }}>Preview: <strong>{descPreview}</strong></p>
+            )}
           </div>
-          <p className="text-[10px]" style={{ color: '#94a3b8' }}>Once added, the page appears in the Step 2 list and you can fill in title, description, and alt text from there.</p>
+          <p className="text-[10px]" style={{ color: '#94a3b8' }}>{isPattern ? 'Pattern overrides apply to every URL that matches. Exact-path overrides always win when both exist.' : 'Once added, the page appears in the Step 2 list and you can fill in title, description, and alt text from there.'}</p>
         </div>
 
         <div className="px-5 py-3 flex items-center justify-end gap-2" style={{ borderTop: '1px solid #e2e8f0', background: '#f8fafc' }}>

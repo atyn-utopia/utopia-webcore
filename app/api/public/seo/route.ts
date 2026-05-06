@@ -1,5 +1,6 @@
 import { createServiceClient } from '@/lib/supabase/service'
 import { NextResponse } from 'next/server'
+import { matchPattern, substituteMatch } from '@/lib/seoPattern'
 
 /**
  * PUBLIC endpoint — no auth required.
@@ -53,26 +54,61 @@ export async function GET(request: Request) {
 
   if (path) {
     const normalisedPath = normalizePath(path)
-    // Look up the requested language first, then fall back to 'en'. Return
-    // whichever was matched so the designer site can record it (e.g. for
-    // <link rel="alternate"> hints if it cares).
+    // Look up the requested language first, then fall back to 'en'. Within
+    // each language, exact-path rows beat pattern rows. Return whichever
+    // was matched so the designer site can record it.
     const langOrder = requestedLang && requestedLang !== 'en' ? [requestedLang, 'en'] : ['en']
+
     for (const lang of langOrder) {
-      const { data } = await service
+      // 1. Exact match
+      const { data: exact } = await service
         .from('seo_overrides')
-        .select('title, description, og_image, language')
+        .select('title, description, og_image, language, is_pattern, path')
         .eq('website', website)
         .eq('path', normalisedPath)
         .eq('language', lang)
+        .eq('is_pattern', false)
         .maybeSingle()
-      if (data) return NextResponse.json(data, { headers: CORS })
+      if (exact) {
+        return NextResponse.json({
+          title: exact.title,
+          description: exact.description,
+          og_image: exact.og_image,
+          language: exact.language,
+        }, { headers: CORS })
+      }
+
+      // 2. Pattern fallback — pull all pattern rows for this lang and walk them.
+      // Order by path length descending so more specific patterns
+      // (e.g. /aircond-service-* beats /*) win.
+      const { data: patterns } = await service
+        .from('seo_overrides')
+        .select('title, description, og_image, language, path')
+        .eq('website', website)
+        .eq('language', lang)
+        .eq('is_pattern', true)
+      if (patterns && patterns.length > 0) {
+        const sorted = [...patterns].sort((a, b) => (b.path?.length ?? 0) - (a.path?.length ?? 0))
+        for (const row of sorted) {
+          const capture = matchPattern(row.path as string, normalisedPath)
+          if (capture !== null) {
+            return NextResponse.json({
+              title: substituteMatch(row.title, capture),
+              description: substituteMatch(row.description, capture),
+              og_image: row.og_image,
+              language: row.language,
+              matched_pattern: row.path,
+            }, { headers: CORS })
+          }
+        }
+      }
     }
     return NextResponse.json({ error: 'No override' }, { status: 404, headers: CORS })
   }
 
   const { data, error } = await service
     .from('seo_overrides')
-    .select('path, language, title, description, og_image, updated_at')
+    .select('path, language, title, description, og_image, is_pattern, updated_at')
     .eq('website', website)
     .order('path')
   if (error) return NextResponse.json({ error: error.message }, { status: 500, headers: CORS })

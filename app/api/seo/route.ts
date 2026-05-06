@@ -55,7 +55,7 @@ export async function GET(request: Request) {
   const service = createServiceClient()
   const { data, error } = await service
     .from('seo_overrides')
-    .select('id, website, path, language, title, description, og_image, updated_at')
+    .select('id, website, path, language, title, description, og_image, is_pattern, updated_at')
     .eq('website', website)
     .order('path')
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
@@ -70,17 +70,31 @@ export async function POST(request: Request) {
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const body = await request.json().catch(() => ({}))
-  const { website, path, language, title, description, og_image } = body as Record<string, unknown>
+  const { website, path, language, title, description, og_image, is_pattern } = body as Record<string, unknown>
   if (typeof website !== 'string' || !website) return NextResponse.json({ error: 'website is required' }, { status: 400 })
   const access = await checkAccess(user.id, website)
   if (!access.ok) return NextResponse.json({ error: access.error }, { status: access.status })
 
-  const normalized = normalizePath(typeof path === 'string' ? path : '/')
+  const isPattern = is_pattern === true
+  // Pattern paths skip the trailing-slash normalisation since the wildcard
+  // could legitimately appear at the end. Exact paths still go through.
+  const rawPath = typeof path === 'string' ? path.trim() : '/'
+  const normalized = isPattern
+    ? (rawPath.startsWith('/') ? rawPath : `/${rawPath}`)
+    : normalizePath(rawPath)
+  if (isPattern && !normalized.includes('*')) {
+    return NextResponse.json({ error: 'Pattern paths must contain a `*` wildcard' }, { status: 400 })
+  }
+  if (!isPattern && normalized.includes('*')) {
+    return NextResponse.json({ error: 'Path contains `*` — set is_pattern=true to register it as a pattern' }, { status: 400 })
+  }
+
   const lang = normalizeLanguage(language)
   const row: Record<string, unknown> = {
     website,
     path: normalized,
     language: lang,
+    is_pattern: isPattern,
     title: typeof title === 'string' && title.trim() ? title.trim() : null,
     description: typeof description === 'string' && description.trim() ? description.trim() : null,
     updated_at: new Date().toISOString(),
