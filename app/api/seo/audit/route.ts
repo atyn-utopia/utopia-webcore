@@ -31,7 +31,7 @@ interface AuditResult {
     ogDescription: string | null
     twitterImage: string | null
   }
-  headings: { h1Count: number; total: number; h1Texts: string[] }
+  headings: { h1Count: number; total: number; h1Texts: string[]; byLevel?: { h1: number; h2: number; h3: number; h4: number; h5: number; h6: number } }
   images: {
     total: number
     missingAlt: number
@@ -42,7 +42,7 @@ interface AuditResult {
   issues: AuditIssue[]
 }
 
-function audit(html: string, url: string): Omit<AuditResult, 'url' | 'fetchedAt' | 'ok' | 'status' | 'error'> {
+function audit(html: string): Omit<AuditResult, 'url' | 'fetchedAt' | 'ok' | 'status' | 'error'> {
   const $ = cheerio.load(html)
   const issues: AuditIssue[] = []
 
@@ -73,13 +73,27 @@ function audit(html: string, url: string): Omit<AuditResult, 'url' | 'fetchedAt'
   if (!ogTitle) issues.push({ type: 'info', category: 'social', message: 'No og:title — falls back to the page title for link previews.' })
   if (!ogDescription) issues.push({ type: 'info', category: 'social', message: 'No og:description — falls back to the meta description.' })
 
-  // Headings
+  // Headings — count by level so the UI can flag missing structure (a page
+  // with only an <h1> usually means sub-sections aren't marked up properly).
   const h1List = $('h1').map((_, el) => $(el).text().trim()).get().filter(Boolean)
-  const totalHeadings = $('h1, h2, h3, h4, h5, h6').length
+  const byLevel = {
+    h1: $('h1').length,
+    h2: $('h2').length,
+    h3: $('h3').length,
+    h4: $('h4').length,
+    h5: $('h5').length,
+    h6: $('h6').length,
+  }
+  const totalHeadings = byLevel.h1 + byLevel.h2 + byLevel.h3 + byLevel.h4 + byLevel.h5 + byLevel.h6
   if (h1List.length === 0) issues.push({ type: 'error', category: 'headings', message: 'No <h1> on the page.' })
   else if (h1List.length > 1) issues.push({ type: 'warn', category: 'headings', message: `Multiple <h1> elements (${h1List.length}). Use one main heading per page.` })
+  if (h1List.length === 1 && byLevel.h2 === 0) issues.push({ type: 'warn', category: 'headings', message: 'Only an <h1> — no <h2> sub-sections. Long pages should break content into <h2> sections so search engines understand the structure.' })
+  if (byLevel.h3 > 0 && byLevel.h2 === 0) issues.push({ type: 'warn', category: 'headings', message: 'Skipped heading level — <h3> elements exist without any <h2>. Use h1 → h2 → h3 in order.' })
 
-  // Images
+  // Images — return up to MAX_SAMPLES so the UI can accurately track which
+  // images still need alt text. Capped (vs unlimited) only to keep the audit
+  // payload bounded on extreme pages.
+  const MAX_SAMPLES = 200
   const imgs = $('img')
   let missingAlt = 0
   let emptyAlt = 0
@@ -89,10 +103,10 @@ function audit(html: string, url: string): Omit<AuditResult, 'url' | 'fetchedAt'
     const altAttr = $(el).attr('alt')
     if (altAttr === undefined) {
       missingAlt++
-      if (samples.length < 8) samples.push({ src, alt: null, reason: 'missing' })
+      if (samples.length < MAX_SAMPLES) samples.push({ src, alt: null, reason: 'missing' })
     } else if (altAttr.trim() === '') {
       emptyAlt++
-      if (samples.length < 8) samples.push({ src, alt: '', reason: 'empty' })
+      if (samples.length < MAX_SAMPLES) samples.push({ src, alt: '', reason: 'empty' })
     }
   })
 
@@ -112,7 +126,7 @@ function audit(html: string, url: string): Omit<AuditResult, 'url' | 'fetchedAt'
       ogDescription,
       twitterImage,
     },
-    headings: { h1Count: h1List.length, total: totalHeadings, h1Texts: h1List.slice(0, 5) },
+    headings: { h1Count: h1List.length, total: totalHeadings, h1Texts: h1List.slice(0, 5), byLevel },
     images: { total: imgs.length, missingAlt, emptyAlt, samples },
     issues,
   }
@@ -189,7 +203,7 @@ export async function POST(request: Request) {
     return NextResponse.json(result)
   }
 
-  const parsed = audit(html, url)
+  const parsed = audit(html)
   const result: AuditResult = {
     url,
     fetchedAt: new Date().toISOString(),

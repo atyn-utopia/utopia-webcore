@@ -34,7 +34,7 @@ interface AuditResult {
   status?: number
   error?: string
   meta: { title: string | null; titleLength: number; description: string | null; descriptionLength: number; canonical: string | null; robots: string | null; ogImage: string | null; ogTitle: string | null; ogDescription: string | null; twitterImage: string | null }
-  headings: { h1Count: number; total: number; h1Texts: string[] }
+  headings: { h1Count: number; total: number; h1Texts: string[]; byLevel?: { h1: number; h2: number; h3: number; h4: number; h5: number; h6: number } }
   images: { total: number; missingAlt: number; emptyAlt: number; samples: { src: string; alt: string | null; reason: 'missing' | 'empty' }[] }
   issues: AuditIssue[]
 }
@@ -145,7 +145,7 @@ function SeoInner() {
   return (
     <div>
       <PageHeader
-        title="The SEO Setup Checklist"
+        title="SEO Setup Checklist"
         description={<span>Complete all SEO tasks to help <code className="font-mono text-xs px-1.5 py-0.5 rounded" style={{ background: '#f1f5f9', color: '#475569' }}>{domain}</code> get found in search results and AI chat responses.</span>}
       />
 
@@ -496,13 +496,23 @@ function Step1Card({
 
   const ogStatus: TaskStatus = override?.og_image || audit?.meta.ogImage ? 'done' : audit ? 'warn' : 'unknown'
 
-  const h1Status: TaskStatus = audit ? (audit.headings.h1Count === 1 ? 'done' : audit.headings.h1Count === 0 ? 'error' : 'warn') : 'unknown'
+  // Heading status: needs exactly one h1 AND at least one h2 sub-section.
+  // h1=1 with no h2 = warn (only the page title, no structure).
+  const headingStatus: TaskStatus = audit
+    ? audit.headings.h1Count === 0
+      ? 'error'
+      : audit.headings.h1Count > 1
+        ? 'warn'
+        : (audit.headings.byLevel?.h2 ?? 0) === 0
+          ? 'warn'
+          : 'done'
+    : 'unknown'
 
   const indexStatus: TaskStatus = audit ? (audit.meta.robots && /noindex/i.test(audit.meta.robots) ? 'error' : 'done') : 'unknown'
 
   const canonicalStatus: TaskStatus = audit ? (audit.meta.canonical ? 'done' : 'warn') : 'unknown'
 
-  const tasks: TaskStatus[] = [titleStatus, descStatus, ogStatus, h1Status, indexStatus, canonicalStatus]
+  const tasks: TaskStatus[] = [titleStatus, descStatus, ogStatus, headingStatus, indexStatus, canonicalStatus]
   const done = tasks.filter(s => s === 'done').length
 
   return (
@@ -545,30 +555,18 @@ function Step1Card({
       </Task>
 
       <Task
-        status={h1Status}
-        title="Add an <h1> heading to the homepage"
-        hint={audit ? `${audit.headings.h1Count} h1${audit.headings.h1Count === 1 ? '' : 's'} found` : undefined}
+        status={headingStatus}
+        title="Use proper heading structure (<h1>, <h2>, <h3>…)"
+        hint={audit ? `${audit.headings.total} heading${audit.headings.total === 1 ? '' : 's'} on page` : undefined}
       >
-        <ReadOnlyExplainer
-          why="A single, descriptive <h1> tells Google and screen readers what the page is about."
-          how={audit?.headings.h1Count === 0
-            ? 'No <h1> on the homepage. Update the designer code to add one — webcore can\'t inject headings remotely.'
-            : audit && audit.headings.h1Count > 1
-              ? `Found ${audit.headings.h1Count} <h1> tags. Use only one main heading per page.`
-              : 'Looks good — one <h1> per page is best.'}
-        />
+        <HeadingDetail audit={audit} />
       </Task>
 
       <Task
         status={indexStatus}
         title="Allow indexing to make this homepage visible in search results"
       >
-        <ReadOnlyExplainer
-          why="If the page sets robots=noindex, search engines will skip it entirely."
-          how={audit?.meta.robots && /noindex/i.test(audit.meta.robots)
-            ? `The page is currently set to "noindex". Remove this from the <meta name="robots"> tag in the designer code.`
-            : 'No "noindex" detected — the page is open for indexing.'}
-        />
+        <IndexingDetail domain={domain} path="/" robots={audit?.meta.robots ?? null} />
       </Task>
 
       <Task
@@ -650,9 +648,8 @@ function Step2Card({
   // Per-task tally:
   //   - title set (override.title not null)
   //   - description set
-  //   - alt: for the homepage we use the audit's missingAlt count; for other
-  //     paths we don't have audit data, so just show "—".
-  const homepageMissingAlt = audit?.images.missingAlt ?? 0
+  //   - alt: for the homepage we use the audit's samples (now uncapped at 200)
+  //     compared against saved overrides. Other paths don't have audit data.
   const altOverrideSrcs = new Set(altOverrides.map(a => a.image_src))
 
   let totalTasks = 0
@@ -664,8 +661,11 @@ function Step2Card({
     if (o?.description) doneTasks++
     if (path === '/') {
       totalTasks += 1
-      const remainingMissing = audit ? audit.images.samples.filter(s => s.reason === 'missing' && !altOverrideSrcs.has(s.src)).length : 0
-      if (audit && remainingMissing === 0 && homepageMissingAlt === 0) doneTasks++
+      // Done = no audit-found missing images remain uncovered by overrides.
+      // (Sample cap is 200 in the audit endpoint so this reflects reality
+      // unless the page has >200 images, which would be extreme.)
+      const stillMissing = audit ? audit.images.samples.filter(s => s.reason === 'missing' && !altOverrideSrcs.has(s.src)).length : Infinity
+      if (audit && stillMissing === 0) doneTasks++
     }
   }
 
@@ -698,15 +698,18 @@ function Step2Card({
             >
               <DescriptionEditor domain={domain} path={path} current={path === '/' ? audit?.meta.description : null} override={o?.description ?? null} otherFields={o} onSaved={onRefresh} />
             </Task>
-            {path === '/' && audit && (
+            {path === '/' && audit && (() => {
+              const stillMissing = audit.images.samples.filter(s => s.reason === 'missing' && !altOverrideSrcs.has(s.src)).length
+              return (
               <Task
-                status={(homepageMissingAlt === 0 || audit.images.samples.filter(s => s.reason === 'missing' && !altOverrideSrcs.has(s.src)).length === 0) ? 'done' : 'error'}
+                status={stillMissing === 0 ? 'done' : 'error'}
                 title="Add alt text to all images on the homepage"
-                hint={audit.images.missingAlt > 0 ? `${audit.images.missingAlt} missing` : undefined}
+                hint={stillMissing > 0 ? `${stillMissing} still missing` : undefined}
               >
                 <AltTextEditor domain={domain} audit={audit} altOverrides={altOverrides} onRefresh={onRefresh} />
               </Task>
-            )}
+              )
+            })()}
           </div>
         )
       })}
@@ -1293,6 +1296,102 @@ function AltRow({
 // ---------------------------------------------------------------------------
 // Read-only explainer — for tasks webcore can't fix remotely (h1, robots, canonical)
 // ---------------------------------------------------------------------------
+
+// ---------------------------------------------------------------------------
+// Heading detail — per-level breakdown + structural recommendation
+// ---------------------------------------------------------------------------
+
+function HeadingDetail({ audit }: { audit: AuditResult | null }) {
+  if (!audit) return <p className="text-xs" style={{ color: '#94a3b8' }}>Audit hasn&apos;t finished.</p>
+  const levels = audit.headings.byLevel ?? { h1: audit.headings.h1Count, h2: 0, h3: 0, h4: 0, h5: 0, h6: 0 }
+  const tips: string[] = []
+  if (levels.h1 === 0) tips.push('Add exactly one <h1> — the page\'s main title.')
+  else if (levels.h1 > 1) tips.push(`Reduce to one <h1> — found ${levels.h1}. Use <h2>/<h3> for sub-sections.`)
+  if (levels.h1 === 1 && levels.h2 === 0) tips.push('Break the page content into <h2> sections so search engines understand the hierarchy.')
+  if (levels.h3 > 0 && levels.h2 === 0) tips.push('Skipped level — <h3> appears without an <h2>. Use h1 → h2 → h3 in order.')
+  if (tips.length === 0) tips.push('Heading structure looks healthy.')
+
+  return (
+    <div className="space-y-3">
+      <div>
+        <h4 className="text-xs font-semibold" style={{ color: 'var(--foreground)' }}>Why it&apos;s important</h4>
+        <p className="text-xs mt-1" style={{ color: '#475569' }}>Headings tell Google and screen readers how the page is organised. A single <code className="font-mono text-[11px]">h1</code> describes the page; <code className="font-mono text-[11px]">h2</code>/<code className="font-mono text-[11px]">h3</code> mark sub-sections. Skipping levels or dumping everything into one heading hurts both SEO and accessibility.</p>
+      </div>
+
+      <div className="grid grid-cols-6 gap-1.5">
+        {(['h1', 'h2', 'h3', 'h4', 'h5', 'h6'] as const).map(l => (
+          <div key={l} className="rounded-md p-2 text-center" style={{ background: levels[l] > 0 ? '#eff6ff' : '#fafbfc', border: `1px solid ${levels[l] > 0 ? '#bfdbfe' : '#f1f5f9'}` }}>
+            <p className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: levels[l] > 0 ? 'var(--primary)' : '#cbd5e1' }}>{l}</p>
+            <p className="text-base font-semibold tabular-nums" style={{ color: levels[l] > 0 ? 'var(--foreground)' : '#cbd5e1' }}>{levels[l]}</p>
+          </div>
+        ))}
+      </div>
+
+      {audit.headings.h1Texts.length > 0 && (
+        <div>
+          <p className="text-[11px] font-semibold uppercase tracking-wider mb-1" style={{ color: '#94a3b8' }}>Current h1 text</p>
+          <ul className="space-y-1">
+            {audit.headings.h1Texts.map((t, i) => (
+              <li key={i} className="text-xs px-2 py-1 rounded font-mono truncate" style={{ background: '#fafbfc', border: '1px solid #f1f5f9', color: '#475569' }}>{t}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      <div>
+        <h4 className="text-xs font-semibold" style={{ color: 'var(--foreground)' }}>How to do it</h4>
+        <ul className="text-xs space-y-1 mt-1" style={{ color: '#475569' }}>
+          {tips.map((t, i) => <li key={i}>· {t}</li>)}
+        </ul>
+        <p className="text-[10px] mt-2" style={{ color: '#94a3b8' }}>Headings live in the designer site&apos;s code — webcore can&apos;t inject them remotely. Update the page templates and re-run the audit.</p>
+      </div>
+    </div>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// Indexing detail — robots check + GSC URL Inspection deep link
+// ---------------------------------------------------------------------------
+
+function IndexingDetail({ domain, path, robots }: { domain: string; path: string; robots: string | null }) {
+  const url = `https://${domain}${path === '/' ? '' : path}`
+  const noindex = robots ? /noindex/i.test(robots) : false
+  // GSC URL Inspection deep link — opens the inspect view for the given URL
+  // in the user's already-authenticated GSC session. They can click "Request
+  // indexing" from there. The Indexing API itself is gated to job postings
+  // and livestreams so we can't trigger crawls server-side.
+  const gscDomain = domain.startsWith('www.') ? `sc-domain:${domain.replace(/^www\./, '')}` : `https://${domain}/`
+  const inspectUrl = `https://search.google.com/search-console/inspect?resource_id=${encodeURIComponent(gscDomain)}&id=${encodeURIComponent(url)}`
+
+  return (
+    <div className="space-y-3">
+      <div>
+        <h4 className="text-xs font-semibold" style={{ color: 'var(--foreground)' }}>Why it&apos;s important</h4>
+        <p className="text-xs mt-1" style={{ color: '#475569' }}>If the page sets <code className="font-mono text-[11px]">robots=noindex</code>, search engines will skip it entirely. Once it&apos;s open for indexing, you can ask Google to crawl it sooner via Search Console&apos;s URL Inspection tool.</p>
+      </div>
+      <div>
+        <h4 className="text-xs font-semibold" style={{ color: 'var(--foreground)' }}>How to do it</h4>
+        <p className="text-xs mt-1" style={{ color: noindex ? '#b91c1c' : '#475569' }}>
+          {noindex
+            ? 'The page is currently set to "noindex". Remove this from the <meta name="robots"> tag in the designer code, then redeploy.'
+            : 'No "noindex" detected — the page is open for indexing.'}
+        </p>
+        <a
+          href={inspectUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-1.5 text-xs font-medium px-3 h-8 rounded-full text-white transition-opacity hover:opacity-90 mt-3"
+          style={{ background: 'var(--primary)' }}
+        >
+          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8"><path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+          Request indexing on Google
+          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
+        </a>
+        <p className="text-[10px] mt-2" style={{ color: '#94a3b8' }}>Opens Search Console&apos;s URL Inspection for <code className="font-mono">{url}</code>. Sign in with the Google account that owns this property, then click <strong>Request Indexing</strong> on the inspection page.</p>
+      </div>
+    </div>
+  )
+}
 
 function ReadOnlyExplainer({ why, how }: { why: string; how: string }) {
   return (
