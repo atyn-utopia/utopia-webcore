@@ -97,6 +97,7 @@ export default function Breadcrumb() {
 
       if (pathname === '/integrations') return [...crumbs, siteCrumb, { label: 'Integrations' }]
       if (pathname === '/site-settings') return [...crumbs, siteCrumb, { label: 'Settings' }]
+      if (pathname === '/seo') return [...crumbs, siteCrumb, { label: 'SEO' }]
       if (pathname === '/analytics') return [...crumbs, siteCrumb, { label: 'Analytics' }]
     }
 
@@ -123,6 +124,7 @@ export default function Breadcrumb() {
 
     if (pathname === '/integrations') return [{ label: 'Integrations' }]
     if (pathname === '/site-settings') return [{ label: 'Settings' }]
+    if (pathname === '/seo') return [{ label: 'SEO' }]
     if (pathname === '/analytics') return [{ label: 'Analytics' }]
 
     // /all/* power-user cross-site views

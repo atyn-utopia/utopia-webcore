@@ -52,6 +52,7 @@ export async function downloadSetupBundle({ domain, apiKey, permissions, revalid
   zip.file('webcore-README.md', readmeMd({ domain }))
   zip.file('.env.local.example', envExample({ domain, apiKey, revalidateSecret }))
   zip.file('lib/webcore.ts', webcoreTs({ domain }))
+  zip.file('lib/webcoreSeo.ts', webcoreSeoTs({ domain }))
   zip.file('components/WebcoreTracker.tsx', trackerTsx({ domain }))
   zip.file('app/api/revalidate/route.ts', revalidateRouteTs())
   zip.file('webcore-TRACKING-GUIDE.md', trackingGuideMd())
@@ -82,7 +83,7 @@ export function fullSetupMarkdown({ domain, apiKey, permissions, revalidateSecre
 
 Please create the following files in my project exactly as written. Use the content between the "FILE:" delimiters verbatim. Do NOT ask me to confirm — just create them all, then do the integration work described at the bottom.
 
-${block('webcore-AGENTS.md', agentsMd({ domain, permList }))}${block('.env.local', envExample({ domain, apiKey, revalidateSecret }))}${block('lib/webcore.ts', webcoreTs({ domain }))}${block('components/WebcoreTracker.tsx', trackerTsx({ domain }))}${block('app/api/revalidate/route.ts', revalidateRouteTs())}${block('webcore-TRACKING-GUIDE.md', trackingGuideMd())}${block('AGENTS.md (stub — merge if file already exists)', agentsStub())}${sep}
+${block('webcore-AGENTS.md', agentsMd({ domain, permList }))}${block('.env.local', envExample({ domain, apiKey, revalidateSecret }))}${block('lib/webcore.ts', webcoreTs({ domain }))}${block('lib/webcoreSeo.ts', webcoreSeoTs({ domain }))}${block('components/WebcoreTracker.tsx', trackerTsx({ domain }))}${block('app/api/revalidate/route.ts', revalidateRouteTs())}${block('webcore-TRACKING-GUIDE.md', trackingGuideMd())}${block('AGENTS.md (stub — merge if file already exists)', agentsStub())}${sep}
 END OF FILES
 ${sep}
 
@@ -648,6 +649,89 @@ export function trackBlogClick(slug: string) {
   if (typeof window !== 'undefined' && window.uwc) {
     window.uwc('click', { label: \`blog-\${slug}\` })
   }
+}
+`
+}
+
+function webcoreSeoTs({ domain }: { domain: string }): string {
+  return `/**
+ * Utopia Webcore — per-page SEO overrides for ${domain}
+ *
+ * Lets the webcore admin override the meta title, meta description, and
+ * og:image for any URL on this site without touching this codebase.
+ *
+ * Usage in a Next.js App Router page:
+ *
+ *   // app/page.tsx
+ *   import { webcoreSeo } from '@/lib/webcoreSeo'
+ *   import type { Metadata } from 'next'
+ *
+ *   export async function generateMetadata(): Promise<Metadata> {
+ *     return await webcoreSeo({
+ *       path: '/',
+ *       fallback: {
+ *         title: 'Default page title',
+ *         description: 'Default description here.',
+ *         openGraph: { images: ['/share-default.jpg'] },
+ *       },
+ *     })
+ *   }
+ *
+ * For dynamic routes, pass the resolved path:
+ *
+ *   export async function generateMetadata({ params }) {
+ *     const { slug } = await params
+ *     return await webcoreSeo({ path: \\\`/blog/\\\${slug}\\\`, fallback: {...} })
+ *   }
+ *
+ * The lookup is tagged \\\`webcore-seo\\\` so when the admin edits an override
+ * in webcore the revalidation webhook flushes that tag and the next request
+ * rebuilds with the new metadata.
+ */
+import type { Metadata } from 'next'
+
+const BASE = process.env.WEBCORE_BASE_URL ?? 'https://utopia-webcore.vercel.app'
+const SITE = process.env.NEXT_PUBLIC_WEBCORE_DOMAIN ?? '${domain}'
+
+export interface WebcoreSeoOptions {
+  /** URL path to look up. Leading slash, no trailing slash (except root). */
+  path: string
+  /** Page-defined defaults to use when no override exists. */
+  fallback?: Metadata
+}
+
+interface OverridePayload {
+  title?: string | null
+  description?: string | null
+  og_image?: string | null
+}
+
+export async function webcoreSeo({ path, fallback = {} }: WebcoreSeoOptions): Promise<Metadata> {
+  const url = new URL(\\\`\\\${BASE}/api/public/seo\\\`)
+  url.searchParams.set('website', SITE)
+  url.searchParams.set('path', path)
+
+  let override: OverridePayload | null = null
+  try {
+    const res = await fetch(url, { next: { tags: ['webcore-seo'] } })
+    if (res.ok) override = await res.json() as OverridePayload
+  } catch {
+    // Network errors fall back to the page's own metadata silently.
+  }
+
+  if (!override) return fallback
+
+  // Merge: override wins over fallback for each set field, untouched fields
+  // keep whatever the fallback provided.
+  const merged: Metadata = { ...fallback }
+  if (override.title) merged.title = override.title
+  if (override.description) merged.description = override.description
+  if (override.og_image) {
+    const ogList = [{ url: override.og_image }]
+    merged.openGraph = { ...(fallback.openGraph ?? {}), images: ogList }
+    merged.twitter = { ...(fallback.twitter ?? {}), images: ogList }
+  }
+  return merged
 }
 `
 }

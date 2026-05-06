@@ -1,11 +1,12 @@
 import { createServiceClient } from '@/lib/supabase/service'
 
-export type RevalidateEntity = 'product' | 'phone_number' | 'blog_post'
+export type RevalidateEntity = 'product' | 'phone_number' | 'blog_post' | 'seo'
 
 const TAGS_BY_ENTITY: Record<RevalidateEntity, string[]> = {
   product: ['webcore-products'],
   phone_number: ['webcore-phones'],
   blog_post: ['webcore-blog'],
+  seo: ['webcore-seo'],
 }
 
 /**

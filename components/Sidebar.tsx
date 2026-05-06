@@ -180,6 +180,17 @@ const siteNavItems: SiteNavItem[] = [
     ),
   },
   {
+    basePath: '/seo',
+    label: 'SEO',
+    roles: ['admin', 'designer', 'external_designer'],
+    icon: (
+      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8">
+        <circle cx="11" cy="11" r="7" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35" />
+      </svg>
+    ),
+  },
+  {
     basePath: '/integrations',
     label: 'Integrations',
     roles: ['admin', 'designer', 'external_designer'],
