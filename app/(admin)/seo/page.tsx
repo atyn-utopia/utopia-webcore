@@ -22,6 +22,10 @@ interface Override {
 
 interface AltOverride { id: string; image_src: string; alt: string; updated_at: string }
 
+interface SiteProfile { website: string; brand_name: string; location: string; keywords: string[]; updated_at: string }
+
+interface SitemapResult { ok: boolean; source: 'sitemap' | 'sitemap_index' | 'fallback'; paths: string[]; error?: string }
+
 interface AuditIssue { type: 'error' | 'warn' | 'info'; category: 'meta' | 'images' | 'headings' | 'social'; message: string; detail?: string }
 interface AuditResult {
   url: string
@@ -59,6 +63,8 @@ function SeoInner() {
   const [audit, setAudit] = useState<AuditResult | null>(null)
   const [auditing, setAuditing] = useState(false)
   const [adding, setAdding] = useState(false)
+  const [profile, setProfile] = useState<SiteProfile | null>(null)
+  const [sitemap, setSitemap] = useState<SitemapResult | null>(null)
 
   function loadOverrides() {
     if (!domain) return
@@ -72,6 +78,20 @@ function SeoInner() {
     fetch(`/api/seo/alt-overrides?website=${encodeURIComponent(domain)}`)
       .then(r => r.ok ? r.json() : [])
       .then(d => { if (Array.isArray(d)) setAltOverrides(d) })
+      .catch(() => {})
+  }
+  function loadProfile() {
+    if (!domain) return
+    fetch(`/api/seo/profile?website=${encodeURIComponent(domain)}`)
+      .then(r => r.ok ? r.json() : null)
+      .then(d => { if (d && typeof d === 'object') setProfile(d) })
+      .catch(() => {})
+  }
+  function loadSitemap() {
+    if (!domain) return
+    fetch(`/api/seo/sitemap?website=${encodeURIComponent(domain)}`)
+      .then(r => r.ok ? r.json() : null)
+      .then(d => { if (d) setSitemap(d) })
       .catch(() => {})
   }
   async function runAudit(path: string) {
@@ -102,6 +122,8 @@ function SeoInner() {
     if (!domain) return
     loadOverrides()
     loadAlts()
+    loadProfile()
+    loadSitemap()
     runAudit('/')
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [domain])
@@ -127,7 +149,7 @@ function SeoInner() {
         description={<span>Complete all SEO tasks to help <code className="font-mono text-xs px-1.5 py-0.5 rounded" style={{ background: '#f1f5f9', color: '#475569' }}>{domain}</code> get found in search results and AI chat responses.</span>}
       />
 
-      <BusinessInfoBar />
+      <BusinessInfoBar domain={domain} profile={profile} onSaved={loadProfile} />
 
       <div className="space-y-3 mt-4">
         <Step1Card
@@ -135,6 +157,7 @@ function SeoInner() {
           audit={audit}
           override={homepageOverride}
           auditing={auditing}
+          profile={profile}
           onRefresh={onRefresh}
           onRunAudit={() => runAudit('/')}
         />
@@ -143,6 +166,8 @@ function SeoInner() {
           overrides={overrides}
           altOverrides={altOverrides}
           audit={audit}
+          sitemap={sitemap}
+          profile={profile}
           onRefresh={onRefresh}
           onAdd={() => setAdding(true)}
         />
@@ -162,35 +187,145 @@ function SeoInner() {
 }
 
 // ---------------------------------------------------------------------------
-// Business info bar — placeholder for Phase 2 (brand/location/keywords schema)
+// Business info bar — brand / location / keywords with inline edit modal
 // ---------------------------------------------------------------------------
 
-function BusinessInfoBar() {
+function BusinessInfoBar({ domain, profile, onSaved }: { domain: string; profile: SiteProfile | null; onSaved: () => void }) {
+  const [editing, setEditing] = useState(false)
+  const brand = profile?.brand_name || '—'
+  const location = profile?.location || '—'
+  const keywords = profile && profile.keywords.length > 0 ? profile.keywords.join(', ') : '—'
+
   return (
-    <div className="rounded-xl border bg-white px-5 py-3 flex items-center gap-6 flex-wrap" style={{ borderColor: '#e2e8f0' }}>
-      <InfoCell label="Business or Brand Name" value="—" />
-      <span style={{ color: '#e2e8f0' }}>|</span>
-      <InfoCell label="Location" value="—" />
-      <span style={{ color: '#e2e8f0' }}>|</span>
-      <InfoCell label="Keywords" value="—" wide />
-      <button
-        type="button"
-        title="Coming soon — brand profile lets the audit suggest titles and check keyword usage."
-        disabled
-        className="ml-auto w-7 h-7 rounded-full flex items-center justify-center disabled:cursor-not-allowed"
-        style={{ color: '#cbd5e1' }}
-      >
-        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
-      </button>
-    </div>
+    <>
+      <div className="rounded-xl border bg-white px-5 py-3 flex items-center gap-6 flex-wrap" style={{ borderColor: '#e2e8f0' }}>
+        <InfoCell label="Business or Brand Name" value={brand} />
+        <span style={{ color: '#e2e8f0' }}>|</span>
+        <InfoCell label="Location" value={location} />
+        <span style={{ color: '#e2e8f0' }}>|</span>
+        <InfoCell label="Keywords" value={keywords} wide />
+        <button
+          type="button"
+          onClick={() => setEditing(true)}
+          title="Edit brand profile"
+          className="ml-auto w-7 h-7 rounded-full flex items-center justify-center transition-colors hover:bg-slate-100"
+          style={{ color: 'var(--primary)' }}
+        >
+          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+        </button>
+      </div>
+      {editing && (
+        <BrandProfileModal
+          domain={domain}
+          profile={profile}
+          onClose={() => setEditing(false)}
+          onSaved={() => { setEditing(false); onSaved() }}
+        />
+      )}
+    </>
   )
 }
 
 function InfoCell({ label, value, wide }: { label: string; value: string; wide?: boolean }) {
   return (
-    <div className={`min-w-0 ${wide ? 'flex-1' : ''}`}>
-      <span className="text-xs font-semibold" style={{ color: 'var(--foreground)' }}>{label}</span>
+    <div className={`min-w-0 flex items-center ${wide ? 'flex-1' : ''}`}>
+      <span className="text-xs font-semibold whitespace-nowrap" style={{ color: 'var(--foreground)' }}>{label}</span>
       <span className="text-xs ml-1.5 truncate" style={{ color: '#94a3b8' }}>: {value}</span>
+    </div>
+  )
+}
+
+function BrandProfileModal({ domain, profile, onClose, onSaved }: { domain: string; profile: SiteProfile | null; onClose: () => void; onSaved: () => void }) {
+  const toast = useToast()
+  const [brandName, setBrandName] = useState(profile?.brand_name ?? '')
+  const [location, setLocation] = useState(profile?.location ?? '')
+  const [keywordsText, setKeywordsText] = useState((profile?.keywords ?? []).join(', '))
+  const [saving, setSaving] = useState(false)
+
+  async function save() {
+    setSaving(true)
+    try {
+      const keywords = keywordsText
+        .split(',')
+        .map(k => k.trim())
+        .filter(Boolean)
+        .slice(0, 32)
+      const res = await fetch('/api/seo/profile', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ website: domain, brand_name: brandName.trim(), location: location.trim(), keywords }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        toast.error(data.error ?? 'Save failed', 'Save failed')
+        return
+      }
+      toast.success('Brand profile saved.', 'Saved')
+      onSaved()
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center px-4" style={{ background: 'rgba(0,0,0,0.4)' }} onClick={onClose}>
+      <div className="w-full max-w-md rounded-xl bg-white shadow-2xl overflow-hidden" onClick={e => e.stopPropagation()}>
+        <div className="px-5 py-4 flex items-center justify-between" style={{ borderBottom: '1px solid #e2e8f0' }}>
+          <h2 className="text-base font-semibold" style={{ color: 'var(--foreground)' }}>Edit brand profile</h2>
+          <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-md transition-colors hover:bg-slate-100" style={{ color: '#94a3b8' }}>
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+          </button>
+        </div>
+
+        <div className="px-5 py-4 space-y-4">
+          <div>
+            <label className="block text-xs font-medium mb-1.5" style={{ color: '#475569' }}>Business or brand name</label>
+            <input
+              type="text"
+              value={brandName}
+              onChange={e => setBrandName(e.target.value)}
+              placeholder="e.g. Aircond Service & Pasang Aircond"
+              className="w-full h-9 px-3 text-sm rounded-md border outline-none focus:border-[var(--primary)]"
+              style={{ borderColor: '#e2e8f0', background: 'white' }}
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-medium mb-1.5" style={{ color: '#475569' }}>Location / market</label>
+            <input
+              type="text"
+              value={location}
+              onChange={e => setLocation(e.target.value)}
+              placeholder="e.g. Malaysia, Klang Valley"
+              className="w-full h-9 px-3 text-sm rounded-md border outline-none focus:border-[var(--primary)]"
+              style={{ borderColor: '#e2e8f0', background: 'white' }}
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-medium mb-1.5" style={{ color: '#475569' }}>Keywords (comma-separated)</label>
+            <textarea
+              value={keywordsText}
+              onChange={e => setKeywordsText(e.target.value)}
+              placeholder="aircond installation, aircond service, pasang aircond"
+              rows={3}
+              className="w-full px-3 py-2 text-sm rounded-md border outline-none focus:border-[var(--primary)] resize-y"
+              style={{ borderColor: '#e2e8f0', background: 'white' }}
+            />
+            <p className="text-[10px] mt-1" style={{ color: '#94a3b8' }}>These ground the AI title-suggestion endpoint and will surface in the audit&apos;s keyword check.</p>
+          </div>
+        </div>
+
+        <div className="px-5 py-3 flex items-center justify-end gap-2" style={{ borderTop: '1px solid #e2e8f0', background: '#f8fafc' }}>
+          <button onClick={onClose} className="text-xs font-medium px-3 h-9 rounded-md transition-colors hover:bg-slate-100" style={{ color: '#475569' }}>Cancel</button>
+          <button
+            onClick={save}
+            disabled={saving}
+            className="text-xs font-medium px-3 h-9 rounded-md text-white transition-opacity disabled:opacity-40 hover:opacity-90"
+            style={{ background: 'var(--primary)' }}
+          >
+            {saving ? 'Saving…' : 'Save'}
+          </button>
+        </div>
+      </div>
     </div>
   )
 }
@@ -336,6 +471,7 @@ function Step1Card({
   audit,
   override,
   auditing,
+  profile,
   onRefresh,
   onRunAudit,
 }: {
@@ -343,6 +479,7 @@ function Step1Card({
   audit: AuditResult | null
   override: Override | null
   auditing: boolean
+  profile: SiteProfile | null
   onRefresh: () => void
   onRunAudit: () => void
 }) {
@@ -396,7 +533,7 @@ function Step1Card({
         title="Set the homepage's title for search results"
         hint={audit?.meta.title ? `${audit.meta.titleLength} chars` : undefined}
       >
-        <TitleEditor domain={domain} path="/" current={audit?.meta.title} override={override?.title ?? null} otherFields={override} onSaved={onRefresh} />
+        <TitleEditor domain={domain} path="/" current={audit?.meta.title} override={override?.title ?? null} otherFields={override} profile={profile} onSaved={onRefresh} />
       </Task>
 
       <Task
@@ -482,6 +619,8 @@ function Step2Card({
   overrides,
   altOverrides,
   audit,
+  sitemap,
+  profile,
   onRefresh,
   onAdd,
 }: {
@@ -489,14 +628,24 @@ function Step2Card({
   overrides: Override[]
   altOverrides: AltOverride[]
   audit: AuditResult | null
+  sitemap: SitemapResult | null
+  profile: SiteProfile | null
   onRefresh: () => void
   onAdd: () => void
 }) {
-  // Group every path that's been touched (override exists) plus the homepage.
-  // Homepage always shown so users can edit it from here too.
+  // Page list = sitemap paths ∪ override paths ∪ homepage. The sitemap is the
+  // authoritative source of "every page that exists on this site"; overrides
+  // cover any extra pages an admin has registered manually.
   const paths = new Set<string>(['/'])
+  ;(sitemap?.paths ?? []).forEach(p => paths.add(p))
   overrides.forEach(o => paths.add(o.path))
-  const orderedPaths = [...paths].sort()
+  const orderedPaths = [...paths].sort((a, b) => a === '/' ? -1 : b === '/' ? 1 : a.localeCompare(b))
+  // Truncate the visible list to keep the section scannable. The "See all"
+  // affordance (next to the "Add page" button) reveals the rest.
+  const COLLAPSE_LIMIT = 5
+  const [showAll, setShowAll] = useState(false)
+  const visiblePaths = showAll ? orderedPaths : orderedPaths.slice(0, COLLAPSE_LIMIT)
+  const hiddenCount = orderedPaths.length - visiblePaths.length
 
   // Per-task tally:
   //   - title set (override.title not null)
@@ -528,7 +677,7 @@ function Step2Card({
       done={doneTasks}
       total={totalTasks}
     >
-      {orderedPaths.map(path => {
+      {visiblePaths.map(path => {
         const o = overrides.find(x => x.path === path) ?? null
         const friendly = path === '/' ? 'Homepage' : path
         return (
@@ -541,7 +690,7 @@ function Step2Card({
               status={o?.title ? 'done' : 'warn'}
               title={<span>Set the <strong>{friendly}</strong> page&apos;s title for search results</span>}
             >
-              <TitleEditor domain={domain} path={path} current={path === '/' ? audit?.meta.title : null} override={o?.title ?? null} otherFields={o} onSaved={onRefresh} />
+              <TitleEditor domain={domain} path={path} current={path === '/' ? audit?.meta.title : null} override={o?.title ?? null} otherFields={o} profile={profile} onSaved={onRefresh} />
             </Task>
             <Task
               status={o?.description ? 'done' : 'warn'}
@@ -562,7 +711,27 @@ function Step2Card({
         )
       })}
 
-      <div className="px-5 py-3 flex items-center justify-center" style={{ background: '#fafbfc' }}>
+      <div className="px-5 py-3 flex items-center justify-center gap-2 flex-wrap" style={{ background: '#fafbfc' }}>
+        {hiddenCount > 0 && (
+          <button
+            type="button"
+            onClick={() => setShowAll(true)}
+            className="text-xs font-medium px-3 h-8 rounded-full border transition-colors hover:bg-white"
+            style={{ borderColor: '#e2e8f0', color: 'var(--primary)', background: 'white' }}
+          >
+            See all tasks ({orderedPaths.length})
+          </button>
+        )}
+        {showAll && orderedPaths.length > COLLAPSE_LIMIT && (
+          <button
+            type="button"
+            onClick={() => setShowAll(false)}
+            className="text-xs font-medium px-3 h-8 rounded-full border transition-colors hover:bg-white"
+            style={{ borderColor: '#e2e8f0', color: '#64748b', background: 'white' }}
+          >
+            Collapse
+          </button>
+        )}
         <button
           type="button"
           onClick={onAdd}
@@ -572,6 +741,11 @@ function Step2Card({
           <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" /></svg>
           Add another page override
         </button>
+        {sitemap && (
+          <span className="text-[10px]" style={{ color: '#94a3b8' }}>
+            {sitemap.ok ? `Loaded ${sitemap.paths.length} pages from sitemap.xml` : `sitemap.xml not found — manually-added pages only`}
+          </span>
+        )}
       </div>
     </StepCard>
   )
@@ -635,10 +809,34 @@ interface OtherOverrideFields {
   og_image?: string | null
 }
 
-function TitleEditor({ domain, path, current, override, otherFields, onSaved }: { domain: string; path: string; current: string | null | undefined; override: string | null; otherFields: OtherOverrideFields | null; onSaved: () => void }) {
+function TitleEditor({ domain, path, current, override, otherFields, profile, onSaved }: { domain: string; path: string; current: string | null | undefined; override: string | null; otherFields: OtherOverrideFields | null; profile: SiteProfile | null; onSaved: () => void }) {
   const toast = useToast()
   const [value, setValue] = useState(override ?? current ?? '')
   const [saving, setSaving] = useState(false)
+  const [suggestions, setSuggestions] = useState<string[]>([])
+  const [suggesting, setSuggesting] = useState(false)
+  const [chosen, setChosen] = useState<string | null>(null)
+
+  async function suggest() {
+    setSuggesting(true)
+    try {
+      const res = await fetch('/api/seo/suggest-title', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ website: domain, path, current_title: value || current || '' }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        toast.error(data.error ?? 'Could not generate suggestions', 'Suggestion failed')
+        return
+      }
+      setSuggestions(Array.isArray(data.suggestions) ? data.suggestions : [])
+    } catch (e) {
+      toast.error((e as Error).message, 'Suggestion failed')
+    } finally {
+      setSuggesting(false)
+    }
+  }
 
   async function save() {
     setSaving(true)
@@ -668,6 +866,8 @@ function TitleEditor({ domain, path, current, override, otherFields, onSaved }: 
 
   const tooLong = value.length > 60
   const tooShort = value.length > 0 && value.length < 30
+  const hasKeywords = profile && profile.keywords.length > 0
+  const matchesKeyword = hasKeywords && value && profile!.keywords.some(k => value.toLowerCase().includes(k.toLowerCase()))
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -676,10 +876,30 @@ function TitleEditor({ domain, path, current, override, otherFields, onSaved }: 
         <p className="text-xs mb-3" style={{ color: '#475569' }}>A clear, concise title helps Google explain what this page offers and brings more relevant visitors.</p>
         <h4 className="text-xs font-semibold mb-1.5" style={{ color: 'var(--foreground)' }}>How to do it</h4>
         <p className="text-[11px] mb-2" style={{ color: '#64748b' }}>{current ? <>Current title: <span className="font-mono">{current}</span></> : 'No title currently set on the live page.'}</p>
+
+        {suggestions.length > 0 && (
+          <div className="mb-3 space-y-1.5 rounded-md p-2.5" style={{ background: 'white', border: '1px solid #e2e8f0' }}>
+            <p className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: '#94a3b8' }}>AI suggestions — click to use</p>
+            {suggestions.map((s, i) => (
+              <label key={i} className="flex items-start gap-2 text-xs cursor-pointer rounded px-1.5 py-1 hover:bg-slate-50" style={{ color: '#475569' }}>
+                <input
+                  type="radio"
+                  name={`title-suggestion-${path}`}
+                  checked={chosen === s}
+                  onChange={() => { setChosen(s); setValue(s) }}
+                  className="mt-0.5"
+                />
+                <span className="flex-1">{s}</span>
+                <span className="text-[10px] tabular-nums" style={{ color: '#94a3b8' }}>{s.length}</span>
+              </label>
+            ))}
+          </div>
+        )}
+
         <input
           type="text"
           value={value}
-          onChange={e => setValue(e.target.value)}
+          onChange={e => { setValue(e.target.value); setChosen(null) }}
           placeholder="Enter a title…"
           className="w-full h-9 px-3 text-sm rounded-md border outline-none focus:border-[var(--primary)]"
           style={{ borderColor: tooLong ? '#fecaca' : '#e2e8f0', background: 'white' }}
@@ -687,15 +907,40 @@ function TitleEditor({ domain, path, current, override, otherFields, onSaved }: 
         <p className="text-[10px] mt-1" style={{ color: tooLong ? '#b91c1c' : tooShort ? '#a16207' : '#94a3b8' }}>
           {value.length}/60 · {tooLong ? 'Google may truncate over 60 characters.' : tooShort ? 'Aim for 50–60 characters.' : 'Looking good.'}
         </p>
-        <button
-          type="button"
-          onClick={save}
-          disabled={saving || !value.trim()}
-          className="mt-3 text-xs font-medium px-3 h-8 rounded-full text-white transition-opacity disabled:opacity-40 hover:opacity-90"
-          style={{ background: 'var(--primary)' }}
-        >
-          {saving ? 'Saving…' : 'Apply & Publish'}
-        </button>
+
+        {hasKeywords && (
+          <div className="mt-2 flex items-center gap-1.5 text-[10px]">
+            <span className={matchesKeyword ? 'inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full' : 'inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full'}
+              style={{ background: matchesKeyword ? '#dcfce7' : '#fef3c7', color: matchesKeyword ? '#16a34a' : '#a16207' }}>
+              {matchesKeyword
+                ? <><svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg> includes a target keyword</>
+                : <><svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01M5.07 19h13.86c1.54 0 2.5-1.67 1.73-3L13.73 4c-.77-1.33-2.69-1.33-3.46 0L3.34 16c-.77 1.33.19 3 1.73 3z" /></svg> add at least one keyword</>}
+            </span>
+          </div>
+        )}
+
+        <div className="mt-3 flex items-center gap-2 flex-wrap">
+          <button
+            type="button"
+            onClick={save}
+            disabled={saving || !value.trim()}
+            className="text-xs font-medium px-3 h-8 rounded-full text-white transition-opacity disabled:opacity-40 hover:opacity-90"
+            style={{ background: 'var(--primary)' }}
+          >
+            {saving ? 'Saving…' : 'Apply & Publish'}
+          </button>
+          <button
+            type="button"
+            onClick={suggest}
+            disabled={suggesting}
+            className="inline-flex items-center gap-1.5 text-xs font-medium px-3 h-8 rounded-full border transition-colors hover:bg-slate-50 disabled:opacity-50"
+            style={{ borderColor: '#e2e8f0', color: '#475569', background: 'white' }}
+            title={hasKeywords ? 'Generate AI title suggestions' : 'Set keywords in the brand profile for better suggestions'}
+          >
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8"><path strokeLinecap="round" strokeLinejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" /></svg>
+            {suggesting ? 'Thinking…' : 'Suggest titles'}
+          </button>
+        </div>
       </div>
       <GooglePreview domain={domain} path={path} title={value || current || domain} description={otherFields?.description ?? null} />
     </div>
