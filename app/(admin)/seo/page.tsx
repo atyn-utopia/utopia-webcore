@@ -1,6 +1,6 @@
 'use client'
 
-import { Suspense, useEffect, useState } from 'react'
+import { Suspense, useEffect, useRef, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import PageHeader from '@/components/PageHeader'
 import { useToast } from '@/contexts/ToastContext'
@@ -80,7 +80,9 @@ function SeoInner() {
         description={<span>Per-page meta title, description, and social-share image for <code className="font-mono text-xs px-1.5 py-0.5 rounded" style={{ background: '#f1f5f9', color: '#475569' }}>{domain}</code>. Overrides are pushed live without redeploying the designer site.</span>}
       />
 
-      <div className="rounded-xl border bg-white" style={{ borderColor: '#e2e8f0' }}>
+      <AuditPanel domain={domain} />
+
+      <div className="mt-5 rounded-xl border bg-white" style={{ borderColor: '#e2e8f0' }}>
         <div className="px-5 py-3 flex items-center justify-between gap-3" style={{ borderBottom: '1px solid #f1f5f9' }}>
           <div>
             <h3 className="text-sm font-semibold" style={{ color: 'var(--foreground)' }}>Page overrides</h3>
@@ -164,7 +166,29 @@ function SeoOverrideModal({ domain, row, onClose, onSaved }: { domain: string; r
   const [description, setDescription] = useState(row.description ?? '')
   const [ogImage, setOgImage] = useState(row.og_image ?? '')
   const [saving, setSaving] = useState(false)
+  const [uploading, setUploading] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
   const isEdit = !!row.id
+
+  async function uploadOgImage(file: File) {
+    setUploading(true)
+    try {
+      const fd = new FormData()
+      fd.append('file', file)
+      const res = await fetch(`/api/seo/upload?website=${encodeURIComponent(domain)}`, { method: 'POST', body: fd })
+      const data = await res.json()
+      if (!res.ok) {
+        toast.error(data.error ?? 'Upload failed', 'Upload failed')
+        return
+      }
+      setOgImage(data.url)
+      toast.success('Image uploaded — remember to Save', 'Uploaded')
+    } catch (e) {
+      toast.error((e as Error).message, 'Upload failed')
+    } finally {
+      setUploading(false)
+    }
+  }
 
   async function save() {
     setSaving(true)
@@ -266,16 +290,52 @@ function SeoOverrideModal({ domain, row, onClose, onSaved }: { domain: string; r
                   <svg className="w-5 h-5" fill="none" stroke="#cbd5e1" viewBox="0 0 24 24" strokeWidth="1.5"><path strokeLinecap="round" strokeLinejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
                 )}
               </div>
-              <input
-                type="url"
-                value={ogImage}
-                onChange={e => setOgImage(e.target.value)}
-                placeholder="https://example.com/share.jpg"
-                className="flex-1 h-9 px-3 text-sm rounded-md border outline-none focus:border-[var(--primary)]"
-                style={{ borderColor: '#e2e8f0', background: 'white' }}
-              />
+              <div className="flex-1 min-w-0">
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/png,image/jpeg,image/webp,image/gif"
+                  className="hidden"
+                  onChange={e => {
+                    const f = e.target.files?.[0]
+                    if (f) uploadOgImage(f)
+                    if (fileInputRef.current) fileInputRef.current.value = ''
+                  }}
+                />
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={uploading || saving}
+                    className="inline-flex items-center gap-1.5 text-xs font-medium px-3 h-9 rounded-md border transition-colors hover:bg-slate-50 disabled:opacity-50 flex-shrink-0"
+                    style={{ borderColor: '#e2e8f0', color: '#475569', background: 'white' }}
+                  >
+                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8"><path strokeLinecap="round" strokeLinejoin="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" /></svg>
+                    {uploading ? 'Uploading…' : ogImage ? 'Replace' : 'Upload'}
+                  </button>
+                  {ogImage && (
+                    <button
+                      type="button"
+                      onClick={() => setOgImage('')}
+                      disabled={uploading || saving}
+                      className="text-xs font-medium px-3 h-9 rounded-md border transition-colors hover:bg-slate-50 disabled:opacity-50 flex-shrink-0"
+                      style={{ borderColor: '#e2e8f0', color: '#94a3b8', background: 'white' }}
+                    >
+                      Clear
+                    </button>
+                  )}
+                </div>
+                <input
+                  type="url"
+                  value={ogImage}
+                  onChange={e => setOgImage(e.target.value)}
+                  placeholder="…or paste an existing image URL"
+                  className="w-full h-9 mt-2 px-3 text-sm rounded-md border outline-none focus:border-[var(--primary)]"
+                  style={{ borderColor: '#e2e8f0', background: 'white' }}
+                />
+              </div>
             </div>
-            <p className="text-[10px] mt-1" style={{ color: '#94a3b8' }}>1200×630 image used as the link preview on Facebook / WhatsApp / Twitter / LinkedIn.</p>
+            <p className="text-[10px] mt-1" style={{ color: '#94a3b8' }}>PNG / JPG / WebP / GIF · max 4&nbsp;MB · ideal size 1200×630 for Facebook / WhatsApp / Twitter / LinkedIn previews.</p>
           </div>
         </div>
 
@@ -291,6 +351,204 @@ function SeoOverrideModal({ domain, row, onClose, onSaved }: { domain: string; r
           </button>
         </div>
       </div>
+    </div>
+  )
+}
+
+interface AuditIssue { type: 'error' | 'warn' | 'info'; category: 'meta' | 'images' | 'headings' | 'social'; message: string; detail?: string }
+interface AuditResult {
+  url: string
+  fetchedAt: string
+  ok: boolean
+  status?: number
+  error?: string
+  meta: { title: string | null; titleLength: number; description: string | null; descriptionLength: number; canonical: string | null; robots: string | null; ogImage: string | null; ogTitle: string | null; ogDescription: string | null; twitterImage: string | null }
+  headings: { h1Count: number; total: number; h1Texts: string[] }
+  images: { total: number; missingAlt: number; emptyAlt: number; samples: { src: string; alt: string | null; reason: 'missing' | 'empty' }[] }
+  issues: AuditIssue[]
+}
+
+const ISSUE_STYLE: Record<AuditIssue['type'], { bg: string; border: string; color: string; icon: string }> = {
+  error: { bg: '#fef2f2', border: '#fecaca', color: '#b91c1c', icon: '⚠' },
+  warn:  { bg: '#fffbeb', border: '#fde68a', color: '#a16207', icon: '!'  },
+  info:  { bg: '#eff6ff', border: '#bfdbfe', color: '#1e40af', icon: 'i'  },
+}
+
+function AuditPanel({ domain }: { domain: string }) {
+  const [path, setPath] = useState('/')
+  const [running, setRunning] = useState(false)
+  const [result, setResult] = useState<AuditResult | null>(null)
+  const toast = useToast()
+
+  async function runAudit() {
+    setRunning(true)
+    try {
+      const res = await fetch('/api/seo/audit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ website: domain, path }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        toast.error(data.error ?? 'Audit failed', 'Audit failed')
+        return
+      }
+      setResult(data)
+    } catch (e) {
+      toast.error((e as Error).message, 'Audit failed')
+    } finally {
+      setRunning(false)
+    }
+  }
+
+  const errorCount = result?.issues.filter(i => i.type === 'error').length ?? 0
+  const warnCount = result?.issues.filter(i => i.type === 'warn').length ?? 0
+  const infoCount = result?.issues.filter(i => i.type === 'info').length ?? 0
+
+  return (
+    <div className="rounded-xl border bg-white mb-5" style={{ borderColor: '#e2e8f0' }}>
+      <div className="px-5 py-3 flex items-center justify-between gap-3" style={{ borderBottom: '1px solid #f1f5f9' }}>
+        <div>
+          <h3 className="text-sm font-semibold" style={{ color: 'var(--foreground)' }}>SEO audit</h3>
+          <p className="text-[11px] mt-0.5" style={{ color: '#94a3b8' }}>Fetches the live page and checks meta tags, headings, social images, and image alt text.</p>
+        </div>
+      </div>
+
+      <div className="px-5 py-4 flex items-end gap-2 flex-wrap">
+        <div className="flex-1 min-w-[200px]">
+          <label className="block text-[11px] font-medium mb-1" style={{ color: '#475569' }}>Path</label>
+          <div className="flex items-center h-9 rounded-md border overflow-hidden" style={{ borderColor: '#e2e8f0', background: 'white' }}>
+            <span className="px-3 text-xs font-mono whitespace-nowrap" style={{ color: '#94a3b8' }}>https://{domain}</span>
+            <input
+              type="text"
+              value={path}
+              onChange={e => setPath(e.target.value)}
+              placeholder="/"
+              className="flex-1 h-full pr-3 text-sm outline-none border-l"
+              style={{ borderLeftColor: '#e2e8f0', background: 'white' }}
+            />
+          </div>
+        </div>
+        <button
+          onClick={runAudit}
+          disabled={running}
+          className="inline-flex items-center gap-1.5 text-xs font-medium px-4 h-9 rounded-md text-white transition-opacity disabled:opacity-50 hover:opacity-90"
+          style={{ background: 'var(--primary)' }}
+        >
+          {running ? (
+            <>
+              <span className="w-3.5 h-3.5 rounded-full border-2 border-white/30 border-t-white animate-spin" />
+              Auditing…
+            </>
+          ) : (
+            <>
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+              Run audit
+            </>
+          )}
+        </button>
+      </div>
+
+      {result && (
+        <div style={{ borderTop: '1px solid #f1f5f9' }}>
+          {/* Summary chips */}
+          <div className="px-5 py-3 flex items-center gap-2 flex-wrap" style={{ borderBottom: '1px solid #f1f5f9', background: '#fafbfc' }}>
+            <SummaryChip label="Errors" count={errorCount} tone="error" />
+            <SummaryChip label="Warnings" count={warnCount} tone="warn" />
+            <SummaryChip label="Info" count={infoCount} tone="info" />
+            <span className="ml-auto text-[10px]" style={{ color: '#94a3b8' }}>
+              {result.ok ? `HTTP ${result.status}` : 'Fetch failed'} · {new Date(result.fetchedAt).toLocaleTimeString()}
+            </span>
+          </div>
+
+          {result.ok && (
+            <div className="px-5 py-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+              <SummaryCard label="Title" value={result.meta.title ?? '—'} sub={result.meta.title ? `${result.meta.titleLength} chars` : 'Missing'} muted={!result.meta.title} />
+              <SummaryCard label="Description" value={result.meta.description ?? '—'} sub={result.meta.description ? `${result.meta.descriptionLength} chars` : 'Missing'} muted={!result.meta.description} />
+              <SummaryCard label="<h1>" value={result.headings.h1Texts.join(' / ') || '—'} sub={`${result.headings.h1Count} on page · ${result.headings.total} headings total`} muted={result.headings.h1Count === 0} />
+              <SummaryCard label="Images" value={`${result.images.total} total`} sub={`${result.images.missingAlt} missing alt · ${result.images.emptyAlt} empty alt`} muted={result.images.total === 0} />
+              <SummaryCard label="og:image" value={result.meta.ogImage ?? '—'} sub={result.meta.ogImage ? 'Set' : 'Missing'} muted={!result.meta.ogImage} mono />
+              <SummaryCard label="Canonical" value={result.meta.canonical ?? '—'} sub={result.meta.canonical ? 'Set' : 'Not set'} muted={!result.meta.canonical} mono />
+            </div>
+          )}
+
+          {/* Issues */}
+          <div className="px-5 py-4" style={{ borderTop: '1px solid #f1f5f9' }}>
+            {result.issues.length === 0 ? (
+              <div className="flex items-center gap-2 text-sm" style={{ color: '#16a34a' }}>
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+                No issues found.
+              </div>
+            ) : (
+              <div className="space-y-1.5">
+                {result.issues.map((issue, i) => {
+                  const s = ISSUE_STYLE[issue.type]
+                  return (
+                    <div key={i} className="flex items-start gap-2.5 px-3 py-2 rounded-md" style={{ background: s.bg, border: `1px solid ${s.border}` }}>
+                      <span className="w-5 h-5 rounded-full flex-shrink-0 flex items-center justify-center text-[11px] font-bold" style={{ color: 'white', background: s.color }}>{s.icon}</span>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-xs font-medium" style={{ color: s.color }}>{issue.message}</p>
+                        {issue.detail && <p className="text-[10px] mt-0.5 truncate" style={{ color: '#64748b' }}>{issue.detail}</p>}
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+          </div>
+
+          {/* Images-without-alt sample */}
+          {result.images.samples.length > 0 && (
+            <div className="px-5 py-4" style={{ borderTop: '1px solid #f1f5f9' }}>
+              <p className="text-[11px] font-semibold uppercase tracking-wider mb-2" style={{ color: '#94a3b8' }}>Images needing alt text</p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                {result.images.samples.map((img, i) => (
+                  <div key={i} className="flex items-center gap-2.5 px-3 py-2 rounded-md" style={{ background: '#fafbfc', border: '1px solid #f1f5f9' }}>
+                    <div className="w-10 h-10 rounded-md flex-shrink-0 overflow-hidden flex items-center justify-center" style={{ background: '#f1f5f9' }}>
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={img.src.startsWith('http') ? img.src : `https://${domain}${img.src.startsWith('/') ? '' : '/'}${img.src}`} alt="" className="w-full h-full object-cover" onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none' }} />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-[11px] font-mono truncate" style={{ color: '#475569' }} title={img.src}>{img.src}</p>
+                      <p className="text-[10px]" style={{ color: img.reason === 'missing' ? '#b91c1c' : '#94a3b8' }}>
+                        {img.reason === 'missing' ? 'No alt attribute' : 'Empty alt (decorative)'}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <p className="text-[10px] mt-2" style={{ color: '#94a3b8' }}>Showing up to 8. Fix in the designer site&apos;s code — alt-text overrides from webcore are coming in a follow-up.</p>
+            </div>
+          )}
+
+          {!result.ok && result.error && (
+            <div className="px-5 py-3 text-xs" style={{ borderTop: '1px solid #f1f5f9', color: '#b91c1c', background: '#fef2f2' }}>
+              {result.error}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
+
+function SummaryChip({ label, count, tone }: { label: string; count: number; tone: 'error' | 'warn' | 'info' }) {
+  const s = ISSUE_STYLE[tone]
+  const dim = count === 0
+  return (
+    <span className="inline-flex items-center gap-1.5 h-7 px-2.5 rounded-full text-[11px] font-medium" style={{ background: dim ? '#f1f5f9' : s.bg, color: dim ? '#94a3b8' : s.color, border: `1px solid ${dim ? '#e2e8f0' : s.border}` }}>
+      <span className="w-4 h-4 rounded-full flex-shrink-0 flex items-center justify-center text-[10px] font-bold tabular-nums" style={{ background: dim ? '#cbd5e1' : s.color, color: 'white' }}>{count}</span>
+      {label}
+    </span>
+  )
+}
+
+function SummaryCard({ label, value, sub, muted, mono }: { label: string; value: string; sub: string; muted?: boolean; mono?: boolean }) {
+  return (
+    <div className="rounded-md p-3" style={{ background: '#fafbfc', border: '1px solid #f1f5f9' }}>
+      <p className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: '#94a3b8' }}>{label}</p>
+      <p className={`text-xs mt-1 truncate ${mono ? 'font-mono' : ''}`} style={{ color: muted ? '#cbd5e1' : 'var(--foreground)' }} title={value}>{value}</p>
+      <p className="text-[10px] mt-0.5" style={{ color: muted ? '#cbd5e1' : '#64748b' }}>{sub}</p>
     </div>
   )
 }
