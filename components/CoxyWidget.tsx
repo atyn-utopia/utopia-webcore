@@ -24,10 +24,21 @@ const DEFAULT_POS: Pos = { anchor: 'bottom', right: 20, y: 26 }
 // Dashboard default: sits roughly where the old character.gif lived in the welcome banner.
 const DASHBOARD_POS: Pos = { anchor: 'top', right: 80, y: 150 }
 
+// Pages where DASHBOARD_POS makes sense: the global home and any per-company
+// dashboard. Scoped users (manager / indoor_sales) typically click straight
+// into `/company/[id]` and treat it as their home, so Coxy should sit near
+// the hero there too instead of dropping to bottom-right.
+function isDashboardPath(pathname: string | null): boolean {
+  if (!pathname) return false
+  if (pathname === '/') return true
+  if (pathname.startsWith('/company/')) return true
+  return false
+}
+
 export default function CoxyWidget() {
   const { open, setOpen } = useCoxy()
   const pathname = usePathname()
-  const isDashboard = pathname === '/'
+  const isDashboard = isDashboardPath(pathname)
   const [input, setInput] = useState('')
   const scrollRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
@@ -36,9 +47,9 @@ export default function CoxyWidget() {
   const dragRef = useRef<{ startX: number; startY: number; startRight: number; startPosY: number; anchor: Anchor; moved: boolean } | null>(null)
   const [isDragging, setIsDragging] = useState(false)
 
-  // Reset position on every route change. Home dashboard pins Coxy near the
-  // welcome banner; everywhere else falls back to bottom-right. Drag still
-  // works during a session but doesn't persist across navigations.
+  // Reset position on every route change. Dashboard-like pages pin Coxy near
+  // the hero; everywhere else falls back to bottom-right. Drag still works
+  // during a session but doesn't persist across navigations.
   useEffect(() => {
     setPos(isDashboard ? DASHBOARD_POS : DEFAULT_POS)
   }, [isDashboard])
