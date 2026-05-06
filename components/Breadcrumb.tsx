@@ -86,7 +86,8 @@ export default function Breadcrumb() {
       if (pathname === '/products/new') return [...crumbs, siteCrumb, { label: 'Products', href: `/products?website=${encodeURIComponent(website)}` }, { label: 'New Product' }]
       if (/^\/products\/.+\/edit$/.test(pathname)) return [...crumbs, siteCrumb, { label: 'Products', href: `/products?website=${encodeURIComponent(website)}` }, { label: 'Edit Product' }]
 
-      if (pathname === '/phone-numbers' || pathname === '/phone-numbers/edit') return [...crumbs, siteCrumb, { label: 'Phone Numbers' }]
+      if (pathname === '/phone-numbers') return [...crumbs, siteCrumb, { label: 'Phone Numbers' }]
+      if (pathname === '/phone-numbers/edit') return [...crumbs, siteCrumb, { label: 'Phone Numbers', href: `/phone-numbers?website=${encodeURIComponent(website)}` }, { label: 'Manage' }]
       if (pathname === '/phone-numbers/new') return [...crumbs, siteCrumb, { label: 'Phone Numbers', href: `/phone-numbers?website=${encodeURIComponent(website)}` }, { label: 'Add Number' }]
 
       if (pathname === '/blog') return [...crumbs, siteCrumb, { label: 'Blog' }]
@@ -112,7 +113,7 @@ export default function Breadcrumb() {
     if (/^\/products\/.+\/edit$/.test(pathname)) return [{ label: 'Products', href: '/products' }, { label: 'Edit Product' }]
 
     if (pathname === '/phone-numbers') return [{ label: 'Phone Numbers' }]
-    if (pathname === '/phone-numbers/edit') return [{ label: 'Phone Numbers' }]
+    if (pathname === '/phone-numbers/edit') return [{ label: 'Phone Numbers', href: '/phone-numbers' }, { label: 'Manage' }]
     if (pathname === '/phone-numbers/new') return [{ label: 'Phone Numbers', href: '/phone-numbers' }, { label: 'Add Number' }]
 
     if (pathname === '/blog') return [{ label: 'Blog' }]

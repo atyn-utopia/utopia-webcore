@@ -358,7 +358,7 @@ export default function ProductsPage() {
                     <td className="px-4 py-3 align-middle">
                       <div className="flex items-center gap-1.5 justify-end">
                         <Link
-                          href={`/products/${product.id}/edit`}
+                          href={`/products/${product.id}/edit?website=${encodeURIComponent(openWebsite)}`}
                           className="text-xs font-medium px-3 h-8 inline-flex items-center justify-center rounded-md border transition-colors hover:border-[var(--primary)] hover:text-[var(--primary)]"
                           style={{ borderColor: '#e2e8f0', color: '#475569' }}
                         >
@@ -437,7 +437,7 @@ export default function ProductsPage() {
                 {/* Actions */}
                 <div className="flex items-center gap-2 mt-3 pt-3" style={{ borderTop: '1px solid #f1f5f9' }}>
                   <Link
-                    href={`/products/${product.id}/edit`}
+                    href={`/products/${product.id}/edit?website=${encodeURIComponent(openWebsite)}`}
                     className="flex-1 text-center text-xs font-medium py-1.5 rounded-md border border-[#e2e8f0] text-[#475569] transition-colors hover:border-[var(--primary)] hover:text-[var(--primary)]"
                   >
                     Edit

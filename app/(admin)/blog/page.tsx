@@ -536,7 +536,7 @@ export default function BlogListPage() {
           {filtered.map(post => (
             <Link
               key={post.id}
-              href={`/blog/${post.id}/edit`}
+              href={`/blog/${post.id}/edit?website=${encodeURIComponent(openFolder)}`}
               className="block rounded-xl border bg-white overflow-hidden hover:shadow-sm transition-shadow"
               style={{ borderColor: '#e2e8f0' }}
             >
@@ -650,7 +650,7 @@ export default function BlogListPage() {
                           if (stat && stat.trend === 'down') return <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="#dc2626" viewBox="0 0 24 24" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6" /></svg>
                           return <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="#cbd5e1" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M5 12h14" /></svg>
                         })()}
-                        <Link href={`/blog/${post.id}/edit`} className="text-xs sm:text-sm font-medium hover:underline truncate" style={{ color: 'var(--foreground)' }}>{post.title}</Link>
+                        <Link href={`/blog/${post.id}/edit?website=${encodeURIComponent(openFolder)}`} className="text-xs sm:text-sm font-medium hover:underline truncate" style={{ color: 'var(--foreground)' }}>{post.title}</Link>
                       </div>
                       {post.languages?.length > 0 && (
                         <div className="flex gap-1 mt-0.5">
@@ -703,7 +703,7 @@ export default function BlogListPage() {
                   <td className="px-2 py-3 align-middle text-[10px] sm:text-xs" style={{ color: '#475569' }}>{formatDate(post.updated_at)}</td>
                   <td className="px-2 sm:px-4 py-3 align-middle">
                     <div className="flex items-center gap-1 justify-center">
-                      <button onClick={() => router.push(`/blog/${post.id}/edit`)} className="w-8 h-8 flex items-center justify-center rounded-lg border transition-colors hover:text-[var(--primary)] hover:border-[var(--primary)]" style={{ borderColor: '#cbd5e1', color: '#475569' }} title="Edit">
+                      <button onClick={() => router.push(`/blog/${post.id}/edit?website=${encodeURIComponent(openFolder)}`)} className="w-8 h-8 flex items-center justify-center rounded-lg border transition-colors hover:text-[var(--primary)] hover:border-[var(--primary)]" style={{ borderColor: '#cbd5e1', color: '#475569' }} title="Edit">
                         <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
                       </button>
                       <button
