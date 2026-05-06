@@ -140,6 +140,7 @@ You're helping build a website that integrates with **Utopia Webcore** — a cen
    \`\`\`html
    <script defer src="https://utopia-webcore.vercel.app/t.js" data-website="${domain}"></script>
    \`\`\`
+   The same tracker also applies **alt-text overrides** at runtime: when an admin fills in missing alt text in the webcore SEO panel, the tracker fetches the override map and rewrites \`<img alt="">\` for matching images on every page load. No designer-side changes needed.
 
 2. **Do not hardcode phone numbers, products, or blog content.** Always fetch from the public APIs via \`lib/webcore.ts\`:
    - \`fetchPhones()\` / \`resolvePhone(location)\` — WhatsApp and call numbers

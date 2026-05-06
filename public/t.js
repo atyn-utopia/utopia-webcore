@@ -1,17 +1,22 @@
 /**
- * Utopia Webcore — Lightweight Analytics Tracker
+ * Utopia Webcore — Lightweight Analytics Tracker + Alt-Text Override Applier
  *
  * Usage: Add this to your website's <head>:
  *   <script defer src="https://utopia-webcore.vercel.app/t.js" data-website="your-domain.vercel.app"></script>
  *
- * Auto-tracks: pageviews on load + navigation
+ * Auto-tracks: pageviews on load + navigation.
+ * Auto-applies: alt-text overrides set in the webcore SEO admin — walks every
+ *   <img> on the page and fills in `alt=` from the override map (matched by src).
+ *   Re-applies on DOM mutations so client-rendered images get covered too.
  * Manual tracking:
  *   window.uwc('click', { label: 'whatsapp-button' })
  *   window.uwc('impression', { label: 'product-card-123' })
  */
 ;(function () {
   'use strict'
-  var API = 'https://utopia-webcore.vercel.app/api/public/track'
+  var ORIGIN = 'https://utopia-webcore.vercel.app'
+  var API = ORIGIN + '/api/public/track'
+  var ALTS_API = ORIGIN + '/api/public/seo/alts'
   var script = document.currentScript
   var website = script && script.getAttribute('data-website')
   if (!website) return
@@ -70,5 +75,92 @@
   // Expose manual tracking
   window.uwc = function (eventType, extra) {
     send(eventType || 'click', extra)
+  }
+
+  // ---------------------------------------------------------------------------
+  // Alt-text override applier
+  // ---------------------------------------------------------------------------
+  // Match an <img> against the override map by absolute URL, original src
+  // attribute, and the path portion. This covers most ways designer sites
+  // reference images (relative, root-relative, absolute, with/without query).
+  function srcKeys(img) {
+    var keys = []
+    var raw = img.getAttribute('src')
+    if (raw) keys.push(raw)
+    var resolved = img.src
+    if (resolved && keys.indexOf(resolved) === -1) keys.push(resolved)
+    if (resolved) {
+      try {
+        var u = new URL(resolved)
+        if (keys.indexOf(u.pathname) === -1) keys.push(u.pathname)
+        var noQuery = u.origin + u.pathname
+        if (keys.indexOf(noQuery) === -1) keys.push(noQuery)
+      } catch (e) { /* ignore */ }
+    }
+    return keys
+  }
+
+  var altMap = null
+  // Per-image marker — uses a direct property instead of dataset so we don't
+  // crash on legacy browsers that don't support the dataset API, and so we
+  // don't keep mutating attributes (which would feed back into observers).
+  var APPLIED = '__uwcAltApplied'
+  function applyAlts() {
+    if (!altMap) return
+    var imgs = document.getElementsByTagName('img')
+    for (var i = 0; i < imgs.length; i++) {
+      var img = imgs[i]
+      if (img[APPLIED]) continue
+      var keys = srcKeys(img)
+      for (var k = 0; k < keys.length; k++) {
+        if (Object.prototype.hasOwnProperty.call(altMap, keys[k])) {
+          img.setAttribute('alt', altMap[keys[k]])
+          img[APPLIED] = 1
+          break
+        }
+      }
+    }
+  }
+
+  function loadAlts() {
+    try {
+      var xhr = new XMLHttpRequest()
+      // Don't cache-bust — the public endpoint sets a short Cache-Control
+      // (~30s), so freshly saved overrides propagate quickly without slamming
+      // the API on every SPA navigation.
+      xhr.open('GET', ALTS_API + '?website=' + encodeURIComponent(website), true)
+      xhr.onreadystatechange = function () {
+        if (xhr.readyState !== 4) return
+        if (xhr.status < 200 || xhr.status >= 300) return
+        try {
+          var body = JSON.parse(xhr.responseText)
+          var list = (body && body.overrides) || []
+          altMap = {}
+          for (var i = 0; i < list.length; i++) {
+            altMap[list[i].src] = list[i].alt
+          }
+          applyAlts()
+        } catch (e) { /* ignore */ }
+      }
+      xhr.send()
+    } catch (e) { /* ignore */ }
+  }
+
+  loadAlts()
+
+  // Re-apply when the DOM changes — covers client-rendered images and SPA nav.
+  // Coalesce bursts of mutations into one applyAlts pass per frame so we don't
+  // stall the main thread on busy pages (infinite scroll, ad reflow, etc.).
+  if (typeof MutationObserver !== 'undefined') {
+    var pending = false
+    var schedule = (typeof requestAnimationFrame === 'function')
+      ? function (fn) { requestAnimationFrame(fn) }
+      : function (fn) { setTimeout(fn, 50) }
+    var mo = new MutationObserver(function () {
+      if (!altMap || pending) return
+      pending = true
+      schedule(function () { pending = false; applyAlts() })
+    })
+    mo.observe(document.documentElement, { childList: true, subtree: true })
   }
 })()

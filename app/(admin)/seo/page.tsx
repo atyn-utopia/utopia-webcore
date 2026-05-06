@@ -374,11 +374,23 @@ const ISSUE_STYLE: Record<AuditIssue['type'], { bg: string; border: string; colo
   info:  { bg: '#eff6ff', border: '#bfdbfe', color: '#1e40af', icon: 'i'  },
 }
 
+interface AltOverride { id: string; image_src: string; alt: string; updated_at: string }
+
 function AuditPanel({ domain }: { domain: string }) {
   const [path, setPath] = useState('/')
   const [running, setRunning] = useState(false)
   const [result, setResult] = useState<AuditResult | null>(null)
+  const [altOverrides, setAltOverrides] = useState<AltOverride[]>([])
   const toast = useToast()
+  const confirm = useConfirm()
+
+  function loadAltOverrides() {
+    fetch(`/api/seo/alt-overrides?website=${encodeURIComponent(domain)}`)
+      .then(r => r.ok ? r.json() : [])
+      .then(d => { if (Array.isArray(d)) setAltOverrides(d) })
+      .catch(() => {})
+  }
+  useEffect(loadAltOverrides, [domain])
 
   async function runAudit() {
     setRunning(true)
@@ -399,6 +411,40 @@ function AuditPanel({ domain }: { domain: string }) {
     } finally {
       setRunning(false)
     }
+  }
+
+  async function saveAlt(imageSrc: string, alt: string) {
+    const res = await fetch('/api/seo/alt-overrides', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ website: domain, image_src: imageSrc, alt }),
+    })
+    if (!res.ok) {
+      const d = await res.json().catch(() => ({}))
+      toast.error(d.error ?? 'Save failed', 'Save failed')
+      return false
+    }
+    toast.success('Alt text will apply on the next page load.', 'Alt text saved')
+    loadAltOverrides()
+    return true
+  }
+
+  async function deleteAlt(imageSrc: string) {
+    const ok = await confirm({
+      title: 'Remove alt-text override?',
+      message: 'The image will fall back to whatever alt the designer site sets in code (or none).',
+      confirmLabel: 'Remove',
+      variant: 'danger',
+    })
+    if (!ok) return
+    const res = await fetch(`/api/seo/alt-overrides?website=${encodeURIComponent(domain)}&image_src=${encodeURIComponent(imageSrc)}`, { method: 'DELETE' })
+    if (!res.ok) {
+      const d = await res.json().catch(() => ({}))
+      toast.error(d.error ?? 'Delete failed', 'Delete failed')
+      return
+    }
+    toast.success('Override removed.', 'Alt text deleted')
+    loadAltOverrides()
   }
 
   const errorCount = result?.issues.filter(i => i.type === 'error').length ?? 0
@@ -497,27 +543,46 @@ function AuditPanel({ domain }: { domain: string }) {
             )}
           </div>
 
-          {/* Images-without-alt sample */}
-          {result.images.samples.length > 0 && (
+          {/* Images-without-alt editor — hide rows that already have an override saved */}
+          {(() => {
+            const overrideSrcs = new Set(altOverrides.map(o => o.image_src))
+            const remaining = result.images.samples.filter(s => !overrideSrcs.has(s.src))
+            if (remaining.length === 0) return null
+            return (
+              <div className="px-5 py-4" style={{ borderTop: '1px solid #f1f5f9' }}>
+                <p className="text-[11px] font-semibold uppercase tracking-wider mb-2" style={{ color: '#94a3b8' }}>Images needing alt text</p>
+                <div className="space-y-2">
+                  {remaining.map((img, i) => (
+                    <AltRow
+                      key={i}
+                      domain={domain}
+                      imageSrc={img.src}
+                      reason={img.reason}
+                      onSave={saveAlt}
+                    />
+                  ))}
+                </div>
+                <p className="text-[10px] mt-2" style={{ color: '#94a3b8' }}>Showing up to 8. Saved overrides apply within ~30 seconds on the live site via the webcore tracker.</p>
+              </div>
+            )
+          })()}
+
+          {/* Existing alt overrides for this site */}
+          {altOverrides.length > 0 && (
             <div className="px-5 py-4" style={{ borderTop: '1px solid #f1f5f9' }}>
-              <p className="text-[11px] font-semibold uppercase tracking-wider mb-2" style={{ color: '#94a3b8' }}>Images needing alt text</p>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                {result.images.samples.map((img, i) => (
-                  <div key={i} className="flex items-center gap-2.5 px-3 py-2 rounded-md" style={{ background: '#fafbfc', border: '1px solid #f1f5f9' }}>
-                    <div className="w-10 h-10 rounded-md flex-shrink-0 overflow-hidden flex items-center justify-center" style={{ background: '#f1f5f9' }}>
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={img.src.startsWith('http') ? img.src : `https://${domain}${img.src.startsWith('/') ? '' : '/'}${img.src}`} alt="" className="w-full h-full object-cover" onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none' }} />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <p className="text-[11px] font-mono truncate" style={{ color: '#475569' }} title={img.src}>{img.src}</p>
-                      <p className="text-[10px]" style={{ color: img.reason === 'missing' ? '#b91c1c' : '#94a3b8' }}>
-                        {img.reason === 'missing' ? 'No alt attribute' : 'Empty alt (decorative)'}
-                      </p>
-                    </div>
-                  </div>
+              <p className="text-[11px] font-semibold uppercase tracking-wider mb-2" style={{ color: '#94a3b8' }}>Active alt-text overrides ({altOverrides.length})</p>
+              <div className="space-y-2">
+                {altOverrides.map(o => (
+                  <AltRow
+                    key={o.id}
+                    domain={domain}
+                    imageSrc={o.image_src}
+                    initialAlt={o.alt}
+                    onSave={saveAlt}
+                    onDelete={deleteAlt}
+                  />
                 ))}
               </div>
-              <p className="text-[10px] mt-2" style={{ color: '#94a3b8' }}>Showing up to 8. Fix in the designer site&apos;s code — alt-text overrides from webcore are coming in a follow-up.</p>
             </div>
           )}
 
@@ -549,6 +614,84 @@ function SummaryCard({ label, value, sub, muted, mono }: { label: string; value:
       <p className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: '#94a3b8' }}>{label}</p>
       <p className={`text-xs mt-1 truncate ${mono ? 'font-mono' : ''}`} style={{ color: muted ? '#cbd5e1' : 'var(--foreground)' }} title={value}>{value}</p>
       <p className="text-[10px] mt-0.5" style={{ color: muted ? '#cbd5e1' : '#64748b' }}>{sub}</p>
+    </div>
+  )
+}
+
+function AltRow({
+  domain,
+  imageSrc,
+  initialAlt,
+  reason,
+  onSave,
+  onDelete,
+}: {
+  domain: string
+  imageSrc: string
+  initialAlt?: string
+  reason?: 'missing' | 'empty'
+  onSave: (src: string, alt: string) => Promise<boolean>
+  onDelete?: (src: string) => void
+}) {
+  const [value, setValue] = useState(initialAlt ?? '')
+  const [saving, setSaving] = useState(false)
+  const dirty = value !== (initialAlt ?? '')
+  const previewSrc = imageSrc.startsWith('http') ? imageSrc : `https://${domain}${imageSrc.startsWith('/') ? '' : '/'}${imageSrc}`
+
+  async function save() {
+    if (!value.trim()) return
+    setSaving(true)
+    try {
+      await onSave(imageSrc, value.trim())
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  return (
+    <div className="flex items-center gap-2.5 px-3 py-2 rounded-md" style={{ background: '#fafbfc', border: '1px solid #f1f5f9' }}>
+      <div className="w-12 h-12 rounded-md flex-shrink-0 overflow-hidden flex items-center justify-center" style={{ background: '#f1f5f9' }}>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={previewSrc} alt="" className="w-full h-full object-cover" onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none' }} />
+      </div>
+      <div className="min-w-0 flex-1">
+        <p className="text-[11px] font-mono truncate" style={{ color: '#475569' }} title={imageSrc}>{imageSrc}</p>
+        {reason && (
+          <p className="text-[10px] mt-0.5" style={{ color: reason === 'missing' ? '#b91c1c' : '#94a3b8' }}>
+            {reason === 'missing' ? 'No alt attribute' : 'Empty alt (decorative)'}
+          </p>
+        )}
+        <div className="flex items-center gap-1.5 mt-1.5">
+          <input
+            type="text"
+            value={value}
+            onChange={e => setValue(e.target.value)}
+            placeholder="Describe this image for screen readers and search engines"
+            onKeyDown={e => { if (e.key === 'Enter' && dirty && !saving) save() }}
+            className="flex-1 h-8 px-2.5 text-xs rounded border outline-none focus:border-[var(--primary)]"
+            style={{ borderColor: '#e2e8f0', background: 'white' }}
+          />
+          <button
+            type="button"
+            onClick={save}
+            disabled={!dirty || !value.trim() || saving}
+            className="text-[11px] font-medium px-2.5 h-8 rounded text-white transition-opacity disabled:opacity-40 hover:opacity-90"
+            style={{ background: 'var(--primary)' }}
+          >
+            {saving ? '…' : 'Save'}
+          </button>
+          {onDelete && initialAlt !== undefined && (
+            <button
+              type="button"
+              onClick={() => onDelete(imageSrc)}
+              className="text-[11px] font-medium px-2.5 h-8 rounded border transition-colors hover:bg-red-50 hover:border-red-200 hover:text-red-600"
+              style={{ borderColor: '#e2e8f0', color: '#94a3b8', background: 'white' }}
+            >
+              Remove
+            </button>
+          )}
+        </div>
+      </div>
     </div>
   )
 }
