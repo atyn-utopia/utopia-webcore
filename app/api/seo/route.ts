@@ -15,6 +15,13 @@ function normalizePath(p: string | undefined | null): string {
   return v || '/'
 }
 
+const ALLOWED_LANGUAGES = new Set(['en', 'ms'])
+function normalizeLanguage(l: unknown): string {
+  if (typeof l !== 'string') return 'en'
+  const v = l.toLowerCase()
+  return ALLOWED_LANGUAGES.has(v) ? v : 'en'
+}
+
 function isValidUrl(url: unknown): url is string {
   if (typeof url !== 'string' || url.length === 0) return false
   try {
@@ -48,7 +55,7 @@ export async function GET(request: Request) {
   const service = createServiceClient()
   const { data, error } = await service
     .from('seo_overrides')
-    .select('id, website, path, title, description, og_image, updated_at')
+    .select('id, website, path, language, title, description, og_image, updated_at')
     .eq('website', website)
     .order('path')
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
@@ -63,15 +70,17 @@ export async function POST(request: Request) {
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const body = await request.json().catch(() => ({}))
-  const { website, path, title, description, og_image } = body as Record<string, unknown>
+  const { website, path, language, title, description, og_image } = body as Record<string, unknown>
   if (typeof website !== 'string' || !website) return NextResponse.json({ error: 'website is required' }, { status: 400 })
   const access = await checkAccess(user.id, website)
   if (!access.ok) return NextResponse.json({ error: access.error }, { status: access.status })
 
   const normalized = normalizePath(typeof path === 'string' ? path : '/')
+  const lang = normalizeLanguage(language)
   const row: Record<string, unknown> = {
     website,
     path: normalized,
+    language: lang,
     title: typeof title === 'string' && title.trim() ? title.trim() : null,
     description: typeof description === 'string' && description.trim() ? description.trim() : null,
     updated_at: new Date().toISOString(),
@@ -87,7 +96,7 @@ export async function POST(request: Request) {
   const service = createServiceClient()
   const { data, error } = await service
     .from('seo_overrides')
-    .upsert(row, { onConflict: 'website,path' })
+    .upsert(row, { onConflict: 'website,path,language' })
     .select()
     .single()
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
@@ -96,7 +105,8 @@ export async function POST(request: Request) {
   return NextResponse.json(data)
 }
 
-// DELETE /api/seo?website=&path=
+// DELETE /api/seo?website=&path=&language=
+// Without language → deletes every language for that path.
 export async function DELETE(request: Request) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -105,6 +115,7 @@ export async function DELETE(request: Request) {
   const { searchParams } = new URL(request.url)
   const website = searchParams.get('website')
   const path = searchParams.get('path')
+  const language = searchParams.get('language')
   if (!website) return NextResponse.json({ error: 'website is required' }, { status: 400 })
   if (!path) return NextResponse.json({ error: 'path is required' }, { status: 400 })
 
@@ -112,11 +123,13 @@ export async function DELETE(request: Request) {
   if (!access.ok) return NextResponse.json({ error: access.error }, { status: access.status })
 
   const service = createServiceClient()
-  const { error } = await service
+  let q = service
     .from('seo_overrides')
     .delete()
     .eq('website', website)
     .eq('path', normalizePath(path))
+  if (language) q = q.eq('language', normalizeLanguage(language))
+  const { error } = await q
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
   void notifyWebsite(website, 'seo')

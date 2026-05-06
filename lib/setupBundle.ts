@@ -702,18 +702,23 @@ export interface WebcoreSeoOptions {
   path: string
   /** Page-defined defaults to use when no override exists. */
   fallback?: Metadata
+  /** Language code: 'en' (default) or 'ms'. Falls back to 'en' if the requested
+   *  language has no override saved. */
+  lang?: 'en' | 'ms'
 }
 
 interface OverridePayload {
   title?: string | null
   description?: string | null
   og_image?: string | null
+  language?: string
 }
 
-export async function webcoreSeo({ path, fallback = {} }: WebcoreSeoOptions): Promise<Metadata> {
+export async function webcoreSeo({ path, fallback = {}, lang }: WebcoreSeoOptions): Promise<Metadata> {
   const url = new URL(\\\`\\\${BASE}/api/public/seo\\\`)
   url.searchParams.set('website', SITE)
   url.searchParams.set('path', path)
+  if (lang) url.searchParams.set('lang', lang)
 
   let override: OverridePayload | null = null
   try {

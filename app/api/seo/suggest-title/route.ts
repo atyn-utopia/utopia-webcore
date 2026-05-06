@@ -41,8 +41,9 @@ export async function POST(request: Request) {
   const body = await request.json().catch(() => null)
   if (!body || typeof body !== 'object') return NextResponse.json({ error: 'Malformed body' }, { status: 400 })
 
-  const { website, path, current_title, page_summary } = body as Record<string, unknown>
+  const { website, path, language, current_title, page_summary } = body as Record<string, unknown>
   if (typeof website !== 'string' || !website) return NextResponse.json({ error: 'website is required' }, { status: 400 })
+  const lang = typeof language === 'string' && (language === 'en' || language === 'ms') ? language : 'en'
 
   const scope = await getUserScope(user.id)
   if (!ALLOWED_ROLES.has(scope.role)) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
@@ -64,17 +65,19 @@ export async function POST(request: Request) {
   const safeCurrent = typeof current_title === 'string' ? current_title.slice(0, 200) : ''
   const safeSummary = typeof page_summary === 'string' ? page_summary.slice(0, 600) : ''
 
+  const langLabel = lang === 'ms' ? 'Bahasa Malaysia' : 'English'
   const prompt = [
     `You are an SEO writer suggesting page-title alternatives for a small business website.`,
     `Domain: ${website}`,
     `Page path: ${safePath}`,
+    `Write the suggestions in ${langLabel}.`,
     p.brand_name ? `Brand name: ${p.brand_name}` : '',
     p.location ? `Location / market: ${p.location}` : '',
     p.keywords.length ? `Target keywords: ${p.keywords.join(', ')}` : '',
     safeCurrent ? `Current title: "${safeCurrent}"` : '',
     safeSummary ? `Page summary: ${safeSummary}` : '',
     ``,
-    `Write 4 distinct title suggestions. Each must:`,
+    `Write 4 distinct title suggestions in ${langLabel}. Each must:`,
     `- Be 50–60 characters (Google's display sweet spot).`,
     `- Include at least one of the target keywords if any are listed.`,
     `- Mention the brand name and/or location when relevant.`,

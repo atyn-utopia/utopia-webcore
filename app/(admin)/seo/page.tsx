@@ -10,10 +10,17 @@ import { useConfirm } from '@/contexts/ConfirmContext'
 // Types
 // ---------------------------------------------------------------------------
 
+type Language = 'en' | 'ms'
+const LANGUAGES: { code: Language; label: string }[] = [
+  { code: 'en', label: 'EN' },
+  { code: 'ms', label: 'BM' },
+]
+
 interface Override {
   id: string
   website: string
   path: string
+  language: Language
   title: string | null
   description: string | null
   og_image: string | null
@@ -65,6 +72,7 @@ function SeoInner() {
   const [adding, setAdding] = useState(false)
   const [profile, setProfile] = useState<SiteProfile | null>(null)
   const [sitemap, setSitemap] = useState<SitemapResult | null>(null)
+  const [language, setLanguage] = useState<Language>('en')
 
   function loadOverrides() {
     if (!domain) return
@@ -139,15 +147,20 @@ function SeoInner() {
     )
   }
 
-  const homepageOverride = overrides.find(o => o.path === '/') ?? null
+  const homepageOverride = overrides.find(o => o.path === '/' && o.language === language) ?? null
   const onRefresh = () => { loadOverrides(); loadAlts(); runAudit('/') }
 
   return (
     <div>
-      <PageHeader
-        title="SEO Setup Checklist"
-        description={<span>Complete all SEO tasks to help <code className="font-mono text-xs px-1.5 py-0.5 rounded" style={{ background: '#f1f5f9', color: '#475569' }}>{domain}</code> get found in search results and AI chat responses.</span>}
-      />
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex-1 min-w-0">
+          <PageHeader
+            title="SEO Setup Checklist"
+            description={<span>Complete all SEO tasks to help <code className="font-mono text-xs px-1.5 py-0.5 rounded" style={{ background: '#f1f5f9', color: '#475569' }}>{domain}</code> get found in search results and AI chat responses.</span>}
+          />
+        </div>
+        <LanguageToggle value={language} onChange={setLanguage} />
+      </div>
 
       <BusinessInfoBar domain={domain} profile={profile} onSaved={loadProfile} />
 
@@ -158,6 +171,7 @@ function SeoInner() {
           override={homepageOverride}
           auditing={auditing}
           profile={profile}
+          language={language}
           onRefresh={onRefresh}
           onRunAudit={() => runAudit('/')}
         />
@@ -168,6 +182,7 @@ function SeoInner() {
           audit={audit}
           sitemap={sitemap}
           profile={profile}
+          language={language}
           onRefresh={onRefresh}
           onAdd={() => setAdding(true)}
         />
@@ -177,11 +192,40 @@ function SeoInner() {
       {adding && (
         <SeoOverrideModal
           domain={domain}
-          row={{ path: '/', title: '', description: '', og_image: '' }}
+          row={{ path: '/', language, title: '', description: '', og_image: '' }}
           onClose={() => setAdding(false)}
           onSaved={() => { setAdding(false); onRefresh() }}
         />
       )}
+    </div>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// Language toggle — pinned to the top right of the page header
+// ---------------------------------------------------------------------------
+
+function LanguageToggle({ value, onChange }: { value: Language; onChange: (l: Language) => void }) {
+  return (
+    <div className="inline-flex items-center rounded-full p-0.5 mt-1 flex-shrink-0" style={{ background: '#f1f5f9', border: '1px solid #e2e8f0' }}>
+      {LANGUAGES.map(({ code, label }) => {
+        const active = value === code
+        return (
+          <button
+            key={code}
+            type="button"
+            onClick={() => onChange(code)}
+            className="text-[11px] font-semibold tracking-wider px-3 h-7 rounded-full transition-colors"
+            style={{
+              background: active ? 'var(--primary)' : 'transparent',
+              color: active ? 'white' : '#64748b',
+            }}
+            aria-pressed={active}
+          >
+            {label}
+          </button>
+        )
+      })}
     </div>
   )
 }
@@ -472,6 +516,7 @@ function Step1Card({
   override,
   auditing,
   profile,
+  language,
   onRefresh,
   onRunAudit,
 }: {
@@ -480,6 +525,7 @@ function Step1Card({
   override: Override | null
   auditing: boolean
   profile: SiteProfile | null
+  language: Language
   onRefresh: () => void
   onRunAudit: () => void
 }) {
@@ -543,7 +589,7 @@ function Step1Card({
         title="Set the homepage's title for search results"
         hint={audit?.meta.title ? `${audit.meta.titleLength} chars` : undefined}
       >
-        <TitleEditor domain={domain} path="/" current={audit?.meta.title} override={override?.title ?? null} otherFields={override} profile={profile} onSaved={onRefresh} />
+        <TitleEditor key={language} domain={domain} path="/" language={language} current={audit?.meta.title} override={override?.title ?? null} otherFields={override} profile={profile} onSaved={onRefresh} />
       </Task>
 
       <Task
@@ -551,7 +597,7 @@ function Step1Card({
         title="Add the homepage's description for search results"
         hint={audit?.meta.description ? `${audit.meta.descriptionLength} chars` : undefined}
       >
-        <DescriptionEditor domain={domain} path="/" current={audit?.meta.description} override={override?.description ?? null} otherFields={override} onSaved={onRefresh} />
+        <DescriptionEditor key={language} domain={domain} path="/" language={language} current={audit?.meta.description} override={override?.description ?? null} otherFields={override} onSaved={onRefresh} />
       </Task>
 
       <Task
@@ -573,7 +619,7 @@ function Step1Card({
         status={ogStatus}
         title="Add a social share image (used for WhatsApp, Facebook, Twitter previews)"
       >
-        <OgImageEditor domain={domain} path="/" current={audit?.meta.ogImage} override={override?.og_image ?? null} otherFields={override} onSaved={onRefresh} />
+        <OgImageEditor key={language} domain={domain} path="/" language={language} current={audit?.meta.ogImage} override={override?.og_image ?? null} otherFields={override} onSaved={onRefresh} />
       </Task>
 
       <Task
@@ -619,6 +665,7 @@ function Step2Card({
   audit,
   sitemap,
   profile,
+  language,
   onRefresh,
   onAdd,
 }: {
@@ -628,6 +675,7 @@ function Step2Card({
   audit: AuditResult | null
   sitemap: SitemapResult | null
   profile: SiteProfile | null
+  language: Language
   onRefresh: () => void
   onAdd: () => void
 }) {
@@ -655,7 +703,7 @@ function Step2Card({
   let totalTasks = 0
   let doneTasks = 0
   for (const path of orderedPaths) {
-    const o = overrides.find(x => x.path === path) ?? null
+    const o = overrides.find(x => x.path === path && x.language === language) ?? null
     totalTasks += 2 // title + description per page
     if (o?.title) doneTasks++
     if (o?.description) doneTasks++
@@ -678,25 +726,33 @@ function Step2Card({
       total={totalTasks}
     >
       {visiblePaths.map(path => {
-        const o = overrides.find(x => x.path === path) ?? null
+        const o = overrides.find(x => x.path === path && x.language === language) ?? null
+        const otherLangs = overrides.filter(x => x.path === path && x.language !== language).map(x => x.language)
         const friendly = path === '/' ? 'Homepage' : path
         return (
           <div key={path}>
-            <div className="px-5 py-2.5 flex items-center justify-between" style={{ background: '#fafbfc', borderBottom: '1px solid #f1f5f9' }}>
-              <span className="text-xs font-semibold" style={{ color: '#475569' }}>{friendly}</span>
+            <div className="px-5 py-2.5 flex items-center justify-between gap-2" style={{ background: '#fafbfc', borderBottom: '1px solid #f1f5f9' }}>
+              <div className="flex items-center gap-2 min-w-0">
+                <span className="text-xs font-semibold" style={{ color: '#475569' }}>{friendly}</span>
+                {otherLangs.length > 0 && (
+                  <span className="text-[10px] font-medium px-1.5 py-0.5 rounded uppercase tracking-wider" style={{ background: '#dbeafe', color: '#1e40af' }} title={`Also saved in: ${otherLangs.join(', ')}`}>
+                    +{otherLangs.map(l => l.toUpperCase() === 'MS' ? 'BM' : l.toUpperCase()).join('/')}
+                  </span>
+                )}
+              </div>
               <code className="text-[10px] font-mono px-1.5 py-0.5 rounded" style={{ background: 'white', border: '1px solid #e2e8f0', color: '#64748b' }}>{path}</code>
             </div>
             <Task
               status={o?.title ? 'done' : 'warn'}
               title={<span>Set the <strong>{friendly}</strong> page&apos;s title for search results</span>}
             >
-              <TitleEditor domain={domain} path={path} current={path === '/' ? audit?.meta.title : null} override={o?.title ?? null} otherFields={o} profile={profile} onSaved={onRefresh} />
+              <TitleEditor key={`${language}-${path}`} domain={domain} path={path} language={language} current={path === '/' ? audit?.meta.title : null} override={o?.title ?? null} otherFields={o} profile={profile} onSaved={onRefresh} />
             </Task>
             <Task
               status={o?.description ? 'done' : 'warn'}
               title={<span>Add the <strong>{friendly}</strong> page&apos;s meta description</span>}
             >
-              <DescriptionEditor domain={domain} path={path} current={path === '/' ? audit?.meta.description : null} override={o?.description ?? null} otherFields={o} onSaved={onRefresh} />
+              <DescriptionEditor key={`${language}-${path}`} domain={domain} path={path} language={language} current={path === '/' ? audit?.meta.description : null} override={o?.description ?? null} otherFields={o} onSaved={onRefresh} />
             </Task>
             {path === '/' && audit && (() => {
               const stillMissing = audit.images.samples.filter(s => s.reason === 'missing' && !altOverrideSrcs.has(s.src)).length
@@ -812,7 +868,7 @@ interface OtherOverrideFields {
   og_image?: string | null
 }
 
-function TitleEditor({ domain, path, current, override, otherFields, profile, onSaved }: { domain: string; path: string; current: string | null | undefined; override: string | null; otherFields: OtherOverrideFields | null; profile: SiteProfile | null; onSaved: () => void }) {
+function TitleEditor({ domain, path, language, current, override, otherFields, profile, onSaved }: { domain: string; path: string; language: Language; current: string | null | undefined; override: string | null; otherFields: OtherOverrideFields | null; profile: SiteProfile | null; onSaved: () => void }) {
   const toast = useToast()
   const [value, setValue] = useState(override ?? current ?? '')
   const [saving, setSaving] = useState(false)
@@ -826,7 +882,7 @@ function TitleEditor({ domain, path, current, override, otherFields, profile, on
       const res = await fetch('/api/seo/suggest-title', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ website: domain, path, current_title: value || current || '' }),
+        body: JSON.stringify({ website: domain, path, language, current_title: value || current || '' }),
       })
       const data = await res.json()
       if (!res.ok) {
@@ -850,6 +906,7 @@ function TitleEditor({ domain, path, current, override, otherFields, profile, on
         body: JSON.stringify({
           website: domain,
           path,
+          language,
           title: value.trim() || null,
           description: otherFields?.description ?? null,
           og_image: otherFields?.og_image ?? null,
@@ -950,7 +1007,7 @@ function TitleEditor({ domain, path, current, override, otherFields, profile, on
   )
 }
 
-function DescriptionEditor({ domain, path, current, override, otherFields, onSaved }: { domain: string; path: string; current: string | null | undefined; override: string | null; otherFields: { title?: string | null; og_image?: string | null } | null; onSaved: () => void }) {
+function DescriptionEditor({ domain, path, language, current, override, otherFields, onSaved }: { domain: string; path: string; language: Language; current: string | null | undefined; override: string | null; otherFields: { title?: string | null; og_image?: string | null } | null; onSaved: () => void }) {
   const toast = useToast()
   const [value, setValue] = useState(override ?? current ?? '')
   const [saving, setSaving] = useState(false)
@@ -964,6 +1021,7 @@ function DescriptionEditor({ domain, path, current, override, otherFields, onSav
         body: JSON.stringify({
           website: domain,
           path,
+          language,
           title: otherFields?.title ?? null,
           description: value.trim() || null,
           og_image: otherFields?.og_image ?? null,
@@ -1016,7 +1074,7 @@ function DescriptionEditor({ domain, path, current, override, otherFields, onSav
   )
 }
 
-function OgImageEditor({ domain, path, current, override, otherFields, onSaved }: { domain: string; path: string; current: string | null | undefined; override: string | null; otherFields: { title?: string | null; description?: string | null } | null; onSaved: () => void }) {
+function OgImageEditor({ domain, path, language, current, override, otherFields, onSaved }: { domain: string; path: string; language: Language; current: string | null | undefined; override: string | null; otherFields: { title?: string | null; description?: string | null } | null; onSaved: () => void }) {
   const toast = useToast()
   const [value, setValue] = useState(override ?? current ?? '')
   const [saving, setSaving] = useState(false)
@@ -1050,6 +1108,7 @@ function OgImageEditor({ domain, path, current, override, otherFields, onSaved }
         body: JSON.stringify({
           website: domain,
           path,
+          language,
           title: otherFields?.title ?? null,
           description: otherFields?.description ?? null,
           og_image: value.trim() || null,
@@ -1446,6 +1505,7 @@ function SeoOverrideModal({ domain, row, onClose, onSaved }: { domain: string; r
   const [title, setTitle] = useState(row.title ?? '')
   const [description, setDescription] = useState(row.description ?? '')
   const [saving, setSaving] = useState(false)
+  const language: Language = (row.language as Language) ?? 'en'
 
   async function save() {
     setSaving(true)
@@ -1456,6 +1516,7 @@ function SeoOverrideModal({ domain, row, onClose, onSaved }: { domain: string; r
         body: JSON.stringify({
           website: domain,
           path: path.trim() || '/',
+          language,
           title: title.trim() || null,
           description: description.trim() || null,
         }),
