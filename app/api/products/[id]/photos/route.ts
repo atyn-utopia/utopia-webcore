@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/service'
 import { createClient } from '@/lib/supabase/server'
+import { assertWriteAccess } from '@/lib/assertWriteAccess'
+
+const PRODUCT_WRITE_ROLES = ['admin', 'designer', 'external_designer'] as const
 
 // POST /api/products/[id]/photos — add a photo
 export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -9,10 +12,18 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const { id } = await params
-  const { url, alt_text } = await request.json()
+  const body = await request.json().catch(() => null)
+  if (!body || typeof body !== 'object') return NextResponse.json({ error: 'Malformed body' }, { status: 400 })
+  const { url, alt_text } = body
   if (!url) return NextResponse.json({ error: 'URL is required' }, { status: 400 })
 
   const service = createServiceClient()
+
+  const { data: parent } = await service.from('products').select('website').eq('id', id).single()
+  if (!parent) return NextResponse.json({ error: 'Product not found' }, { status: 404 })
+
+  const denied = await assertWriteAccess(user.id, parent.website, [...PRODUCT_WRITE_ROLES])
+  if (denied) return denied
 
   // Get current max sort_order
   const { data: existing } = await service
@@ -46,6 +57,23 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
   if (!photoId) return NextResponse.json({ error: 'photo_id is required' }, { status: 400 })
 
   const service = createServiceClient()
+
+  // Resolve the photo's product → website, then gate.
+  const { data: photo } = await service
+    .from('product_photos')
+    .select('product_id, products(website)')
+    .eq('id', photoId)
+    .single()
+  if (!photo) return NextResponse.json({ error: 'Photo not found' }, { status: 404 })
+
+  // Supabase relation embed shape — products may be an object or array depending on the relation cardinality.
+  const productsField = (photo as { products?: { website?: string } | { website?: string }[] }).products
+  const website = Array.isArray(productsField) ? productsField[0]?.website : productsField?.website
+  if (!website) return NextResponse.json({ error: 'Photo not found' }, { status: 404 })
+
+  const denied = await assertWriteAccess(user.id, website, [...PRODUCT_WRITE_ROLES])
+  if (denied) return denied
+
   const { error } = await service.from('product_photos').delete().eq('id', photoId)
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
   return NextResponse.json({ success: true })

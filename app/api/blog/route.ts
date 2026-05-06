@@ -1,8 +1,11 @@
 import { NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/service'
 import { createClient } from '@/lib/supabase/server'
+import { assertWriteAccess } from '@/lib/assertWriteAccess'
 import { resolveActor, writeAuditLog } from '@/lib/auditLog'
 import { notifyWebsite } from '@/lib/notifyWebsite'
+
+const BLOG_WRITE_ROLES = ['admin', 'designer', 'external_designer', 'writer'] as const
 
 // GET /api/blog?website=&status=
 export async function GET(request: Request) {
@@ -47,12 +50,16 @@ export async function POST(request: Request) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const body = await request.json()
+  const body = await request.json().catch(() => null)
+  if (!body || typeof body !== 'object') return NextResponse.json({ error: 'Malformed body' }, { status: 400 })
   const { website, slug, cover_image_url, status: postStatus, translations } = body
 
-  if (!website || !slug) {
+  if (typeof website !== 'string' || !website || typeof slug !== 'string' || !slug) {
     return NextResponse.json({ error: 'website and slug are required' }, { status: 400 })
   }
+
+  const denied = await assertWriteAccess(user.id, website, [...BLOG_WRITE_ROLES])
+  if (denied) return denied
 
   const service = createServiceClient()
 

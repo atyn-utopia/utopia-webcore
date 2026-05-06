@@ -53,7 +53,8 @@ export async function PUT(request: Request) {
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const scope = await getUserScope(user.id)
-  const body = await request.json()
+  const body = await request.json().catch(() => null)
+  if (!body || typeof body !== 'object') return NextResponse.json({ error: 'Malformed body' }, { status: 400 })
   const { website, offering_type, revalidate_url } = body
   if (!website) return NextResponse.json({ error: 'website is required' }, { status: 400 })
 
@@ -111,7 +112,9 @@ export async function POST(request: Request) {
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const scope = await getUserScope(user.id)
-  const { website, action } = await request.json()
+  const body = await request.json().catch(() => null)
+  if (!body || typeof body !== 'object') return NextResponse.json({ error: 'Malformed body' }, { status: 400 })
+  const { website, action } = body
   if (action !== 'rotate_secret') return NextResponse.json({ error: 'Unknown action' }, { status: 400 })
   if (!website) return NextResponse.json({ error: 'website is required' }, { status: 400 })
   if (scope.isScoped && !(scope.domains ?? []).includes(website)) {

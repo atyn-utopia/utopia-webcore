@@ -34,7 +34,9 @@ export async function POST(request: Request) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const { name, domains } = await request.json()
+  const body = await request.json().catch(() => null)
+  if (!body || typeof body !== 'object') return NextResponse.json({ error: 'Malformed body' }, { status: 400 })
+  const { name, domains } = body
   if (!name) return NextResponse.json({ error: 'Company name is required' }, { status: 400 })
 
   const service = createServiceClient()

@@ -27,7 +27,8 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
   }
 
   const { id } = await params
-  const body = await request.json()
+  const body = await request.json().catch(() => null)
+  if (!body || typeof body !== 'object') return NextResponse.json({ error: 'Malformed body' }, { status: 400 })
   const { name, logo_url } = body as { name?: unknown; logo_url?: unknown }
 
   const update: Record<string, unknown> = {}

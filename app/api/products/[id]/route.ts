@@ -1,8 +1,11 @@
 import { NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/service'
 import { createClient } from '@/lib/supabase/server'
+import { assertWriteAccess } from '@/lib/assertWriteAccess'
 import { resolveActor, writeAuditLog, diffObjects, PRODUCT_FIELDS } from '@/lib/auditLog'
 import { notifyWebsite } from '@/lib/notifyWebsite'
+
+const PRODUCT_WRITE_ROLES = ['admin', 'designer', 'external_designer'] as const
 
 // GET /api/products/[id] — single product with photos + sub-products
 export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -42,11 +45,21 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const { id } = await params
-  const body = await request.json()
+  const body = await request.json().catch(() => null)
+  if (!body || typeof body !== 'object') return NextResponse.json({ error: 'Malformed body' }, { status: 400 })
   const { photos: _photos, ...fields } = body
 
   const service = createServiceClient()
   const { data: before } = await service.from('products').select('*').eq('id', id).single()
+  if (!before) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+
+  const denied = await assertWriteAccess(user.id, before.website, [...PRODUCT_WRITE_ROLES])
+  if (denied) return denied
+
+  if (typeof fields.website === 'string' && fields.website !== before.website) {
+    const moveDenied = await assertWriteAccess(user.id, fields.website, [...PRODUCT_WRITE_ROLES])
+    if (moveDenied) return moveDenied
+  }
 
   if (fields.slug && before && fields.slug !== before.slug) {
     const { data: dup } = await service
@@ -91,6 +104,10 @@ export async function DELETE(_request: Request, { params }: { params: Promise<{ 
   const { id } = await params
   const service = createServiceClient()
   const { data: before } = await service.from('products').select('*').eq('id', id).single()
+  if (!before) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+
+  const denied = await assertWriteAccess(user.id, before.website, [...PRODUCT_WRITE_ROLES])
+  if (denied) return denied
 
   const { error } = await service.from('products').delete().eq('id', id)
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })

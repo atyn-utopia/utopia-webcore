@@ -28,7 +28,9 @@ export async function POST(request: Request) {
   const service = createServiceClient()
   const { data: profile } = await service.from('user_profiles').select('name, role').eq('id', user.id).single()
 
-  const { subject, description } = await request.json()
+  const body = await request.json().catch(() => null)
+  if (!body || typeof body !== 'object') return NextResponse.json({ error: 'Malformed body' }, { status: 400 })
+  const { subject, description } = body
   if (!subject) return NextResponse.json({ error: 'Subject is required' }, { status: 400 })
 
   const { data, error } = await service.from('tickets').insert({

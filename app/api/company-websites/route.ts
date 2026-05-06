@@ -40,7 +40,8 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }
 
-  const body = await request.json()
+  const body = await request.json().catch(() => null)
+  if (!body || typeof body !== 'object') return NextResponse.json({ error: 'Malformed body' }, { status: 400 })
   const { company_id, company_name, domain, create_api_key = true, key_permissions } = body
 
   if (!domain) return NextResponse.json({ error: 'domain is required' }, { status: 400 })

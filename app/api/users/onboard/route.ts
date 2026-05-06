@@ -41,7 +41,8 @@ export async function POST(request: Request) {
   const { data: profile } = await service.from('user_profiles').select('role').eq('id', user.id).single()
   if (profile?.role !== 'admin') return NextResponse.json({ error: 'Admin only' }, { status: 403 })
 
-  const body = await request.json()
+  const body = await request.json().catch(() => null)
+  if (!body || typeof body !== 'object') return NextResponse.json({ error: 'Malformed body' }, { status: 400 })
   const { company_id, company_name, domain, name, email, key_permissions } = body
 
   if (!domain || !name || !email) {

@@ -102,7 +102,9 @@ export async function POST(request: Request) {
   const auth = await authorize()
   if ('error' in auth) return auth.error
 
-  const { name, website, permissions } = await request.json()
+  const body = await request.json().catch(() => null)
+  if (!body || typeof body !== 'object') return NextResponse.json({ error: 'Malformed body' }, { status: 400 })
+  const { name, website, permissions } = body
   if (!name || !website) return NextResponse.json({ error: 'Name and website are required' }, { status: 400 })
 
   if (auth.scope.isScoped && !(auth.scope.domains ?? []).includes(website)) {
@@ -137,7 +139,9 @@ export async function DELETE(request: Request) {
   const auth = await authorize()
   if ('error' in auth) return auth.error
 
-  const { id } = await request.json()
+  const body = await request.json().catch(() => null)
+  if (!body || typeof body !== 'object') return NextResponse.json({ error: 'Malformed body' }, { status: 400 })
+  const { id } = body
   if (!id) return NextResponse.json({ error: 'Key id is required' }, { status: 400 })
 
   const service = createServiceClient()

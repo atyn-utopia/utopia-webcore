@@ -46,7 +46,9 @@ export async function POST(request: Request) {
   const { data: profile } = await service.from('user_profiles').select('role').eq('id', user.id).single()
   if (profile?.role !== 'admin') return NextResponse.json({ error: 'Admin only' }, { status: 403 })
 
-  const { email, password, name, role, company_ids } = await request.json()
+  const body = await request.json().catch(() => null)
+  if (!body || typeof body !== 'object') return NextResponse.json({ error: 'Malformed body' }, { status: 400 })
+  const { email, password, name, role, company_ids } = body
   if (!email || !password || !name || !role) {
     return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
   }
@@ -101,7 +103,9 @@ export async function PATCH(request: Request) {
   const { data: profile } = await service.from('user_profiles').select('role').eq('id', user.id).single()
   if (profile?.role !== 'admin') return NextResponse.json({ error: 'Admin only' }, { status: 403 })
 
-  const { id, name, role, company_ids } = await request.json()
+  const body = await request.json().catch(() => null)
+  if (!body || typeof body !== 'object') return NextResponse.json({ error: 'Malformed body' }, { status: 400 })
+  const { id, name, role, company_ids } = body
   if (!id) return NextResponse.json({ error: 'User id required' }, { status: 400 })
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

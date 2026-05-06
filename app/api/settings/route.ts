@@ -23,7 +23,9 @@ export async function PATCH(request: Request) {
   const { data: profile } = await service.from('user_profiles').select('role').eq('id', user.id).single()
   if (profile?.role !== 'admin') return NextResponse.json({ error: 'Admin only' }, { status: 403 })
 
-  const { key, value } = await request.json()
+  const body = await request.json().catch(() => null)
+  if (!body || typeof body !== 'object') return NextResponse.json({ error: 'Malformed body' }, { status: 400 })
+  const { key, value } = body
   if (!key) return NextResponse.json({ error: 'key required' }, { status: 400 })
 
   const { error } = await service.from('app_settings').upsert({ key, value }, { onConflict: 'key' })

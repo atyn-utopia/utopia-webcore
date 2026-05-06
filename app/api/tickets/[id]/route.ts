@@ -13,7 +13,9 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
   if (profile?.role !== 'admin') return NextResponse.json({ error: 'Admin only' }, { status: 403 })
 
   const { id } = await params
-  const { status } = await request.json()
+  const body = await request.json().catch(() => null)
+  if (!body || typeof body !== 'object') return NextResponse.json({ error: 'Malformed body' }, { status: 400 })
+  const { status } = body
 
   const { data, error } = await service.from('tickets').update({ status }).eq('id', id).select().single()
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })

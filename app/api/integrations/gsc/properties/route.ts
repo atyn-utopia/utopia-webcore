@@ -90,8 +90,9 @@ export async function GET(request: Request) {
  * Saves the user's manual GSC property selection.
  */
 export async function PATCH(request: Request) {
-  const body = await request.json()
-  const { domain, property_id } = body ?? {}
+  const body = await request.json().catch(() => null)
+  if (!body || typeof body !== 'object') return NextResponse.json({ error: 'Malformed body' }, { status: 400 })
+  const { domain, property_id } = body
   const gate = await guard(domain)
   if ('error' in gate) return gate.error
 

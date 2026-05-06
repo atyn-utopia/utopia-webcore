@@ -1,8 +1,11 @@
 import { NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/service'
 import { createClient } from '@/lib/supabase/server'
+import { assertWriteAccess } from '@/lib/assertWriteAccess'
 import { resolveActor, writeAuditLog, diffObjects, BLOG_FIELDS, type ChangesMap } from '@/lib/auditLog'
 import { notifyWebsite } from '@/lib/notifyWebsite'
+
+const BLOG_WRITE_ROLES = ['admin', 'designer', 'external_designer', 'writer'] as const
 
 // GET /api/blog/[id] — get post with all translations
 export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -24,13 +27,23 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const { id } = await params
-  const body = await request.json()
+  const body = await request.json().catch(() => null)
+  if (!body || typeof body !== 'object') return NextResponse.json({ error: 'Malformed body' }, { status: 400 })
   const { translations, ...postFields } = body
 
   const service = createServiceClient()
 
-  // Fetch full row + translations BEFORE any update so we can diff for audit log
+  // Fetch full row + translations BEFORE any update so we can diff for audit log + validate scope
   const { data: beforeRow } = await service.from('blog_posts').select('*, blog_translations(*)').eq('id', id).single()
+  if (!beforeRow) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+
+  const denied = await assertWriteAccess(user.id, beforeRow.website, [...BLOG_WRITE_ROLES])
+  if (denied) return denied
+
+  if (typeof postFields.website === 'string' && postFields.website !== beforeRow.website) {
+    const moveDenied = await assertWriteAccess(user.id, postFields.website, [...BLOG_WRITE_ROLES])
+    if (moveDenied) return moveDenied
+  }
 
   // If changing slug, check for duplicates
   if (postFields.slug) {
@@ -131,8 +144,12 @@ export async function DELETE(_request: Request, { params }: { params: Promise<{ 
   const { id } = await params
   const service = createServiceClient()
 
-  // Snapshot before delete for audit
+  // Snapshot before delete for audit + scope validation
   const { data: before } = await service.from('blog_posts').select('*, blog_translations(*)').eq('id', id).single()
+  if (!before) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+
+  const denied = await assertWriteAccess(user.id, before.website, [...BLOG_WRITE_ROLES])
+  if (denied) return denied
 
   const { error } = await service.from('blog_posts').delete().eq('id', id)
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })

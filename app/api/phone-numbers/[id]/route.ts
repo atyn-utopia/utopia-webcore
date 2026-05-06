@@ -2,8 +2,11 @@ import { NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/service'
 import { createClient } from '@/lib/supabase/server'
 import { updateLeadsMode } from '@/lib/updateLeadsMode'
+import { assertWriteAccess } from '@/lib/assertWriteAccess'
 import { resolveActor, writeAuditLog, diffObjects, PHONE_FIELDS } from '@/lib/auditLog'
 import { notifyWebsite } from '@/lib/notifyWebsite'
+
+const PHONE_WRITE_ROLES = ['admin', 'designer', 'external_designer', 'indoor_sales', 'manager'] as const
 
 // PATCH /api/phone-numbers/[id]
 export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -12,12 +15,23 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const { id } = await params
-  const body = await request.json()
+  const body = await request.json().catch(() => null)
+  if (!body || typeof body !== 'object') return NextResponse.json({ error: 'Malformed body' }, { status: 400 })
 
   const service = createServiceClient()
 
-  // Fetch full row before update so we can diff for the audit log
+  // Fetch full row before update so we can diff for the audit log + validate scope
   const { data: before } = await service.from('phone_numbers').select('*').eq('id', id).single()
+  if (!before) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+
+  const denied = await assertWriteAccess(user.id, before.website, [...PHONE_WRITE_ROLES])
+  if (denied) return denied
+
+  // If body tries to move the row to a different website, also gate the destination.
+  if (typeof body.website === 'string' && body.website !== before.website) {
+    const moveDenied = await assertWriteAccess(user.id, body.website, [...PHONE_WRITE_ROLES])
+    if (moveDenied) return moveDenied
+  }
 
   const { data, error } = await service
     .from('phone_numbers')
@@ -61,8 +75,12 @@ export async function DELETE(_request: Request, { params }: { params: Promise<{ 
 
   const service = createServiceClient()
 
-  // Fetch full row before delete for the audit snapshot
+  // Fetch full row before delete for the audit snapshot + validate scope
   const { data: before } = await service.from('phone_numbers').select('*').eq('id', id).single()
+  if (!before) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+
+  const denied = await assertWriteAccess(user.id, before.website, [...PHONE_WRITE_ROLES])
+  if (denied) return denied
 
   const { error } = await service.from('phone_numbers').delete().eq('id', id)
 

@@ -89,7 +89,8 @@ export async function PATCH(request: Request) {
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const scope = await getUserScope(user.id)
-  const body = await request.json()
+  const body = await request.json().catch(() => null)
+  if (!body || typeof body !== 'object') return NextResponse.json({ error: 'Malformed body' }, { status: 400 })
   const { website, leads_mode_override } = body
 
   if (!website) return NextResponse.json({ error: 'website is required' }, { status: 400 })
