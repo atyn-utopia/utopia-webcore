@@ -1,14 +1,20 @@
 import { NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/service'
 import { createClient } from '@/lib/supabase/server'
+import { getUserScope } from '@/lib/getUserScope'
 import { assertWriteAccess } from '@/lib/assertWriteAccess'
 import { resolveActor, writeAuditLog, diffObjects, BLOG_FIELDS, type ChangesMap } from '@/lib/auditLog'
 import { notifyWebsite } from '@/lib/notifyWebsite'
 
 const BLOG_WRITE_ROLES = ['admin', 'designer', 'external_designer', 'writer'] as const
 
-// GET /api/blog/[id] — get post with all translations
+// GET /api/blog/[id] — get post with all translations.
+// Admin-only fetch (includes drafts); public-facing reads go through /api/public/blog.
 export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
   const { id } = await params
   const service = createServiceClient()
   const { data, error } = await service
@@ -17,6 +23,11 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
     .eq('id', id)
     .single()
   if (error) return NextResponse.json({ error: error.message }, { status: 404 })
+
+  const scope = await getUserScope(user.id)
+  if (scope.isScoped && data?.website && !(scope.domains ?? []).includes(data.website)) {
+    return NextResponse.json({ error: 'Forbidden for this website' }, { status: 403 })
+  }
   return NextResponse.json(data)
 }
 

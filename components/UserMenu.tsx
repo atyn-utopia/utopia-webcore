@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { useUser, type UserRole } from '@/contexts/UserContext'
 import { useLanguage } from '@/contexts/LanguageContext'
+import { useToast } from '@/contexts/ToastContext'
 import type { TranslationKey } from '@/lib/i18n/en'
 
 const ROLE_KEY: Record<UserRole, TranslationKey> = {
@@ -25,7 +26,9 @@ export default function UserMenu() {
   const router = useRouter()
   const { name, email, role } = useUser()
   const { t } = useLanguage()
+  const toast = useToast()
   const [open, setOpen] = useState(false)
+  const [signingOut, setSigningOut] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -38,10 +41,22 @@ export default function UserMenu() {
   }, [open])
 
   async function handleSignOut() {
-    const supabase = createClient()
-    await supabase.auth.signOut()
-    router.push('/login')
-    router.refresh()
+    if (signingOut) return
+    setSigningOut(true)
+    try {
+      const supabase = createClient()
+      const { error } = await supabase.auth.signOut()
+      if (error) {
+        toast.error(error.message, 'Sign out failed')
+        return
+      }
+      router.push('/login')
+      router.refresh()
+    } catch (e) {
+      toast.error((e as Error).message, 'Sign out failed')
+    } finally {
+      setSigningOut(false)
+    }
   }
 
   return (
@@ -97,13 +112,14 @@ export default function UserMenu() {
           <div style={{ borderTop: '1px solid #f1f5f9' }}>
             <button
               onClick={handleSignOut}
-              className="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs font-medium transition-colors hover:bg-red-50"
+              disabled={signingOut}
+              className="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs font-medium transition-colors hover:bg-red-50 disabled:opacity-50"
               style={{ color: '#b91c1c' }}
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
               </svg>
-              {t('nav.signOut')}
+              {signingOut ? '…' : t('nav.signOut')}
             </button>
           </div>
         </div>

@@ -37,13 +37,13 @@ export default function CompanyWebsitesGrid({ domains, initialSites }: { domains
   const scopeRef = useRef<HTMLDivElement>(null)
   const filterRef = useRef<HTMLDivElement>(null)
 
-  // Server-side prefetch covers leads_mode + counts for the company's
-  // domains, so we only fall back to the global /api/websites lookup when
-  // initialSites wasn't supplied.
+  // Server-side prefetch covers leads_mode + counts for the first paint, but
+  // counts go stale fast (a phone toggled active on another tab won't show up
+  // otherwise). Always run a background refresh; if it fails we keep whatever
+  // initialSites gave us.
   useEffect(() => {
-    if (initialSites && initialSites.length > 0) return
     fetch('/api/websites')
-      .then(r => r.ok ? r.json() : [])
+      .then(r => r.ok ? r.json() : null)
       .then(d => { if (Array.isArray(d)) setAll(d) })
       .catch(() => {})
   }, [initialSites])

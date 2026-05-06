@@ -135,7 +135,17 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Forbidden for this website' }, { status: 403 })
   }
 
-  const safePath = path && path.startsWith('/') ? path : '/'
+  // Reject paths that could escape the site:
+  //   - `..` segments (directory traversal in proxy URLs / odd resolvers)
+  //   - leading `//` (protocol-relative — `https://site//evil.com` would fetch evil.com)
+  //   - any whitespace or control chars
+  let safePath = '/'
+  if (typeof path === 'string' && path.startsWith('/')) {
+    if (path.startsWith('//') || path.includes('..') || /[\s\x00-\x1f]/.test(path)) {
+      return NextResponse.json({ error: 'Invalid path' }, { status: 400 })
+    }
+    safePath = path
+  }
   const url = `https://${website}${safePath}`
 
   let html = ''

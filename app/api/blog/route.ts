@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/service'
 import { createClient } from '@/lib/supabase/server'
+import { getUserScope } from '@/lib/getUserScope'
 import { assertWriteAccess } from '@/lib/assertWriteAccess'
 import { resolveActor, writeAuditLog } from '@/lib/auditLog'
 import { notifyWebsite } from '@/lib/notifyWebsite'
@@ -8,18 +9,31 @@ import { notifyWebsite } from '@/lib/notifyWebsite'
 const BLOG_WRITE_ROLES = ['admin', 'designer', 'external_designer', 'writer'] as const
 
 // GET /api/blog?website=&status=
+// Admin-only listing — includes drafts. The public-facing reader uses /api/public/blog.
 export async function GET(request: Request) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
   const { searchParams } = new URL(request.url)
   const website = searchParams.get('website')
   const status = searchParams.get('status')
 
+  const scope = await getUserScope(user.id)
   const service = createServiceClient()
   let query = service
     .from('blog_posts')
     .select('id, website, slug, cover_image_url, status, published_at, created_at, updated_at, author_id, blog_translations(language, title, excerpt)')
     .order('created_at', { ascending: false })
 
-  if (website) query = query.eq('website', website)
+  if (website) {
+    if (scope.isScoped && !(scope.domains ?? []).includes(website)) return NextResponse.json([])
+    query = query.eq('website', website)
+  } else if (scope.isScoped) {
+    const allowed = scope.domains ?? []
+    if (allowed.length === 0) return NextResponse.json([])
+    query = query.in('website', allowed)
+  }
   if (status) query = query.eq('status', status)
 
   const { data, error } = await query
