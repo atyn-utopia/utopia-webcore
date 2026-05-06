@@ -147,7 +147,7 @@ You're helping build a website that integrates with **Utopia Webcore** — a cen
    - \`fetchProducts()\` / \`fetchProduct(slug)\` — product catalog
    - \`fetchBlog()\` / \`fetchBlogPost(slug)\` — blog posts
 
-   These helpers use Next.js ISR with **cache tags**, not time-based revalidation. They cache forever until webcore tells this site to flush. Tags are: \`webcore-products\`, \`webcore-phones\`, \`webcore-blog\`. If you add new fetches that aren't going through \`lib/webcore.ts\`, add the matching tag yourself: \`fetch(url, { next: { tags: ['webcore-products'] } })\`.
+   These helpers use Next.js ISR with **cache tags + a 30-second time-based fallback**. Webcore POSTs to /api/revalidate when content changes, which triggers an instant tag flush; the 30s fallback means even if the webhook breaks (misconfigured secret, route 404, bad URL) content self-heals within 30s instead of freezing forever. Tags are: \`webcore-products\`, \`webcore-phones\`, \`webcore-blog\`, \`webcore-seo\`. If you add new fetches that aren't going through \`lib/webcore.ts\`, add the matching tag + revalidate yourself: \`fetch(url, { next: { tags: ['webcore-products'], revalidate: 30 } })\`.
 
 **Writes — one API key covers all three:**
    - Products: \`pushProduct() / updateProduct(id, ...) / deleteProduct(id)\`
@@ -423,7 +423,10 @@ export interface BlogPost {
 //
 // All cached reads use Next.js ISR with TAGS, not time-based revalidation.
 // Webcore POSTs to /api/revalidate when content changes; that handler calls
-// revalidateTag(...) and the next request rebuilds. Cached forever in between.
+// revalidateTag(...) and the next request rebuilds. We also set a 30-second
+// time-based revalidate as a safety net — if the webhook ever fails to reach
+// this site (misconfigured secret, route 404, etc.), content still self-heals
+// within 30s instead of freezing forever.
 //
 // Tag conventions (must match what /api/revalidate handles):
 //   webcore-phones    — phone numbers
@@ -435,7 +438,7 @@ export async function fetchPhones(location?: string): Promise<PhoneNumber[]> {
   const url = new URL(\`\${BASE}/api/public/phone-numbers\`)
   url.searchParams.set('website', SITE)
   if (location) url.searchParams.set('location', location)
-  const res = await fetch(url, { next: { tags: ['webcore-phones'] } })
+  const res = await fetch(url, { next: { tags: ['webcore-phones'], revalidate: 30 } })
   if (!res.ok) return []
   return res.json()
 }
@@ -472,7 +475,7 @@ export async function resolvePhone(
 export async function fetchProducts(): Promise<Product[]> {
   const url = new URL(\`\${BASE}/api/public/products\`)
   url.searchParams.set('website', SITE)
-  const res = await fetch(url, { next: { tags: ['webcore-products'] } })
+  const res = await fetch(url, { next: { tags: ['webcore-products'], revalidate: 30 } })
   if (!res.ok) return []
   return res.json()
 }
@@ -482,7 +485,7 @@ export async function fetchProduct(slug: string): Promise<Product | null> {
   const url = new URL(\`\${BASE}/api/public/products\`)
   url.searchParams.set('website', SITE)
   url.searchParams.set('slug', slug)
-  const res = await fetch(url, { next: { tags: ['webcore-products'] } })
+  const res = await fetch(url, { next: { tags: ['webcore-products'], revalidate: 30 } })
   if (!res.ok) return null
   return res.json()
 }
@@ -492,7 +495,7 @@ export async function fetchBlog(language?: string): Promise<BlogPostSummary[]> {
   const url = new URL(\`\${BASE}/api/public/blog\`)
   url.searchParams.set('website', SITE)
   if (language) url.searchParams.set('language', language)
-  const res = await fetch(url, { next: { tags: ['webcore-blog'] } })
+  const res = await fetch(url, { next: { tags: ['webcore-blog'], revalidate: 30 } })
   if (!res.ok) return []
   return res.json()
 }
@@ -503,7 +506,7 @@ export async function fetchBlogPost(slug: string, language?: string): Promise<Bl
   url.searchParams.set('website', SITE)
   url.searchParams.set('slug', slug)
   if (language) url.searchParams.set('language', language)
-  const res = await fetch(url, { next: { tags: ['webcore-blog'] } })
+  const res = await fetch(url, { next: { tags: ['webcore-blog'], revalidate: 30 } })
   if (!res.ok) return null
   return res.json()
 }
@@ -714,7 +717,7 @@ export async function webcoreSeo({ path, fallback = {} }: WebcoreSeoOptions): Pr
 
   let override: OverridePayload | null = null
   try {
-    const res = await fetch(url, { next: { tags: ['webcore-seo'] } })
+    const res = await fetch(url, { next: { tags: ['webcore-seo'], revalidate: 30 } })
     if (res.ok) override = await res.json() as OverridePayload
   } catch {
     // Network errors fall back to the page's own metadata silently.
