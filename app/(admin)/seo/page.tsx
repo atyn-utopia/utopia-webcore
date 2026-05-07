@@ -686,7 +686,7 @@ function Step1Card({
         title="Use proper heading structure (<h1>, <h2>, <h3>…)"
         hint={audit ? `${audit.headings.total} heading${audit.headings.total === 1 ? '' : 's'} on page` : undefined}
       >
-        <HeadingDetail audit={audit} />
+        <HeadingDetail audit={audit} domain={domain} language={language} />
       </Task>
 
       <Task
@@ -1711,7 +1711,7 @@ function PatternRow({ domain, override, matchedPaths, onRefresh }: { domain: str
 // Heading detail — per-level breakdown + structural recommendation
 // ---------------------------------------------------------------------------
 
-function HeadingDetail({ audit }: { audit: AuditResult | null }) {
+function HeadingDetail({ audit, domain, language }: { audit: AuditResult | null; domain: string; language: Language }) {
   if (!audit) return <p className="text-xs" style={{ color: '#94a3b8' }}>Audit hasn&apos;t finished.</p>
   const levels = audit.headings.byLevel ?? { h1: audit.headings.h1Count, h2: 0, h3: 0, h4: 0, h5: 0, h6: 0 }
   const tips: string[] = []
@@ -1751,23 +1751,23 @@ function HeadingDetail({ audit }: { audit: AuditResult | null }) {
       {audit.headings.texts && audit.headings.texts.h2.length > 0 && (
         <div>
           <p className="text-[11px] font-semibold uppercase tracking-wider mb-1" style={{ color: '#94a3b8' }}>Current &lt;h2&gt; ({audit.headings.texts.h2.length}{levels.h2 > audit.headings.texts.h2.length ? ` of ${levels.h2}` : ''})</p>
-          <ul className="space-y-1">
+          <div className="space-y-1">
             {audit.headings.texts.h2.map((t, i) => (
-              <li key={i} className="text-xs px-2 py-1 rounded font-mono truncate" style={{ background: '#fafbfc', border: '1px solid #f1f5f9', color: '#475569' }} title={t}>{t}</li>
+              <HeadingRow key={i} text={t} level={2} domain={domain} language={language} />
             ))}
-          </ul>
+          </div>
         </div>
       )}
 
       {audit.headings.texts && audit.headings.texts.h3.length > 0 && (
         <div>
           <p className="text-[11px] font-semibold uppercase tracking-wider mb-1" style={{ color: '#94a3b8' }}>Current &lt;h3&gt; ({audit.headings.texts.h3.length}{levels.h3 > audit.headings.texts.h3.length ? ` of ${levels.h3}` : ''})</p>
-          <ul className="space-y-1">
+          <div className="space-y-1">
             {audit.headings.texts.h3.slice(0, 8).map((t, i) => (
-              <li key={i} className="text-xs px-2 py-1 rounded font-mono truncate" style={{ background: '#fafbfc', border: '1px solid #f1f5f9', color: '#475569' }} title={t}>{t}</li>
+              <HeadingRow key={i} text={t} level={3} domain={domain} language={language} />
             ))}
-            {audit.headings.texts.h3.length > 8 && <li className="text-[10px]" style={{ color: '#94a3b8' }}>… +{audit.headings.texts.h3.length - 8} more</li>}
-          </ul>
+            {audit.headings.texts.h3.length > 8 && <p className="text-[10px] mt-1" style={{ color: '#94a3b8' }}>… +{audit.headings.texts.h3.length - 8} more</p>}
+          </div>
         </div>
       )}
 
@@ -1776,8 +1776,93 @@ function HeadingDetail({ audit }: { audit: AuditResult | null }) {
         <ul className="text-xs space-y-1 mt-1" style={{ color: '#475569' }}>
           {tips.map((t, i) => <li key={i}>· {t}</li>)}
         </ul>
-        <p className="text-[10px] mt-2" style={{ color: '#94a3b8' }}>Headings live in the designer site&apos;s code — unlike alt text, webcore can&apos;t safely rewrite them at runtime (text content varies wildly and rewriting would break design). Update the page templates and re-run the audit.</p>
+        <p className="text-[10px] mt-2" style={{ color: '#94a3b8' }}>Headings live in the designer site&apos;s code — unlike alt text, webcore can&apos;t safely rewrite them at runtime. Use the <strong>Suggest</strong> button per heading to generate stronger phrasings, then paste them into the designer code.</p>
       </div>
+    </div>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// Heading row — current text + Suggest action that fetches AI alternatives
+// ---------------------------------------------------------------------------
+
+function HeadingRow({ text, level, domain, language }: { text: string; level: 2 | 3; domain: string; language: Language }) {
+  const toast = useToast()
+  const [open, setOpen] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [suggestions, setSuggestions] = useState<string[]>([])
+  const [copied, setCopied] = useState<number | null>(null)
+
+  async function fetchSuggestions() {
+    if (suggestions.length > 0) {
+      setOpen(v => !v)
+      return
+    }
+    setLoading(true)
+    setOpen(true)
+    try {
+      const res = await fetch('/api/seo/suggest-heading', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ website: domain, level, current_heading: text, language }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        toast.error(data.error ?? 'Could not generate suggestions', 'Suggestion failed')
+        setOpen(false)
+        return
+      }
+      setSuggestions(Array.isArray(data.suggestions) ? data.suggestions : [])
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  async function copy(s: string, i: number) {
+    try {
+      await navigator.clipboard.writeText(s)
+      setCopied(i)
+      setTimeout(() => setCopied(c => (c === i ? null : c)), 1500)
+    } catch {
+      toast.error('Could not copy to clipboard', 'Copy failed')
+    }
+  }
+
+  return (
+    <div className="rounded-md" style={{ background: '#fafbfc', border: '1px solid #f1f5f9' }}>
+      <div className="flex items-center gap-2 px-2 py-1.5">
+        <span className="text-[10px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded flex-shrink-0" style={{ background: '#eff6ff', color: 'var(--primary)' }}>h{level}</span>
+        <span className="flex-1 text-xs truncate" style={{ color: '#475569' }} title={text}>{text}</span>
+        <button
+          type="button"
+          onClick={fetchSuggestions}
+          disabled={loading}
+          className="text-[11px] font-medium px-2 h-6 rounded transition-colors hover:bg-white disabled:opacity-50"
+          style={{ border: '1px solid #e2e8f0', color: '#475569', background: 'white' }}
+        >
+          {loading ? '…' : open && suggestions.length > 0 ? 'Hide' : 'Suggest'}
+        </button>
+      </div>
+      {open && suggestions.length > 0 && (
+        <div className="px-2 pb-2 space-y-1" style={{ borderTop: '1px dashed #e2e8f0' }}>
+          <p className="text-[10px] font-semibold uppercase tracking-wider pt-1.5" style={{ color: '#94a3b8' }}>Alternatives — click to copy</p>
+          {suggestions.map((s, i) => (
+            <button
+              key={i}
+              type="button"
+              onClick={() => copy(s, i)}
+              className="w-full flex items-center gap-2 text-left rounded px-2 py-1.5 transition-colors hover:bg-white"
+              style={{ background: 'white', border: '1px solid #e2e8f0' }}
+            >
+              <span className="flex-1 text-xs" style={{ color: 'var(--foreground)' }}>{s}</span>
+              <span className="text-[10px] font-medium flex-shrink-0" style={{ color: copied === i ? '#16a34a' : 'var(--primary)' }}>
+                {copied === i ? '✓ Copied' : 'Copy'}
+              </span>
+            </button>
+          ))}
+          <p className="text-[10px] mt-1" style={{ color: '#94a3b8' }}>Paste into the designer code, redeploy, then re-run the audit to confirm.</p>
+        </div>
+      )}
     </div>
   )
 }
