@@ -1103,16 +1103,7 @@ function Step3Card({ domain }: { domain: string }) {
           ? `Webhook posts to ${data.revalidate.url}. Edits in webcore appear on the live site within seconds.`
           : `No revalidate URL configured. With ${data.productsCount} products on this site, edits won't reach the live page until the host rebuilds. Add a webhook in Settings → Revalidation.`,
       },
-      {
-        key: 'gsc',
-        ok: data.gscConnected,
-        applicable: true,
-        label: 'Google Search Console connected',
-        detail: data.gscConnected
-          ? 'Search analytics + index coverage available inside webcore.'
-          : 'Connect Search Console to see clicks, impressions, queries, and indexing issues without leaving webcore.',
-        href: `/integrations?website=${encodeURIComponent(domain)}`,
-      },
+      // GSC connection lives in Step 1 already — don't duplicate it here.
     ]
   }, [data, domain])
 
