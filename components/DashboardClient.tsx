@@ -50,7 +50,7 @@ export default function DashboardClient({ role, isScoped, websiteCount, phoneCou
       </div>
 
       {/* Stats. Info only, not links */}
-      <div className={`grid grid-cols-1 ${isWriter || isScoped ? 'sm:grid-cols-2' : 'sm:grid-cols-2 lg:grid-cols-4'} gap-4 mb-8`}>
+      <div className={`grid grid-cols-1 ${isWriter || isScoped ? 'sm:grid-cols-2' : 'sm:grid-cols-2 lg:grid-cols-3'} gap-4 mb-8`}>
         <Card variant="default">
           <div className="flex items-center gap-3 mb-3">
             <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: '#f1f5f9' }}>
@@ -94,20 +94,8 @@ export default function DashboardClient({ role, isScoped, websiteCount, phoneCou
           </Card>
         )}
 
-        {!isScoped && (
-          <Card variant="default">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="w-9 h-9 rounded-lg flex items-center justify-center bg-slate-100">
-                <svg className="w-4.5 h-4.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                </svg>
-              </div>
-              <span className="text-xs font-medium text-slate-400 uppercase tracking-wide">{t('dashboard.stats.blogPosts')}</span>
-            </div>
-            <p className="text-3xl font-bold text-slate-900 mb-0.5">{postCount ?? 0}</p>
-            <p className="text-xs text-slate-400">{t('dashboard.stats.blogPosts.desc')}</p>
-          </Card>
-        )}
+        {/* Blog stat card removed from the dashboard per design call. The
+            sidebar still links to /blog for the analytics view. */}
       </div>
 
       {/* Companies. Primary navigation into per-site work */}
@@ -141,12 +129,12 @@ export default function DashboardClient({ role, isScoped, websiteCount, phoneCou
                   style={{ borderColor: '#e2e8f0' }}
                 >
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 overflow-hidden" style={{ background: c.logoUrl ? '#f8fafc' : '#fef3c7', border: c.logoUrl ? '1px solid #f1f5f9' : 'none' }}>
+                    <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 overflow-hidden" style={{ background: c.logoUrl ? '#f8fafc' : '#dbeafe', border: c.logoUrl ? '1px solid #f1f5f9' : 'none' }}>
                       {c.logoUrl ? (
                         // eslint-disable-next-line @next/next/no-img-element
                         <img src={c.logoUrl} alt="" className="w-full h-full object-contain" />
                       ) : (
-                        <svg className="w-5 h-5" fill="none" stroke="#d97706" viewBox="0 0 24 24" strokeWidth="1.8">
+                        <svg className="w-5 h-5" fill="none" stroke="#1E5BFF" viewBox="0 0 24 24" strokeWidth="1.8">
                           <path strokeLinecap="round" strokeLinejoin="round" d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V7z" />
                         </svg>
                       )}

@@ -47,7 +47,9 @@ const VARIANT_CLASS: Record<Variant, string> = {
 
 const BASE = [
   'inline-flex items-center justify-center gap-1.5',
-  'font-medium tracking-tight rounded-md select-none whitespace-nowrap',
+  // Pill shape across the system per design direction. Override with
+  // className="!rounded-md" on rare cases where a square corner is needed.
+  'font-medium tracking-tight rounded-full select-none whitespace-nowrap',
   'transition-colors duration-150',
   'disabled:opacity-50 disabled:cursor-not-allowed',
   'focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-2',

@@ -102,23 +102,6 @@ export default function PhoneNumbersPage() {
   // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { fetchNumbers() }, [fetchNumbers])
 
-  async function deleteNumber(id: string) {
-    const ok = await confirm({
-      title: 'Delete phone number',
-      message: 'This number will be permanently removed from the rotation pool. This action cannot be undone.',
-      confirmLabel: 'Delete',
-      variant: 'danger',
-    })
-    if (!ok) return
-    const res = await fetch(`/api/phone-numbers/${id}`, { method: 'DELETE' })
-    if (res.ok) {
-      toast.success('Phone number deleted', 'Deleted')
-    } else {
-      toast.error('Failed to delete number', 'Delete failed')
-    }
-    fetchNumbers()
-  }
-
   // Filter + search
   const filtered = numbers.filter(n => {
     if (!search) return true
@@ -307,15 +290,6 @@ export default function PhoneNumbersPage() {
         <div className="space-y-8">
           {visibleEntries.map(([companyName, { websites: companyWebsites }]) => (
             <div key={companyName}>
-              {/* Company header. Only show if not inside a company folder */}
-              {!openCompany && (
-                <div className="flex items-center gap-2 mb-3">
-                  <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: companyName === 'Unassigned' ? '#94a3b8' : 'var(--primary)' }} strokeWidth="1.8">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                  </svg>
-                  <h2 className="text-sm font-semibold" style={{ color: companyName === 'Unassigned' ? '#94a3b8' : 'var(--foreground)' }}>{companyName}</h2>
-                </div>
-              )}
               <div className="space-y-5">
           {companyWebsites.map(([website, rows]) => {
             const activeRows = rows.filter(r => r.is_active)
@@ -389,7 +363,6 @@ export default function PhoneNumbersPage() {
                     <col className="w-24" />
                     <col className="w-14" />
                     <col className="w-24" />
-                    <col className="w-12" />
                   </colgroup>
                   <thead>
                     <tr style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
@@ -399,13 +372,12 @@ export default function PhoneNumbersPage() {
                       <th className="px-4 py-3 text-[10px] sm:text-xs font-medium whitespace-nowrap text-left" style={{ color: '#94a3b8' }}>Type</th>
                       <th className="px-4 py-3 text-[10px] sm:text-xs font-medium whitespace-nowrap text-center" style={{ color: '#94a3b8' }}>%</th>
                       <th className="px-4 py-3 text-[10px] sm:text-xs font-medium whitespace-nowrap text-left" style={{ color: '#94a3b8' }}>Status</th>
-                      <th className="px-4 py-3 text-[10px] sm:text-xs font-medium whitespace-nowrap text-right" style={{ color: '#94a3b8' }}></th>
                     </tr>
                   </thead>
                   <tbody>
                     {rows.length === 0 && (
                       <tr>
-                        <td colSpan={7} className="px-4 py-5 text-center">
+                        <td colSpan={6} className="px-4 py-5 text-center">
                           <Link
                             href={`/phone-numbers/edit?website=${encodeURIComponent(website)}${openCompany ? `&company=${encodeURIComponent(openCompany)}` : ''}`}
                             className="inline-flex items-center gap-2 text-xs font-medium px-3 py-2 rounded-lg transition-colors"
@@ -445,19 +417,6 @@ export default function PhoneNumbersPage() {
                               <span className="w-1.5 h-1.5 rounded-full" style={{ background: row.is_active ? '#16a34a' : '#94a3b8' }} />
                               {row.is_active ? 'Active' : 'Off'}
                             </span>
-                          </td>
-                          <td className="px-4 py-3 align-middle text-right">
-                            {!isDefault && (
-                              <button
-                                onClick={() => deleteNumber(row.id)}
-                                className="w-7 h-7 inline-flex items-center justify-center rounded-md border border-[#e2e8f0] text-[#94a3b8] transition-colors hover:bg-[#ef4444] hover:border-white hover:text-white"
-                                title="Delete"
-                              >
-                                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8">
-                                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                </svg>
-                              </button>
-                            )}
                           </td>
                         </tr>
                       )
