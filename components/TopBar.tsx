@@ -120,7 +120,18 @@ export default function TopBar() {
             className="w-48 lg:w-72 pl-8 pr-3 py-2 text-xs rounded-md focus:outline-none transition-colors placeholder:text-white/40"
             style={{ border: '1px solid rgba(255,255,255,0.12)', background: 'rgba(255,255,255,0.06)', color: 'var(--header-text-strong)' }}
           />
-          {searching && <div className="absolute right-2.5 top-1/2 -translate-y-1/2 w-3 h-3 rounded-full border border-white/30 border-t-white animate-spin" />}
+          {searching && (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src="/loading-animation.gif"
+              alt=""
+              width={14}
+              height={14}
+              className="absolute right-2.5 top-1/2 -translate-y-1/2"
+              style={{ width: 14, height: 14 }}
+              aria-hidden
+            />
+          )}
         </div>
         {showSearch && searchQuery && (
           <div className="absolute top-11 left-0 right-0 rounded-md border shadow-lg z-50 overflow-hidden" style={{ background: 'white', borderColor: '#e2e8f0' }}>

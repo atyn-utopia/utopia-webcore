@@ -7,58 +7,59 @@ interface SpinnerProps {
   className?: string
   /** Optional helper text rendered next to the spinner. */
   label?: string
+  /**
+   * Invert the GIF colours so the white animation appears black. Defaults
+   * to true because most surfaces in the app have light backgrounds. Pass
+   * `invert={false}` when placing the spinner on a dark / coloured surface
+   * (e.g. inside a primary button) so the original white animation shows.
+   */
+  invert?: boolean
   style?: React.CSSProperties
 }
 
 const SIZE_MAP: Record<Size, number> = {
-  sm: 18,
-  md: 26,
-  lg: 40,
-  xl: 64,
+  sm: 16,
+  md: 22,
+  lg: 36,
+  xl: 56,
 }
 
 /**
- * Branded loading indicator. Wraps /loading-animation.gif in a dark
- * circular backdrop so the white animation inside the GIF is always
- * legible — the GIF on its own is mostly white-on-transparent and
- * disappears against the white card backgrounds we use everywhere.
+ * Branded loading indicator backed by /loading-animation.gif.
+ *
+ * The GIF ships as a white animation on a transparent background; we
+ * apply a CSS invert by default so it reads as black on light surfaces.
+ * For dark / branded surfaces, opt out with `invert={false}` to keep the
+ * white animation.
  */
-export function Spinner({ size = 'md', className = '', label, style }: SpinnerProps) {
-  const outer = typeof size === 'number' ? size : SIZE_MAP[size]
-  // Inner GIF fills the backdrop with a slight inset so the animation
-  // doesn't crop against the circle edge.
-  const inner = Math.round(outer * 0.92)
+export function Spinner({ size = 'md', className = '', label, invert = true, style }: SpinnerProps) {
+  const px = typeof size === 'number' ? size : SIZE_MAP[size]
   return (
     <span className={`inline-flex items-center gap-2 ${className}`} style={style}>
-      <span
-        className="inline-flex items-center justify-center rounded-full overflow-hidden"
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src="/loading-animation.gif"
+        alt=""
+        width={px}
+        height={px}
         style={{
-          width: outer,
-          height: outer,
-          background: '#0F172A',
+          width: px,
+          height: px,
+          display: 'inline-block',
+          filter: invert ? 'invert(1)' : undefined,
         }}
-      >
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src="/loading-animation.gif"
-          alt=""
-          width={inner}
-          height={inner}
-          style={{ width: inner, height: inner, display: 'block' }}
-          aria-hidden
-          draggable={false}
-        />
-      </span>
+        aria-hidden
+        draggable={false}
+      />
       {label && <span className="text-xs text-slate-500">{label}</span>}
     </span>
   )
 }
 
 /**
- * Full-area loading overlay. Place inside a `relative` container; renders a
- * dim backdrop with the brand spinner centred on top. Use during operations
- * where multiple inputs would otherwise need their own spinners (saving a
- * brand profile, uploading an image, running an audit).
+ * Full-area loading overlay. Place inside a `relative` container; the
+ * backdrop dims whatever sits behind. The spinner inside stays white
+ * (no invert) since the dark backdrop reads better with the original GIF.
  */
 export function LoadingOverlay({ visible, label, blur = true }: { visible: boolean; label?: string; blur?: boolean }) {
   if (!visible) return null
@@ -68,7 +69,7 @@ export function LoadingOverlay({ visible, label, blur = true }: { visible: boole
       style={{ background: 'rgba(15, 23, 42, 0.55)' }}
       aria-busy
     >
-      <Spinner size="xl" />
+      <Spinner size="xl" invert={false} />
       {label && <p className="text-sm font-medium text-white mt-3">{label}</p>}
     </div>
   )
@@ -76,7 +77,7 @@ export function LoadingOverlay({ visible, label, blur = true }: { visible: boole
 
 /**
  * Page-centred spinner for first-load states. Use when the whole page is
- * waiting on data (no need to dim — there's nothing to dim yet).
+ * waiting on data.
  */
 export function PageSpinner({ label = 'Loading…' }: { label?: string }) {
   return (
