@@ -157,7 +157,7 @@ export default function ComparisonColumn({ domain, period, onRemove, canRemove }
               )}
             </section>
 
-            {/* GSC Top Queries (5) — only if connected + data */}
+            {/* GSC Top Queries (5). Only if connected + data */}
             {gsc?.connected && gsc.rows.length > 0 && (
               <section>
                 <p className="text-[10px] font-semibold uppercase tracking-wider mb-2 flex items-center gap-1.5" style={{ color: '#94a3b8' }}>

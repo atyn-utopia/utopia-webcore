@@ -157,7 +157,7 @@ export default function AuditTrailPage() {
 
   return (
     <div>
-      <PageHeader title="Audit Trail" description="All changes across the system — phones, blog, products, websites" />
+      <PageHeader title="Audit Trail" description="All changes across the system: phones, blog, products, websites" />
 
       {/* Filters */}
       <div className="rounded-xl border p-4 mb-5 flex flex-wrap gap-3 items-end" style={{ borderColor: '#e2e8f0', background: '#f8fafc' }}>
@@ -259,7 +259,7 @@ export default function AuditTrailPage() {
                     </div>
                   </div>
 
-                  {/* Date / time — right aligned */}
+                  {/* Date / time. Right aligned */}
                   <div className="flex-shrink-0 text-right" style={{ color: '#94a3b8' }}>
                     <p className="text-xs font-medium" style={{ color: '#475569' }}>{formatFull(log.created_at)}</p>
                     <p className="text-[10px] mt-0.5">{formatRelative(log.created_at)}</p>

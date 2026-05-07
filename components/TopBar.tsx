@@ -161,7 +161,7 @@ export default function TopBar() {
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></svg>
       </button>
 
-      {/* Language switcher — simple toggle */}
+      {/* Language switcher. Simple toggle */}
       <button
         onClick={() => setLanguage(language === 'en' ? 'ms' : 'en')}
         className="w-9 h-9 flex items-center justify-center rounded-md transition-colors text-[11px] font-semibold"

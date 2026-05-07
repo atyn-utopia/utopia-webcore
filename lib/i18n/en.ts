@@ -157,7 +157,7 @@ export const en = {
   'login.welcomeBack': 'Welcome back!',
   'login.redirecting': 'Redirecting to dashboard…',
   'login.error.empty': 'Email and password are required.',
-  'login.footer': 'Utopia Webcore v1.0 — Internal Use Only',
+  'login.footer': 'Utopia Webcore v1.0. Internal Use Only',
   'login.continueWithGoogle': 'Continue with Google',
   'login.or': 'or',
   'login.error.notInvited': 'This Google account hasn\'t been invited yet. Ask an admin to add you.',

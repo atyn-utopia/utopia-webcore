@@ -22,8 +22,8 @@ interface Company { id: string; name: string }
 
 const ROLE_META: Record<UserRole, { label: string; color: string; bg: string; desc: string; access: string }> = {
   admin:             { label: 'Admin',             color: '#1e3a5f', bg: '#e0ecf5', desc: 'Full access to everything',          access: 'All pages, all companies' },
-  designer:          { label: 'Designer',          color: '#7c3aed', bg: '#ede9fe', desc: 'Internal — websites, phones, blog',  access: 'All companies' },
-  external_designer: { label: 'External Designer', color: '#c026d3', bg: '#fae8ff', desc: 'External — scoped to one company',   access: 'Assigned companies only' },
+  designer:          { label: 'Designer',          color: '#7c3aed', bg: '#ede9fe', desc: 'Internal. Websites, phones, blog',  access: 'All companies' },
+  external_designer: { label: 'External Designer', color: '#c026d3', bg: '#fae8ff', desc: 'External. Scoped to one company',   access: 'Assigned companies only' },
   writer:            { label: 'Writer',            color: '#0369a1', bg: '#e0f2fe', desc: 'Blog content creation',              access: 'All blog posts' },
   indoor_sales:      { label: 'Indoor Sales',      color: '#b45309', bg: '#fef3c7', desc: 'View websites & phone numbers',      access: 'Assigned companies only' },
   manager:           { label: 'Manager',           color: '#15803d', bg: '#dcfce7', desc: 'View websites & phone numbers',      access: 'Assigned companies only' },
@@ -244,7 +244,7 @@ export default function UsersPage() {
                     className="w-full px-3 py-2.5 border rounded-lg text-sm outline-none focus:border-[var(--primary)] transition-colors cursor-pointer pr-9"
                     style={{ borderColor: '#cbd5e1', appearance: 'none', WebkitAppearance: 'none' }}>
                     {(Object.keys(ROLE_META) as UserRole[]).map(r => (
-                      <option key={r} value={r}>{ROLE_META[r].label} — {ROLE_META[r].desc}</option>
+                      <option key={r} value={r}>{ROLE_META[r].label}. {ROLE_META[r].desc}</option>
                     ))}
                   </select>
                   <svg className="w-3.5 h-3.5 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: '#94a3b8' }}><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
@@ -261,7 +261,7 @@ export default function UsersPage() {
                 </label>
                 <div className="flex flex-wrap gap-2 p-3 rounded-lg border max-h-48 overflow-y-auto" style={{ borderColor: '#cbd5e1', background: '#f8fafc' }}>
                   {companies.length === 0 ? (
-                    <p className="text-xs" style={{ color: '#94a3b8' }}>No companies available — create one in Websites first.</p>
+                    <p className="text-xs" style={{ color: '#94a3b8' }}>No companies available. Create one in Websites first.</p>
                   ) : companies.map(c => {
                     const checked = form.company_ids.includes(c.id)
                     return (
@@ -411,7 +411,7 @@ export default function UsersPage() {
                             className="w-full px-3 py-2.5 border rounded-lg text-sm outline-none focus:border-[var(--primary)] transition-colors cursor-pointer pr-9"
                             style={{ borderColor: '#cbd5e1', background: 'white', appearance: 'none', WebkitAppearance: 'none' }}>
                             {(Object.keys(ROLE_META) as UserRole[]).map(r => (
-                              <option key={r} value={r}>{ROLE_META[r].label} — {ROLE_META[r].desc}</option>
+                              <option key={r} value={r}>{ROLE_META[r].label}. {ROLE_META[r].desc}</option>
                             ))}
                           </select>
                           <svg className="w-3.5 h-3.5 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: '#94a3b8' }}><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>

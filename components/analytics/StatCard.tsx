@@ -45,7 +45,7 @@ export default function StatCard({ label, value, icon, color, hint, today, yeste
   )
 }
 
-/** Tiny inline SVG sparkline — area + stroke, fills the trailing space of the
+/** Tiny inline SVG sparkline. Area + stroke, fills the trailing space of the
  *  StatCard's big-number row. Wix uses a similar treatment on Analytics
  *  Highlights. */
 function Sparkline({ values, color }: { values: number[]; color: string }) {

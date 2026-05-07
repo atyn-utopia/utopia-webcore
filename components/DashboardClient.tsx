@@ -31,7 +31,7 @@ export default function DashboardClient({ role, isScoped, websiteCount, phoneCou
 
   return (
     <div>
-      {/* Welcome banner — Coxy floats in the top-right of the page now (see CoxyWidget) */}
+      {/* Welcome banner. Coxy floats in the top-right of the page now (see CoxyWidget) */}
       <div className="rounded-xl overflow-hidden mb-8 relative border" style={{ background: 'linear-gradient(to right, #f0f4f8, #ffffff)', borderColor: '#e2e8f0', minHeight: '140px' }}>
         <div className="relative z-10 p-6 sm:p-8 pr-32 sm:pr-48">
           <h1 className="text-xl sm:text-2xl font-bold text-slate-900 mb-1" style={{ fontFamily: 'var(--font-display)' }}>{t('dashboard.welcome')}</h1>
@@ -47,7 +47,7 @@ export default function DashboardClient({ role, isScoped, websiteCount, phoneCou
         </div>
       </div>
 
-      {/* Stats — info only, not links */}
+      {/* Stats. Info only, not links */}
       <div className={`grid grid-cols-1 ${isWriter || isScoped ? 'sm:grid-cols-2' : 'sm:grid-cols-2 lg:grid-cols-4'} gap-4 mb-8`}>
         <div className="rounded-xl border border-slate-200 bg-white p-5">
           <div className="flex items-center gap-3 mb-3">
@@ -108,7 +108,7 @@ export default function DashboardClient({ role, isScoped, websiteCount, phoneCou
         )}
       </div>
 
-      {/* Companies — primary navigation into per-site work */}
+      {/* Companies. Primary navigation into per-site work */}
       {(companies.length > 0 || canAddWebsite) && (
         <>
           <div className="flex items-center justify-between mt-8 mb-3 gap-3">

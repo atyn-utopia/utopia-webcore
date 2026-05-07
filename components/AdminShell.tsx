@@ -52,7 +52,7 @@ export default function AdminShell({ userEmail, userName, userRole, children }: 
     <WebsiteProvider>
     <CoxyProvider>
       <div className="flex flex-col h-screen" style={{ background: 'var(--page-bg)' }}>
-        {/* Beta banner — full width above everything */}
+        {/* Beta banner. Full width above everything */}
         {showBeta && (
           <div className="flex-shrink-0 px-4 py-2 flex items-center justify-between gap-3" style={{ background: '#fef3c7', borderBottom: '1px solid #fcd34d' }}>
             <div className="flex items-center gap-2">
@@ -60,7 +60,7 @@ export default function AdminShell({ userEmail, userName, userRole, children }: 
                 <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
               <p className="text-xs text-amber-800">
-                <strong>Beta Testing</strong> — This system is in beta. Found a bug?{' '}
+                <strong>Beta Testing</strong>. This system is in beta. Found a bug?{' '}
                 <Link href="/help" className="underline font-medium">Submit a ticket</Link>
               </p>
             </div>
@@ -93,7 +93,7 @@ export default function AdminShell({ userEmail, userName, userRole, children }: 
         <main className="flex-1 overflow-y-auto" style={{ background: 'var(--page-bg)' }}>
           <div className="p-4 pb-24 sm:p-6 sm:pb-24 md:p-8 md:pb-8">
             {/* Inline breadcrumb sits in the gray content area, just above
-                the page title — visible on every page including dashboards */}
+                the page title. Visible on every page including dashboards */}
             <div className="mb-4">
               <Breadcrumb />
             </div>

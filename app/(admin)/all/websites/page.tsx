@@ -101,7 +101,7 @@ export default function AllWebsitesPage() {
     <div>
       <PageHeader title={t('page.allWebsites.title')} description={`${sites.length} ${t('page.allWebsites.description')}`} />
 
-      {/* Toolbar — search + filters + view toggle */}
+      {/* Toolbar. Search + filters + view toggle */}
       <div className="flex flex-wrap items-center gap-2 mb-4">
         {/* Search */}
         <div className="relative flex-1 min-w-[220px] max-w-sm">
@@ -127,7 +127,7 @@ export default function AllWebsitesPage() {
           <SelectArrow />
         </div>
 
-        {/* Leads mode filter — admin/designer only since writers don't see phones */}
+        {/* Leads mode filter. Admin/designer only since writers don't see phones */}
         {!isWriter && (
           <div className="relative">
             <select value={filterLeadsMode} onChange={e => setFilterLeadsMode(e.target.value)}

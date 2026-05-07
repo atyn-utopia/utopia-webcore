@@ -117,7 +117,7 @@ function GoogleSearchConsoleSection({ domain }: { domain: string }) {
         setFlash({ kind: 'error', text: data.error ?? 'Failed to save' })
         return
       }
-      setFlash({ kind: 'success', text: 'Property saved — data should appear shortly' })
+      setFlash({ kind: 'success', text: 'Property saved. Data should appear shortly' })
       setShowPicker(false)
       load()
     } catch (e) {
@@ -184,7 +184,7 @@ function GoogleSearchConsoleSection({ domain }: { domain: string }) {
         <div className="min-w-0 flex-1">
           <p className="text-xs" style={{ color: '#475569' }}>
             {gsc
-              ? (gsc.property_id ? <>Property: <code className="font-mono px-1 py-0.5 rounded text-[10px]" style={{ background: '#f1f5f9' }}>{gsc.property_id}</code></> : 'No matching GSC property — pick one manually below.')
+              ? (gsc.property_id ? <>Property: <code className="font-mono px-1 py-0.5 rounded text-[10px]" style={{ background: '#f1f5f9' }}>{gsc.property_id}</code></> : 'No matching GSC property. Pick one manually below.')
               : 'Pull search impressions, clicks, and top queries from Google.'}
           </p>
           <button type="button" onClick={() => setShowVerifyHelp(v => !v)}
@@ -221,7 +221,7 @@ function GoogleSearchConsoleSection({ domain }: { domain: string }) {
       {showVerifyHelp && (
         <div className="px-5 py-4 text-xs space-y-4" style={{ background: '#fafbfc', borderTop: '1px solid #e2e8f0', color: '#475569' }}>
           <div>
-            <p className="font-semibold mb-1" style={{ color: 'var(--foreground)' }}>1. Meta tag method (easiest — per-site)</p>
+            <p className="font-semibold mb-1" style={{ color: 'var(--foreground)' }}>1. Meta tag method (easiest. Per-site)</p>
             <p className="mb-2" style={{ color: '#64748b' }}>Works when the designer uses our Next.js setup bundle.</p>
             <ol className="list-decimal ml-5 space-y-1" style={{ color: '#475569' }}>
               <li>Designer opens <a href="https://search.google.com/search-console" target="_blank" rel="noopener noreferrer" className="underline" style={{ color: 'var(--primary)' }}>search.google.com/search-console</a> → <strong>Add property</strong> → <strong>URL prefix</strong> → types <code className="px-1 rounded font-mono" style={{ background: '#f1f5f9' }}>https://{domain}</code></li>
@@ -233,14 +233,14 @@ function GoogleSearchConsoleSection({ domain }: { domain: string }) {
             </ol>
           </div>
           <div style={{ borderTop: '1px solid #e2e8f0', paddingTop: '12px' }}>
-            <p className="font-semibold mb-1" style={{ color: 'var(--foreground)' }}>2. DNS TXT method (best — covers the whole domain forever)</p>
+            <p className="font-semibold mb-1" style={{ color: 'var(--foreground)' }}>2. DNS TXT method (best. Covers the whole domain forever)</p>
             <p className="mb-2" style={{ color: '#64748b' }}>Do this if you control the domain&apos;s DNS. Once, per domain.</p>
             <ol className="list-decimal ml-5 space-y-1" style={{ color: '#475569' }}>
               <li>In GSC → <strong>Add property</strong> → <strong>Domain</strong> → types <code className="px-1 rounded font-mono" style={{ background: '#f1f5f9' }}>{domain.replace(/^www\./, '')}</code> (no https://)</li>
               <li>Google gives a TXT record like <code className="px-1 rounded font-mono text-[10px]" style={{ background: '#f1f5f9' }}>google-site-verification=AbCdEf...</code></li>
               <li>Add that TXT record at your DNS provider (Cloudflare, GoDaddy, Vercel DNS, etc.) on the root domain.</li>
               <li>Wait 1–10 min → click <strong>Verify</strong> in GSC.</li>
-              <li>That single record verifies <strong>every subdomain + https + www</strong> — any future site under this domain is already good to go.</li>
+              <li>That single record verifies <strong>every subdomain + https + www</strong>. Any future site under this domain is already good to go.</li>
               <li>Property appears here as <code className="px-1 rounded font-mono" style={{ background: '#f1f5f9' }}>sc-domain:{domain.replace(/^www\./, '')}</code> → Select it above.</li>
             </ol>
           </div>
@@ -361,7 +361,7 @@ function LiveRevalidationSection({ domain }: { domain: string }) {
       }
       setSettings(data)
       setUrlInput(data?.revalidate_url ?? '')
-      setFlash({ kind: 'success', text: trimmed === '' ? 'Revalidation disabled' : 'Saved — webcore will now ping this URL on every change' })
+      setFlash({ kind: 'success', text: trimmed === '' ? 'Revalidation disabled' : 'Saved. Webcore will now ping this URL on every change' })
     } catch (e) {
       setFlash({ kind: 'error', text: (e as Error).message })
     } finally {
@@ -386,7 +386,7 @@ function LiveRevalidationSection({ domain }: { domain: string }) {
       }
       setSettings(data)
       setShowSecret(true)
-      setFlash({ kind: 'success', text: 'New secret generated — copy it into the designer site\'s .env now.' })
+      setFlash({ kind: 'success', text: 'New secret generated. Copy it into the designer site\'s .env now.' })
     } catch (e) {
       setFlash({ kind: 'error', text: (e as Error).message })
     } finally {

@@ -133,7 +133,7 @@ export default function CoxyWidget() {
 
   return (
     <>
-      {/* Floating mascot — draggable, shown on every admin page whenever the chat panel is closed. */}
+      {/* Floating mascot. Draggable, shown on every admin page whenever the chat panel is closed. */}
       {!open && (
         <button
           type="button"
@@ -153,7 +153,7 @@ export default function CoxyWidget() {
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src="/character-floating.gif"
-            alt="Coxy — click to chat"
+            alt="Coxy. Click to chat"
             className="h-28 w-auto pointer-events-none select-none"
             draggable={false}
           />

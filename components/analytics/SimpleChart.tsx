@@ -91,7 +91,7 @@ export default function SimpleChart({ data }: { data: DailyStat[] }) {
             <p className="text-[11px] mt-0.5" style={{ color: '#94a3b8' }}>{data.length} day{data.length === 1 ? '' : 's'} of tracking events</p>
           </div>
         </div>
-        {/* Legend — click to toggle. All chips h-7 for consistency */}
+        {/* Legend. Click to toggle. All chips h-7 for consistency */}
         <div className="flex items-center gap-1.5 flex-wrap">
           {SERIES.map(s => {
             const active = !hidden.has(s.key)

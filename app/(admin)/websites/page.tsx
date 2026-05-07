@@ -507,7 +507,7 @@ export default function WebsitesPage() {
   const lm = siteInfo?.leads_mode && LEADS_MODE[siteInfo.leads_mode] ? LEADS_MODE[siteInfo.leads_mode] : null
 
   return (<div>
-    {/* Site hero — Wix-style large card with thumbnail, name, status pills, actions */}
+    {/* Site hero. Wix-style large card with thumbnail, name, status pills, actions */}
     <div className="mb-5 rounded-xl border bg-white overflow-hidden" style={{ borderColor: '#e2e8f0' }}>
       <div className="flex items-stretch flex-col md:flex-row">
         {/* Thumbnail */}
@@ -566,7 +566,7 @@ export default function WebsitesPage() {
             </div>
           </div>
 
-          {/* Quick-fact strip — clean single-line pills, all h-8 */}
+          {/* Quick-fact strip. Clean single-line pills, all h-8 */}
           <div className="flex flex-wrap items-center gap-2">
             <FactPill
               label="Tracker"
@@ -609,7 +609,7 @@ export default function WebsitesPage() {
     <Chart />
 
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-6">
-      {/* Top Pages — blue */}
+      {/* Top Pages. Blue */}
       <DetailCard
         title="Top Pages"
         accent="#2979d6"
@@ -618,25 +618,25 @@ export default function WebsitesPage() {
         items={(analytics?.topPages ?? []).map(p => ({ key: p.path, label: p.path, value: p.count, mono: true }))}
         emptyText="No page data yet"
       />
-      {/* Top Referrers — green */}
+      {/* Top Referrers. Green */}
       <DetailCard
         title="Top Referrers"
         accent="#16a34a"
         bgTint="#f0fdf4"
         icon={<svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8"><path strokeLinecap="round" strokeLinejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" /></svg>}
         items={(analytics?.topReferrers ?? []).map(r => ({ key: r.source, label: r.source, value: r.count }))}
-        emptyText="No referrer data — most visitors came direct"
+        emptyText="No referrer data. Most visitors came direct"
       />
-      {/* Top Clicks — amber */}
+      {/* Top Clicks. Amber */}
       <DetailCard
         title="Top Clicks"
         accent="#f59e0b"
         bgTint="#fffbeb"
         icon={<svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8"><path strokeLinecap="round" strokeLinejoin="round" d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122" /></svg>}
         items={(analytics?.topClicks ?? []).map(c => ({ key: c.label, label: c.label, value: c.count }))}
-        emptyText="No clicks yet — add window.uwc() calls to CTA buttons"
+        emptyText="No clicks yet. Add window.uwc() calls to CTA buttons"
       />
-      {/* Devices & Browsers — purple */}
+      {/* Devices & Browsers. Purple */}
       <div className="rounded-xl border bg-white overflow-hidden" style={{ borderColor: '#e2e8f0' }}>
         <div className="px-5 py-3 flex items-center gap-2" style={{ background: '#faf5ff', borderBottom: '1px solid #e2e8f0' }}>
           <div className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: 'white', color: '#7c3aed' }}>
@@ -755,7 +755,7 @@ function SearchConsoleCard({ domain, period }: { domain: string; period: string 
         <div className="p-5 flex items-center gap-3">
           <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8" style={{ color: '#94a3b8' }}><path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
           <p className="text-xs" style={{ color: '#64748b' }}>
-            See how people find this site from Google search — <span style={{ color: '#475569', fontWeight: 500 }}>Connect in the Integrations section below</span>.
+            See how people find this site from Google search. <span style={{ color: '#475569', fontWeight: 500 }}>Connect in the Integrations section below</span>.
           </p>
         </div>
       </Container>
@@ -784,7 +784,7 @@ function SearchConsoleCard({ domain, period }: { domain: string; period: string 
   if (data.error === 'property_not_selected' || data.error === 'no_refresh_token') {
     const msg = data.error === 'property_not_selected'
       ? "Connected, but we couldn't find a matching GSC property automatically. Reconnect to retry, or manual picker is coming soon."
-      : 'The refresh token is missing — please reconnect Search Console.'
+      : 'The refresh token is missing. Please reconnect Search Console.'
     return (
       <Container>
         <Header rightSlot={<span className="text-[10px] font-medium px-1.5 py-0.5 rounded" style={{ background: '#fef3c7', color: '#92400e' }}>Setup needed</span>} />

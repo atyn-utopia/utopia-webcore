@@ -159,7 +159,7 @@ export default function AddWebsiteModal({ open, onClose, onCreated, presetCompan
                 </div>
               </Field>
 
-              <Field label="Website domain" hint="No https:// or trailing slash — must match exactly what the designer uses">
+              <Field label="Website domain" hint="No https:// or trailing slash. Must match exactly what the designer uses">
                 <TextField value={form.domain} onChange={v => setForm(f => ({ ...f, domain: v }))}
                   placeholder="abc-wheelchairs.com" autoComplete="off" spellCheck={false} mono />
               </Field>

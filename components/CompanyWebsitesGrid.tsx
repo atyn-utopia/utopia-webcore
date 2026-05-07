@@ -86,9 +86,9 @@ export default function CompanyWebsitesGrid({ domains, initialSites }: { domains
 
   return (
     <div className="rounded-xl border bg-white" style={{ borderColor: '#e2e8f0' }}>
-      {/* Toolbar — Wix-style pill bar */}
+      {/* Toolbar. Wix-style pill bar */}
       <div className="flex flex-wrap items-center gap-2 px-4 py-3" style={{ borderBottom: '1px solid #f1f5f9' }}>
-        {/* Scope dropdown — "All sites (N) ▾" */}
+        {/* Scope dropdown. "All sites (N) ▾" */}
         <div className="relative" ref={scopeRef}>
           <button
             onClick={() => setScopeOpen(v => !v)}
@@ -247,7 +247,7 @@ export default function CompanyWebsitesGrid({ domains, initialSites }: { domains
           </div>
         )}
 
-        {/* Footer summary — total counts across the visible/filtered set */}
+        {/* Footer summary. Total counts across the visible/filtered set */}
         {filtered.length > 0 && (() => {
           const totalActivePhones = filtered.reduce((s, x) => s + x.active_phone_count, 0)
           const totalPublishedPosts = filtered.reduce((s, x) => s + x.published_blog_count, 0)

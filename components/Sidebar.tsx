@@ -258,7 +258,7 @@ export default function Sidebar({ userRole, open, onClose, collapsed = false, on
       className={`group/sidebar w-60 flex-shrink-0 flex flex-col fixed inset-y-0 left-0 z-40 transition-all duration-200 md:relative md:translate-x-0 ${sidebarWidth} ${open ? 'translate-x-0' : '-translate-x-full'}`}
       style={{ background: 'var(--sidebar-bg)' }}
     >
-      {/* Floating edge collapse button — Wix-style pill on the sidebar's outer
+      {/* Floating edge collapse button. Wix-style pill on the sidebar's outer
           edge. Always visible (not hover-only) so it's discoverable. */}
       {onCollapsedChange && (
         <button
@@ -276,7 +276,7 @@ export default function Sidebar({ userRole, open, onClose, collapsed = false, on
         </button>
       )}
 
-      {/* Top row — Quick Actions pill (full width when expanded, icon-only when collapsed) */}
+      {/* Top row. Quick Actions pill (full width when expanded, icon-only when collapsed) */}
       <div className="px-3 pt-4 pb-2 flex items-center gap-2">
         {!collapsed ? (
           <button
@@ -310,7 +310,7 @@ export default function Sidebar({ userRole, open, onClose, collapsed = false, on
         </button>
       </div>
 
-      {/* Quick Actions popover — only visible when sidebar expanded */}
+      {/* Quick Actions popover. Only visible when sidebar expanded */}
       {!collapsed && quickActionsOpen && (
         <div className="mx-3 mb-2 rounded-lg p-2 space-y-1" style={{ background: 'rgba(255,255,255,0.06)' }}>
           <Link href="/api-keys" onClick={() => { setQuickActionsOpen(false); onClose?.() }} className="block px-2 py-1.5 text-xs rounded-md text-white/80 hover:bg-white/10 transition-colors">Generate API key</Link>

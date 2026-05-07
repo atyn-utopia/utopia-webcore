@@ -224,7 +224,7 @@ export default function ProductForm({ mode, productId, initialData = {} }: Produ
       />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-        {/* Left — main content */}
+        {/* Left. Main content */}
         <div className="lg:col-span-2 space-y-5">
           {/* Name + description */}
           <div className="rounded-xl border bg-white p-5 space-y-4" style={{ borderColor: '#e2e8f0' }}>

@@ -352,8 +352,8 @@ export default function ManagePhoneNumbersPage() {
     if (pctTotal !== 100) {
       toast.error(
         pctTotal > 100
-          ? `Active percentages total ${pctTotal}% — reduce some values before saving.`
-          : `Active percentages total ${pctTotal}% — must be exactly 100%.`,
+          ? `Active percentages total ${pctTotal}%. Reduce some values before saving.`
+          : `Active percentages total ${pctTotal}%. Must be exactly 100%.`,
         'Percentage invalid',
       )
       return
@@ -559,13 +559,13 @@ export default function ManagePhoneNumbersPage() {
               {pctTotal !== 100 && (
                 <p className="text-[11px] mt-2" style={{ color: pctTotal > 100 ? '#b91c1c' : '#b45309' }}>
                   {pctTotal > 100
-                    ? `Over by ${pctTotal - 100}% — reduce some values before saving.`
-                    : `Under by ${100 - pctTotal}% — total must be exactly 100%.`}
+                    ? `Over by ${pctTotal - 100}%. Reduce some values before saving.`
+                    : `Under by ${100 - pctTotal}%. Total must be exactly 100%.`}
                 </p>
               )}
               {allLocationRowsInLocationMode.length > 0 && (
                 <p className="text-[11px] mt-2" style={{ color: '#b91c1c' }}>
-                  {allLocationRowsInLocationMode.length} row{allLocationRowsInLocationMode.length === 1 ? '' : 's'} at &apos;all&apos; location — not valid in Location mode. Set a specific location, or switch to Hybrid.
+                  {allLocationRowsInLocationMode.length} row{allLocationRowsInLocationMode.length === 1 ? '' : 's'} at &apos;all&apos; location. Not valid in Location mode. Set a specific location, or switch to Hybrid.
                 </p>
               )}
             </div>
@@ -639,7 +639,7 @@ export default function ManagePhoneNumbersPage() {
                   {visibleRows.length === 0 && visibleDrafts.length === 0 && (
                     <tr>
                       <td colSpan={showLocationColumn ? 8 : 7} className="px-5 py-10 text-center text-sm" style={{ color: '#94a3b8' }}>
-                        {mode === 'single' ? 'No default number yet — add one below.' : 'No numbers yet for this website.'}
+                        {mode === 'single' ? 'No default number yet. Add one below.' : 'No numbers yet for this website.'}
                       </td>
                     </tr>
                   )}

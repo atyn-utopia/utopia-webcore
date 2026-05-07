@@ -176,7 +176,7 @@ export default function EditCompanyModal({ open, company, onClose, onSaved }: Pr
                   PNG, JPG, SVG, WebP, or GIF · max 2&nbsp;MB
                 </p>
                 {previewUrl && logoBroken && (
-                  <p className="text-[10px] mt-1" style={{ color: '#b91c1c' }}>Image failed to load — try uploading again.</p>
+                  <p className="text-[10px] mt-1" style={{ color: '#b91c1c' }}>Image failed to load. Try uploading again.</p>
                 )}
               </div>
             </div>

@@ -42,7 +42,7 @@ export default function WebsiteCard({ domain, leadsMode, activePhones }: Props) 
           <p className="text-sm font-semibold truncate leading-tight" style={{ color: 'var(--foreground)' }}>{friendlyName}</p>
         </div>
       </Link>
-      {/* External URL — its own clickable link to the live site (new tab) */}
+      {/* External URL. Its own clickable link to the live site (new tab) */}
       <a
         href={siteUrl}
         target="_blank"
@@ -53,7 +53,7 @@ export default function WebsiteCard({ domain, leadsMode, activePhones }: Props) 
       >
         {siteUrl}
       </a>
-      {/* Status pills — match the per-site hero FactPill style */}
+      {/* Status pills. Match the per-site hero FactPill style */}
       {(lm || (activePhones !== undefined && activePhones > 0)) && (
         <div className="px-3 pt-2 pb-3 flex flex-wrap items-center gap-1.5">
           {lm && <CardPill label="Leads mode" value={lm} dot="#2563eb" />}

@@ -95,7 +95,7 @@ export default function UserMenu() {
             </span>
           </div>
 
-          {/* Menu items — Help link is the only useful destination right now */}
+          {/* Menu items. Help link is the only useful destination right now */}
           <div className="py-1">
             <Link
               href="/help"

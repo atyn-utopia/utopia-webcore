@@ -76,7 +76,7 @@ export default function OnboardPage() {
 
     if (res.ok) {
       setResult(data)
-      toast.success('Designer onboarded — copy the credentials below', 'Onboarded')
+      toast.success('Designer onboarded. Copy the credentials below', 'Onboarded')
     } else {
       setError(data.error ?? 'Failed to onboard')
     }
@@ -235,7 +235,7 @@ function ResultView({ result, onReset }: { result: OnboardResult; onReset: () =>
     <div>
       <PageHeader
         title="Designer onboarded"
-        description="Copy these credentials now. API key stays retrievable on /api-keys for 5 hours — password is shown only once."
+        description="Copy these credentials now. API key stays retrievable on /api-keys for 5 hours. Password is shown only once."
       />
 
       <div className="rounded-xl border p-5 mb-5" style={{ background: '#fff7ed', borderColor: '#fed7aa' }}>
@@ -260,7 +260,7 @@ function ResultView({ result, onReset }: { result: OnboardResult; onReset: () =>
 
       <div className="rounded-2xl border bg-white shadow-sm overflow-hidden mb-5" style={{ borderColor: '#e2e8f0' }}>
         <div className="px-5 py-3" style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
-          <h3 className="text-xs font-semibold" style={{ color: '#475569' }}>Tracking snippet — paste in &lt;head&gt; of every page</h3>
+          <h3 className="text-xs font-semibold" style={{ color: '#475569' }}>Tracking snippet. Paste in &lt;head&gt; of every page</h3>
         </div>
         <div className="p-5 flex items-center gap-2">
           <code className="flex-1 text-xs bg-slate-50 px-3 py-2.5 rounded-lg border font-mono break-all" style={{ borderColor: '#e2e8f0', color: '#334155' }}>

@@ -43,7 +43,7 @@ export default function CompareModal({ open, onClose, preselect }: CompareModalP
   function toggle(domain: string) {
     setSelected(prev => {
       if (prev.includes(domain)) return prev.filter(d => d !== domain)
-      if (prev.length >= MAX_SITES) return prev // ignore — cap reached
+      if (prev.length >= MAX_SITES) return prev // ignore. Cap reached
       return [...prev, domain]
     })
   }

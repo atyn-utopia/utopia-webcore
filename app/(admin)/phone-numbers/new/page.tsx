@@ -367,7 +367,7 @@ export default function NewPhoneNumberPage() {
                 </div>
               </div>
 
-              {/* Leads Mode Indicator — all 4 modes displayed */}
+              {/* Leads Mode Indicator. All 4 modes displayed */}
               {website && (
                 <div className="rounded-xl border p-5" style={{ borderColor: modeChanged ? '#fbbf24' : '#e2e8f0', background: modeChanged ? '#fffbeb' : '#f8fafc' }}>
                   <div className="flex items-center gap-2 mb-4">
@@ -535,7 +535,7 @@ export default function NewPhoneNumberPage() {
                                 >
                                   Edit
                                 </button>
-                                {/* Delete only for non-default — placeholder keeps default row aligned */}
+                                {/* Delete only for non-default. Placeholder keeps default row aligned */}
                                 {!isDefault ? (
                                   <button
                                     type="button"

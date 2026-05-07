@@ -238,7 +238,7 @@ export default function ProductsPage() {
         description={`${products.length} product${products.length !== 1 ? 's' : ''} on this website`}
       />
 
-      {/* Search + action card — matches phone-numbers / blog header pattern */}
+      {/* Search + action card. Matches phone-numbers / blog header pattern */}
       <div className="rounded-xl border p-4 sm:p-5 mb-5" style={{ borderColor: '#cbd5e1', background: '#f8fafc' }}>
         <div className="flex flex-col sm:flex-row sm:items-end gap-3">
           <div className="flex-1 min-w-0">

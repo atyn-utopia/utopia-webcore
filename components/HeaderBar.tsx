@@ -24,7 +24,7 @@ export default function HeaderBar({ onMobileMenuOpen }: Props) {
       className="flex-shrink-0 flex items-center h-14 px-3 sm:px-5 gap-3"
       style={{ background: 'var(--header-bg)', color: 'var(--header-text-strong)', borderBottom: '1px solid var(--header-divider)' }}
     >
-      {/* Mobile hamburger — only visible on mobile to open the sidebar drawer */}
+      {/* Mobile hamburger. Only visible on mobile to open the sidebar drawer */}
       {onMobileMenuOpen && (
         <button
           onClick={onMobileMenuOpen}
@@ -62,13 +62,13 @@ export default function HeaderBar({ onMobileMenuOpen }: Props) {
       {/* Spacer */}
       <div className="flex-1" />
 
-      {/* Right cluster — preserves existing TopBar functionality (search,
+      {/* Right cluster. Preserves existing TopBar functionality (search,
           back/forward, language, notifications). TopBar restyled for dark bg. */}
       <Suspense fallback={null}>
         <TopBar />
       </Suspense>
 
-      {/* Ask Coxy pill — desktop only; mobile keeps the floating mascot */}
+      {/* Ask Coxy pill. Desktop only; mobile keeps the floating mascot */}
       <AskCoxyPill />
 
       {/* Avatar + sign-out menu (Wix-style top-right) */}

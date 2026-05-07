@@ -159,7 +159,7 @@ export const ms: Record<TranslationKey, string> = {
   'login.welcomeBack': 'Selamat kembali!',
   'login.redirecting': 'Mengalihkan ke papan pemuka…',
   'login.error.empty': 'Emel dan kata laluan diperlukan.',
-  'login.footer': 'Utopia Webcore v1.0 — Kegunaan Dalaman Sahaja',
+  'login.footer': 'Utopia Webcore v1.0. Kegunaan Dalaman Sahaja',
   'login.continueWithGoogle': 'Teruskan dengan Google',
   'login.or': 'atau',
   'login.error.notInvited': 'Akaun Google ini belum dijemput. Sila hubungi admin untuk dimasukkan.',

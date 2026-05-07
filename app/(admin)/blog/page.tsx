@@ -444,7 +444,7 @@ export default function BlogListPage() {
         </div>
       )}
 
-      {/* Search + view toggle + New Post — unified header card */}
+      {/* Search + view toggle + New Post. Unified header card */}
       <div className="rounded-xl border p-4 sm:p-5 mb-5" style={{ borderColor: '#cbd5e1', background: '#f8fafc' }}>
         <div className="flex flex-col sm:flex-row sm:items-end gap-3">
           <div className="flex-1 min-w-0">

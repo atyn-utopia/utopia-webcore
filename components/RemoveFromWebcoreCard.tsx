@@ -19,7 +19,7 @@ export default function RemoveFromWebcoreCard({ domain }: { domain: string }) {
   async function remove() {
     const ok = await confirm({
       title: `Remove ${domain} from webcore?`,
-      message: `This unlinks ${domain} from its company so it stops appearing in dropdowns and analytics. Phone numbers, products, blog posts, and tracking events for this domain stay in the database — re-adding the site will surface them again. The action is logged in /audit.`,
+      message: `This unlinks ${domain} from its company so it stops appearing in dropdowns and analytics. Phone numbers, products, blog posts, and tracking events for this domain stay in the database. Re-adding the site will surface them again. The action is logged in /audit.`,
       confirmLabel: 'Remove from webcore',
       variant: 'danger',
     })

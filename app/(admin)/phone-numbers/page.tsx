@@ -307,7 +307,7 @@ export default function PhoneNumbersPage() {
         <div className="space-y-8">
           {visibleEntries.map(([companyName, { websites: companyWebsites }]) => (
             <div key={companyName}>
-              {/* Company header — only show if not inside a company folder */}
+              {/* Company header. Only show if not inside a company folder */}
               {!openCompany && (
                 <div className="flex items-center gap-2 mb-3">
                   <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: companyName === 'Unassigned' ? '#94a3b8' : 'var(--primary)' }} strokeWidth="1.8">
@@ -356,7 +356,7 @@ export default function PhoneNumbersPage() {
                 </div>
               </div>
 
-              {/* Critical percentage alert — appears whenever active numbers
+              {/* Critical percentage alert. Appears whenever active numbers
                   don't sum to 100% so admins can't miss it from the L2 list. */}
               {activeRows.length > 0 && !pctOk && (
                 <div className="px-4 py-2.5 flex items-center gap-2.5"
@@ -366,8 +366,8 @@ export default function PhoneNumbersPage() {
                   </svg>
                   <span className="text-xs font-medium flex-1" style={{ color: '#b91c1c' }}>
                     {totalPct < 100
-                      ? `Under by ${100 - totalPct}% — leads won't distribute correctly. Adjust the percentages to reach 100%.`
-                      : `Over by ${totalPct - 100}% — percentages must total exactly 100%.`}
+                      ? `Under by ${100 - totalPct}%. Leads won't distribute correctly. Adjust the percentages to reach 100%.`
+                      : `Over by ${totalPct - 100}%. Percentages must total exactly 100%.`}
                   </span>
                   <Link
                     href={`/phone-numbers/edit?website=${encodeURIComponent(website)}${openCompany ? `&company=${encodeURIComponent(openCompany)}` : ''}`}
@@ -379,7 +379,7 @@ export default function PhoneNumbersPage() {
                 </div>
               )}
 
-              {/* Rows — professional table */}
+              {/* Rows. Professional table */}
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <colgroup>

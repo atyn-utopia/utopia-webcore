@@ -32,7 +32,7 @@ function IntegrationsPageInner() {
     <div>
       <PageHeader
         title="Integrations"
-        description={<span>For <code className="font-mono text-xs px-1.5 py-0.5 rounded" style={{ background: '#f1f5f9', color: '#475569' }}>{domain}</code> — Google Search Console + live revalidation webhook.</span>}
+        description={<span>For <code className="font-mono text-xs px-1.5 py-0.5 rounded" style={{ background: '#f1f5f9', color: '#475569' }}>{domain}</code>. Google Search Console + live revalidation webhook.</span>}
       />
       <IntegrationsCard domain={domain} />
     </div>

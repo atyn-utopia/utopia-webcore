@@ -121,7 +121,7 @@ export default function ApiKeysPage() {
     if (res.ok) {
       setForm({ name: '', website: '', permissions: ['read', 'write'] })
       setShowForm(false)
-      toast.success('Key created — grace window is 5 hours', 'Created')
+      toast.success('Key created. Grace window is 5 hours', 'Created')
       fetchKeys()
     } else {
       toast.error(data.error ?? 'Failed to create key')
@@ -310,7 +310,7 @@ function KeyCard({ k, nowMs, copiedToken, snippetExpanded, onCopy, onToggleSnipp
         <div className="px-5 pb-4 space-y-3">
           <InfoPanel
             label="API key"
-            hint="Keep secret — don't commit to git. Shown only during the 5h grace window."
+            hint="Keep secret. Don't commit to git. Shown only during the 5h grace window."
             tone="warning"
             value={k.full_key!}
             token={`key-${k.id}`}
@@ -379,11 +379,11 @@ function ClaudeHandoff({ domain, apiKey, permissions, copiedToken, onCopy }: {
           </svg>
           <div className="min-w-0">
             <div className="text-xs font-semibold" style={{ color: 'var(--foreground)' }}>Claude Code handoff</div>
-            <div className="text-[11px]" style={{ color: '#64748b' }}>Paste into any Claude — it creates all files and does the integration.</div>
+            <div className="text-[11px]" style={{ color: '#64748b' }}>Paste into any Claude. It creates all files and does the integration.</div>
           </div>
         </div>
         <button type="button"
-          onClick={() => onCopy(fullSetupMarkdown({ domain, apiKey, permissions, revalidateSecret }), token, 'Paste into Claude — it will do the rest')}
+          onClick={() => onCopy(fullSetupMarkdown({ domain, apiKey, permissions, revalidateSecret }), token, 'Paste into Claude. It will do the rest')}
           className="inline-flex items-center gap-1.5 text-[11px] font-medium px-3 py-1.5 rounded-md transition-all flex-shrink-0"
           style={{
             background: copied ? '#dcfce7' : 'white',
@@ -391,7 +391,7 @@ function ClaudeHandoff({ domain, apiKey, permissions, copiedToken, onCopy }: {
             color: copied ? '#15803d' : '#475569',
           }}>
           {copied ? (
-            <><svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>Copied — paste into Claude</>
+            <><svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>Copied. Paste into Claude</>
           ) : (
             <><svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8"><path strokeLinecap="round" strokeLinejoin="round" d="M8 12h8m-8 4h5m-7 4h10a2 2 0 002-2V6a2 2 0 00-2-2H9.914a2 2 0 00-1.414.586l-2.828 2.828A2 2 0 005 8.828V20a2 2 0 002 2z" /></svg>Copy setup for Claude</>
           )}

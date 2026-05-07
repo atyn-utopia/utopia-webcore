@@ -738,7 +738,7 @@ function Step1Card({
             </>
           ) : gscIntegration ? (
             <>
-              <p className="text-xs" style={{ color: '#a16207' }}>Authorised — but no property selected yet. Pick the right Search Console property to finish the connection.</p>
+              <p className="text-xs" style={{ color: '#a16207' }}>Authorised, but no property selected yet. Pick the right Search Console property to finish the connection.</p>
               <a
                 href={`/integrations?website=${encodeURIComponent(domain)}`}
                 className="inline-flex items-center gap-1.5 text-xs font-medium px-3 h-8 rounded-md text-white transition-opacity hover:opacity-90"
@@ -875,7 +875,7 @@ function Step2Card({
       done={doneTasks}
       total={totalTasks}
     >
-      {/* Pattern suggestions — surfaces the feature when the sitemap reveals
+      {/* Pattern suggestions. Surfaces the feature when the sitemap reveals
           groups of similar paths. One click pre-fills the modal so admins
           don't have to remember the syntax. */}
       {suggestions.length > 0 && (
@@ -884,7 +884,7 @@ function Step2Card({
             <svg className="w-3.5 h-3.5 inline -mt-0.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" /></svg>
             Set one rule, apply to many pages
           </p>
-          <p className="text-[11px] mb-2" style={{ color: '#92400e' }}>The sitemap shows groups of similar pages. Save one pattern and the title/description applies to every match — no need to fill them in one by one.</p>
+          <p className="text-[11px] mb-2" style={{ color: '#92400e' }}>The sitemap shows groups of similar pages. Save one pattern and the title/description applies to every match. No need to fill them in one by one.</p>
           <div className="space-y-1.5">
             {suggestions.map(s => (
               <button
@@ -903,7 +903,7 @@ function Step2Card({
         </div>
       )}
 
-      {/* Pattern rules — listed first so admins see the meta-rules that affect
+      {/* Pattern rules. Listed first so admins see the meta-rules that affect
           every matching page below. Filtered to the active language. */}
       {activePatterns.length > 0 && (
         <div>
@@ -998,7 +998,7 @@ function Step2Card({
         </button>
         {sitemap && (
           <span className="text-[10px]" style={{ color: '#94a3b8' }}>
-            {sitemap.ok ? `Loaded ${sitemap.paths.length} pages from sitemap.xml` : `sitemap.xml not found — manually-added pages only`}
+            {sitemap.ok ? `Loaded ${sitemap.paths.length} pages from sitemap.xml` : `sitemap.xml not found. Manually-added pages only`}
           </span>
         )}
       </div>
@@ -1113,7 +1113,7 @@ function TitleEditor({ domain, path, language, current, override, otherFields, p
         toast.error(data.error ?? 'Save failed', 'Save failed')
         return
       }
-      toast.success('Title saved — applies on the live site within seconds.', 'SEO override saved')
+      toast.success('Title saved. Applies on the live site within seconds.', 'SEO override saved')
       onSaved()
     } finally {
       setSaving(false)
@@ -1135,7 +1135,7 @@ function TitleEditor({ domain, path, language, current, override, otherFields, p
 
         {suggestions.length > 0 && (
           <div className="mb-3 space-y-1.5 rounded-md p-2.5" style={{ background: 'white', border: '1px solid #e2e8f0' }}>
-            <p className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: '#94a3b8' }}>AI suggestions — click to use</p>
+            <p className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: '#94a3b8' }}>AI suggestions (click to use)</p>
             {suggestions.map((s, i) => (
               <label key={i} className="flex items-start gap-2 text-xs cursor-pointer rounded px-1.5 py-1 hover:bg-slate-50" style={{ color: '#475569' }}>
                 <input
@@ -1289,7 +1289,7 @@ function OgImageEditor({ domain, path, language, current, override, otherFields,
         return
       }
       setValue(data.url)
-      toast.success('Uploaded — click Apply to publish.', 'Uploaded')
+      toast.success('Uploaded. Click Apply to publish.', 'Uploaded')
     } finally {
       setUploading(false)
     }
@@ -1715,10 +1715,10 @@ function HeadingDetail({ audit, domain, language }: { audit: AuditResult | null;
   if (!audit) return <p className="text-xs" style={{ color: '#94a3b8' }}>Audit hasn&apos;t finished.</p>
   const levels = audit.headings.byLevel ?? { h1: audit.headings.h1Count, h2: 0, h3: 0, h4: 0, h5: 0, h6: 0 }
   const tips: string[] = []
-  if (levels.h1 === 0) tips.push('Add exactly one <h1> — the page\'s main title.')
-  else if (levels.h1 > 1) tips.push(`Reduce to one <h1> — found ${levels.h1}. Use <h2>/<h3> for sub-sections.`)
+  if (levels.h1 === 0) tips.push('Add exactly one <h1> as the page\'s main title.')
+  else if (levels.h1 > 1) tips.push(`Reduce to one <h1>. Found ${levels.h1}; use <h2>/<h3> for sub-sections.`)
   if (levels.h1 === 1 && levels.h2 === 0) tips.push('Break the page content into <h2> sections so search engines understand the hierarchy.')
-  if (levels.h3 > 0 && levels.h2 === 0) tips.push('Skipped level — <h3> appears without an <h2>. Use h1 → h2 → h3 in order.')
+  if (levels.h3 > 0 && levels.h2 === 0) tips.push('Skipped level: <h3> appears without an <h2>. Use h1 → h2 → h3 in order.')
   if (tips.length === 0) tips.push('Heading structure looks healthy.')
 
   return (
@@ -1776,7 +1776,7 @@ function HeadingDetail({ audit, domain, language }: { audit: AuditResult | null;
         <ul className="text-xs space-y-1 mt-1" style={{ color: '#475569' }}>
           {tips.map((t, i) => <li key={i}>· {t}</li>)}
         </ul>
-        <p className="text-[10px] mt-2" style={{ color: '#94a3b8' }}>Headings live in the designer site&apos;s code — unlike alt text, webcore can&apos;t safely rewrite them at runtime. Use the <strong>Suggest</strong> button per heading to generate stronger phrasings, then paste them into the designer code.</p>
+        <p className="text-[10px] mt-2" style={{ color: '#94a3b8' }}>Headings live in the designer site&apos;s code. Unlike alt text, webcore can&apos;t safely rewrite them at runtime. Use the <strong>Suggest</strong> button per heading to generate stronger phrasings, then paste them into the designer code.</p>
       </div>
     </div>
   )
@@ -1845,7 +1845,7 @@ function HeadingRow({ text, level, domain, language }: { text: string; level: 2 
       </div>
       {open && suggestions.length > 0 && (
         <div className="px-2 pb-2 space-y-1" style={{ borderTop: '1px dashed #e2e8f0' }}>
-          <p className="text-[10px] font-semibold uppercase tracking-wider pt-1.5" style={{ color: '#94a3b8' }}>Alternatives — click to copy</p>
+          <p className="text-[10px] font-semibold uppercase tracking-wider pt-1.5" style={{ color: '#94a3b8' }}>Alternatives (click to copy)</p>
           {suggestions.map((s, i) => (
             <button
               key={i}
@@ -1898,7 +1898,7 @@ function IndexingDetail({ domain, path, robots, gscIntegration }: { domain: stri
         <p className="text-xs mt-1" style={{ color: noindex ? '#b91c1c' : '#475569' }}>
           {noindex
             ? 'The page is currently set to "noindex". Remove this from the <meta name="robots"> tag in the designer code, then redeploy.'
-            : 'No "noindex" detected — the page is open for indexing.'}
+            : 'No "noindex" detected. The page is open for indexing.'}
         </p>
         <a
           href={inspectUrl}
