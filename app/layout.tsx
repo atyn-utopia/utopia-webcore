@@ -8,11 +8,10 @@ const nunito = Nunito({ subsets: ['latin'], variable: '--font-display' })
 
 export const metadata: Metadata = {
   title: 'Utopia Webcore',
-  description: 'Web & Content Operations Platform — For Internal Use Only',
-  icons: {
-    icon: '/icon.svg',
-    apple: '/icon.svg',
-  },
+  description: 'Web & Content Operations Platform. For Internal Use Only.',
+  // app/icon.png is auto-detected by Next.js as the favicon, so we don't
+  // hard-code an icons map here. The Apple touch icon stays in <head> below
+  // so iOS picks the higher-resolution PNG when added to the home screen.
   appleWebApp: {
     capable: true,
     statusBarStyle: 'black-translucent',
@@ -20,14 +19,14 @@ export const metadata: Metadata = {
   },
   openGraph: {
     title: 'Utopia Webcore',
-    description: 'Web & Content Operations Platform — For Internal Use Only',
+    description: 'Web & Content Operations Platform. For Internal Use Only.',
     type: 'website',
     siteName: 'Utopia Webcore',
   },
   twitter: {
     card: 'summary_large_image',
     title: 'Utopia Webcore',
-    description: 'Web & Content Operations Platform — For Internal Use Only',
+    description: 'Web & Content Operations Platform. For Internal Use Only.',
   },
   other: {
     'mobile-web-app-capable': 'yes',

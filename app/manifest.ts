@@ -10,12 +10,11 @@ export default function manifest(): MetadataRoute.Manifest {
     background_color: '#1E5BFF',
     theme_color: '#1E5BFF',
     icons: [
-      // SVG fallback for browsers that prefer vector icons
-      { src: '/icon.svg', sizes: 'any', type: 'image/svg+xml' },
-      // High-res PNG for PWA installs. The marketing PNG already includes
-      // the rounded blue background, so it works for both 'any' and
-      // 'maskable' purposes (Android's adaptive-icon mask crops to a safe
-      // zone, and the W mark is centred well within that zone).
+      // The marketing PNG covers favicon (via app/icon.png), PWA icons
+      // (here), and the Apple touch icon (set in app/layout.tsx head).
+      // It already bakes in the rounded blue tile, so it works for both
+      // 'any' and 'maskable' purposes — Android's adaptive-icon mask crops
+      // to a safe zone and the W stays well within it.
       { src: '/utopia-webcore-logo.png', sizes: '192x192', type: 'image/png', purpose: 'maskable' },
       { src: '/utopia-webcore-logo.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
       { src: '/utopia-webcore-logo.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
