@@ -37,7 +37,6 @@ const navItems: { href: string; labelKey: TranslationKey; roles: UserRole[]; ico
   { href: '/websites',      labelKey: 'nav.websites',     roles: ['admin', 'designer', 'external_designer', 'writer', 'indoor_sales', 'manager'], icon: <GlobeAltIcon className="w-4 h-4" /> },
   { href: '/phone-numbers', labelKey: 'nav.phoneNumbers', roles: ['admin', 'designer', 'external_designer', 'indoor_sales', 'manager'],            icon: <ChatBubbleOvalLeftEllipsisIcon className="w-4 h-4" /> },
   { href: '/products',      labelKey: 'nav.products',     roles: ['admin', 'designer', 'external_designer'],                                       icon: <CubeIcon className="w-4 h-4" /> },
-  { href: '/blog',          labelKey: 'nav.blogPosts',    roles: ['admin', 'designer', 'external_designer', 'writer'],                              icon: <PencilSquareIcon className="w-4 h-4" /> },
   { href: '/users',         labelKey: 'nav.users',        roles: ['admin'],                                                                         icon: <UsersIcon className="w-4 h-4" /> },
   { href: '/api-keys',      labelKey: 'nav.apiKeys',      roles: ['admin', 'designer', 'external_designer'],                                       icon: <KeyIcon className="w-4 h-4" /> },
   { href: '/audit',         labelKey: 'nav.audit',        roles: ['admin'],                                                                         icon: <ClipboardDocumentListIcon className="w-4 h-4" /> },

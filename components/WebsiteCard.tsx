@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import { MapPinIcon, PhoneIcon } from '@heroicons/react/24/solid'
 
 interface Props {
   domain: string
@@ -22,6 +23,7 @@ export default function WebsiteCard({ domain, leadsMode, activePhones }: Props) 
     .split('-').map(s => s.charAt(0).toUpperCase() + s.slice(1)).join(' ')
   const dashboardHref = `/websites?website=${encodeURIComponent(domain)}`
   const lm = leadsMode && LEADS_MODE_LABEL[leadsMode] ? LEADS_MODE_LABEL[leadsMode] : null
+  const hasMeta = !!lm || (activePhones !== undefined && activePhones > 0)
 
   return (
     <div className="rounded-xl border bg-white overflow-hidden transition-all hover:shadow-md" style={{ borderColor: '#e2e8f0' }}>
@@ -53,23 +55,27 @@ export default function WebsiteCard({ domain, leadsMode, activePhones }: Props) 
       >
         {siteUrl}
       </a>
-      {/* Status pills. Match the per-site hero FactPill style */}
-      {(lm || (activePhones !== undefined && activePhones > 0)) && (
-        <div className="px-3 pt-2 pb-3 flex flex-wrap items-center gap-1.5">
-          {lm && <CardPill label="Leads mode" value={lm} dot="#2563eb" />}
-          {activePhones !== undefined && activePhones > 0 && <CardPill label="Phones" value={`${activePhones} Active`} dot="#16a34a" />}
+      {/* Compact metadata strip. Single line, slate icons + text — fits the
+          narrow card width without wrapping or doubling-up colored dots. */}
+      {hasMeta && (
+        <div className="px-3 pt-2 pb-3 flex items-center gap-2 text-[11px]" style={{ color: '#64748b' }}>
+          {lm && (
+            <span className="inline-flex items-center gap-1 truncate">
+              <MapPinIcon className="w-3 h-3 flex-shrink-0" />
+              <span className="truncate">{lm}</span>
+            </span>
+          )}
+          {lm && activePhones !== undefined && activePhones > 0 && (
+            <span style={{ color: '#cbd5e1' }}>·</span>
+          )}
+          {activePhones !== undefined && activePhones > 0 && (
+            <span className="inline-flex items-center gap-1 truncate">
+              <PhoneIcon className="w-3 h-3 flex-shrink-0" />
+              <span className="truncate">{activePhones} active</span>
+            </span>
+          )}
         </div>
       )}
     </div>
-  )
-}
-
-function CardPill({ label, value, dot }: { label: string; value: string; dot: string }) {
-  return (
-    <span className="inline-flex items-center gap-1.5 h-6 px-2 rounded-md text-[10px]" style={{ background: 'white', border: '1px solid #e2e8f0' }}>
-      <span className="w-1 h-1 rounded-full flex-shrink-0" style={{ background: dot }} />
-      <span className="font-medium leading-none" style={{ color: '#94a3b8' }}>{label}</span>
-      <span className="leading-none" style={{ color: 'var(--foreground)' }}>{value}</span>
-    </span>
   )
 }
