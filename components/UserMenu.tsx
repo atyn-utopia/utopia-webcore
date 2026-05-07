@@ -8,6 +8,7 @@ import { useUser, type UserRole } from '@/contexts/UserContext'
 import { useLanguage } from '@/contexts/LanguageContext'
 import { useToast } from '@/contexts/ToastContext'
 import type { TranslationKey } from '@/lib/i18n/en'
+import { QuestionMarkCircleIcon, ArrowRightOnRectangleIcon } from '@heroicons/react/24/solid'
 
 const ROLE_KEY: Record<UserRole, TranslationKey> = {
   admin: 'role.admin',
@@ -103,7 +104,7 @@ export default function UserMenu() {
               className="flex items-center gap-2.5 px-4 py-2 text-xs transition-colors hover:bg-slate-50"
               style={{ color: '#475569' }}
             >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8"><path strokeLinecap="round" strokeLinejoin="round" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+              <QuestionMarkCircleIcon className="w-4 h-4" />
               Help &amp; feedback
             </Link>
           </div>
@@ -116,9 +117,7 @@ export default function UserMenu() {
               className="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs font-medium transition-colors hover:bg-red-50 disabled:opacity-50"
               style={{ color: '#b91c1c' }}
             >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-              </svg>
+              <ArrowRightOnRectangleIcon className="w-4 h-4" />
               {signingOut ? '…' : t('nav.signOut')}
             </button>
           </div>

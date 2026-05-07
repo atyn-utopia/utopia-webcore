@@ -4,6 +4,15 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useLanguage } from '@/contexts/LanguageContext'
+import {
+  MagnifyingGlassIcon,
+  PencilSquareIcon,
+  ChatBubbleOvalLeftEllipsisIcon,
+  GlobeAltIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  BellIcon,
+} from '@heroicons/react/24/solid'
 
 interface Notification {
   id: string
@@ -110,7 +119,7 @@ export default function TopBar() {
       {/* Universal search */}
       <div className="relative hidden sm:block" ref={searchRef}>
         <div className="relative">
-          <svg className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: 'rgba(255,255,255,0.4)' }} strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+          <MagnifyingGlassIcon className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" style={{ color: 'rgba(255,255,255,0.4)' }} />
           <input
             type="text"
             value={searchQuery}
@@ -145,9 +154,9 @@ export default function TopBar() {
                     <Link key={`${r.type}-${r.id}`} href={r.href} onClick={() => { setShowSearch(false); setSearchQuery('') }}
                       className="flex items-center gap-2.5 px-3 py-2.5 hover:bg-slate-50 transition-colors" style={{ borderBottom: '1px solid #f8fafc' }}>
                       <div className="w-6 h-6 rounded flex items-center justify-center flex-shrink-0" style={{ background: t.bg }}>
-                        {r.type === 'blog' && <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: t.color }} strokeWidth="1.8"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>}
-                        {r.type === 'phone' && <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: t.color }} strokeWidth="1.8"><path strokeLinecap="round" strokeLinejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>}
-                        {r.type === 'website' && <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: t.color }} strokeWidth="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 3c0 0-3 4-3 9s3 9 3 9"/><path d="M3 12h18"/></svg>}
+                        {r.type === 'blog' && <PencilSquareIcon className="w-3 h-3" style={{ color: t.color }} />}
+                        {r.type === 'phone' && <ChatBubbleOvalLeftEllipsisIcon className="w-3 h-3" style={{ color: t.color }} />}
+                        {r.type === 'website' && <GlobeAltIcon className="w-3 h-3" style={{ color: t.color }} />}
                       </div>
                       <div className="min-w-0">
                         <p className="text-xs font-medium truncate" style={{ color: 'var(--foreground)' }}>{r.title}</p>
@@ -164,12 +173,12 @@ export default function TopBar() {
 
       {/* Back */}
       <button onClick={() => router.back()} className="w-9 h-9 flex items-center justify-center rounded-md transition-colors" style={{ color: 'var(--header-text)' }} onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = 'var(--header-hover)'} onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'} title="Go back">
-        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>
+        <ChevronLeftIcon className="w-4 h-4" />
       </button>
 
       {/* Forward */}
       <button onClick={() => router.forward()} className="w-9 h-9 flex items-center justify-center rounded-md transition-colors" style={{ color: 'var(--header-text)' }} onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = 'var(--header-hover)'} onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'} title="Go forward">
-        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></svg>
+        <ChevronRightIcon className="w-4 h-4" />
       </button>
 
       {/* Language switcher. Simple toggle */}
@@ -187,7 +196,7 @@ export default function TopBar() {
       {/* Notification bell */}
       <div className="relative" ref={panelRef}>
         <button onClick={() => setShowPanel(!showPanel)} className="w-9 h-9 flex items-center justify-center rounded-md transition-colors relative" style={{ color: 'var(--header-text)' }} onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = 'var(--header-hover)'} onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'} title="Notifications">
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
+          <BellIcon className="w-4 h-4" />
           {unreadCount > 0 && (
             <span className="absolute top-1 right-1 w-4 h-4 flex items-center justify-center rounded-full text-[9px] font-bold text-white" style={{ background: '#ef4444' }}>{unreadCount > 9 ? '9+' : unreadCount}</span>
           )}
@@ -205,7 +214,7 @@ export default function TopBar() {
             <div className="max-h-80 overflow-y-auto">
               {notifications.length === 0 ? (
                 <div className="px-4 py-8 text-center">
-                  <svg className="w-8 h-8 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: '#e2e8f0' }} strokeWidth="1.5"><path strokeLinecap="round" strokeLinejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
+                  <BellIcon className="w-8 h-8 mx-auto mb-2" style={{ color: '#e2e8f0' }} />
                   <p className="text-xs" style={{ color: '#94a3b8' }}>No notifications</p>
                 </div>
               ) : notifications.map((n, i) => (

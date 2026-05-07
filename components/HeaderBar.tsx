@@ -7,6 +7,7 @@ import TopBar from './TopBar'
 import UserMenu from './UserMenu'
 import AskCoxyPill from './AskCoxyPill'
 import { Logo } from './ui/Logo'
+import { Bars3Icon } from '@heroicons/react/24/solid'
 
 interface Props {
   onMobileMenuOpen?: () => void
@@ -35,7 +36,7 @@ export default function HeaderBar({ onMobileMenuOpen }: Props) {
           onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'}
           aria-label="Open menu"
         >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" /></svg>
+          <Bars3Icon className="w-5 h-5" />
         </button>
       )}
 
