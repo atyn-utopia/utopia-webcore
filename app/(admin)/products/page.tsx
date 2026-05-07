@@ -8,6 +8,9 @@ import { useLanguage } from '@/contexts/LanguageContext'
 import { useConfirm } from '@/contexts/ConfirmContext'
 import { useToast } from '@/contexts/ToastContext'
 import ViewToggle, { type ViewMode } from '@/components/ViewToggle'
+import { Button } from '@/components/ui/Button'
+import { Card } from '@/components/ui/Card'
+import { PageSpinner } from '@/components/ui/Spinner'
 
 interface Company { id: string; name: string; company_websites: { domain: string }[] }
 interface WebsiteSummary { domain: string; company_name: string | null }
@@ -117,7 +120,7 @@ export default function ProductsPage() {
           </div>
         </div>
         {loading ? (
-          <div className="p-12 text-center text-sm rounded-xl border" style={{ borderColor: '#e2e8f0', color: '#94a3b8' }}>Loading…</div>
+          <Card padding={false}><PageSpinner /></Card>
         ) : viewMode === 'grid' ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {filtered.map(c => (
@@ -177,9 +180,9 @@ export default function ProductsPage() {
           actions={<ViewToggle value={viewMode} onChange={setViewMode} />}
         />
         {loading ? (
-          <div className="p-12 text-center text-sm rounded-xl border" style={{ borderColor: '#e2e8f0', color: '#94a3b8' }}>Loading…</div>
+          <Card padding={false}><PageSpinner /></Card>
         ) : companySites.length === 0 ? (
-          <div className="p-12 text-center text-sm rounded-xl border" style={{ borderColor: '#e2e8f0', color: '#94a3b8' }}>No websites found for this company.</div>
+          <Card className="!py-12 text-center"><p className="text-sm text-slate-400">No websites found for this company.</p></Card>
         ) : viewMode === 'grid' ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {companySites.map(site => (
@@ -282,23 +285,23 @@ export default function ProductsPage() {
             </button>
           </div>
 
-          <Link
+          <Button
+            variant="primary"
+            size="lg"
             href={`/products/new?website=${encodeURIComponent(openWebsite)}${openCompany ? `&company=${encodeURIComponent(openCompany)}` : ''}`}
-            className="inline-flex items-center justify-center gap-2 text-white text-sm font-medium px-4 h-9 rounded-lg transition-opacity hover:opacity-90 flex-shrink-0"
-            style={{ background: 'var(--primary)' }}
+            iconLeft={<svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>}
           >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
             {t('button.addProduct')}
-          </Link>
+          </Button>
         </div>
       </div>
 
       {productsLoading ? (
-        <div className="p-12 text-center text-sm rounded-xl border" style={{ borderColor: '#e2e8f0', color: '#94a3b8' }}>Loading…</div>
+        <Card padding={false}><PageSpinner /></Card>
       ) : filtered.length === 0 ? (
-        <div className="p-12 text-center rounded-xl border" style={{ borderColor: '#e2e8f0' }}>
-          <p className="text-sm" style={{ color: '#94a3b8' }}>{products.length === 0 ? 'No products yet. Add your first one.' : 'No products match your search.'}</p>
-        </div>
+        <Card className="!py-12 text-center">
+          <p className="text-sm text-slate-400">{products.length === 0 ? 'No products yet. Add your first one.' : 'No products match your search.'}</p>
+        </Card>
       ) : viewMode === 'list' ? (
         <div className="rounded-xl border bg-white overflow-hidden" style={{ borderColor: '#e2e8f0' }}>
           <div className="overflow-x-auto">

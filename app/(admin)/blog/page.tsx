@@ -9,6 +9,9 @@ import { useLanguage } from '@/contexts/LanguageContext'
 import { useConfirm } from '@/contexts/ConfirmContext'
 import { useToast } from '@/contexts/ToastContext'
 import ViewToggle from '@/components/ViewToggle'
+import { Button } from '@/components/ui/Button'
+import { Card } from '@/components/ui/Card'
+import { PageSpinner } from '@/components/ui/Spinner'
 
 interface Post {
   id: string
@@ -169,10 +172,14 @@ export default function BlogListPage() {
           actions={
             <>
               <ViewToggle value={viewMode} onChange={setViewMode} />
-              <Link href="/blog/new" className="inline-flex items-center gap-2 text-white text-sm font-medium px-4 h-9 rounded-lg transition-opacity" style={{ background: 'var(--primary)' }}>
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
+              <Button
+                variant="primary"
+                size="lg"
+                href="/blog/new"
+                iconLeft={<svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>}
+              >
                 {t('button.newPost')}
-              </Link>
+              </Button>
             </>
           }
         />
@@ -190,7 +197,7 @@ export default function BlogListPage() {
           </div>
         </div>
         {loading ? (
-          <div className="p-12 text-center text-sm rounded-xl border" style={{ borderColor: '#cbd5e1', color: '#475569' }}>Loading…</div>
+          <Card padding={false}><PageSpinner /></Card>
         ) : viewMode === 'grid' ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {filtered.map(c => (
@@ -292,17 +299,21 @@ export default function BlogListPage() {
           actions={
             <>
               <ViewToggle value={viewMode} onChange={setViewMode} />
-              <Link href="/blog/new" className="inline-flex items-center gap-2 text-white text-sm font-medium px-4 h-9 rounded-lg transition-opacity" style={{ background: 'var(--primary)' }}>
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
+              <Button
+                variant="primary"
+                size="lg"
+                href="/blog/new"
+                iconLeft={<svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>}
+              >
                 {t('button.newPost')}
-              </Link>
+              </Button>
             </>
           }
         />
         {loading ? (
-          <div className="p-12 text-center text-sm rounded-xl border" style={{ borderColor: '#cbd5e1', color: '#475569' }}>Loading…</div>
+          <Card padding={false}><PageSpinner /></Card>
         ) : companySites.length === 0 ? (
-          <div className="p-12 text-center text-sm rounded-xl border" style={{ borderColor: '#cbd5e1', color: '#475569' }}>No websites found for this company.</div>
+          <Card className="!py-12 text-center"><p className="text-sm text-slate-500">No websites found for this company.</p></Card>
         ) : viewMode === 'list' ? (
           <div className="rounded-xl border bg-white overflow-hidden" style={{ borderColor: '#e2e8f0' }}>
             {companySites.map((site, i) => (
