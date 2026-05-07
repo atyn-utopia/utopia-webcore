@@ -158,6 +158,10 @@ export const en = {
   'login.redirecting': 'Redirecting to dashboard…',
   'login.error.empty': 'Email and password are required.',
   'login.footer': 'Utopia Webcore v1.0 — Internal Use Only',
+  'login.continueWithGoogle': 'Continue with Google',
+  'login.or': 'or',
+  'login.error.notInvited': 'This Google account hasn\'t been invited yet. Ask an admin to add you.',
+  'login.error.callback': 'Sign in failed. Please try again.',
 
   // Search placeholders
   'search.users': 'Search users or companies…',
