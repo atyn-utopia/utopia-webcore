@@ -20,13 +20,16 @@ interface UserProfile {
 
 interface Company { id: string; name: string }
 
+// Role pills share one slate palette so the page stays in a single colour
+// family. Roles are disambiguated by the label itself, not by colour.
+const ROLE_NEUTRAL = { color: '#475569', bg: '#f1f5f9' }
 const ROLE_META: Record<UserRole, { label: string; color: string; bg: string; desc: string; access: string }> = {
-  admin:             { label: 'Admin',             color: '#1e3a5f', bg: '#e0ecf5', desc: 'Full access to everything',          access: 'All pages, all companies' },
-  designer:          { label: 'Designer',          color: '#7c3aed', bg: '#ede9fe', desc: 'Internal. Websites, phones, blog',  access: 'All companies' },
-  external_designer: { label: 'External Designer', color: '#c026d3', bg: '#fae8ff', desc: 'External. Scoped to one company',   access: 'Assigned companies only' },
-  writer:            { label: 'Writer',            color: '#0369a1', bg: '#e0f2fe', desc: 'Blog content creation',              access: 'All blog posts' },
-  indoor_sales:      { label: 'Indoor Sales',      color: '#b45309', bg: '#fef3c7', desc: 'View websites & phone numbers',      access: 'Assigned companies only' },
-  manager:           { label: 'Manager',           color: '#15803d', bg: '#dcfce7', desc: 'View websites & phone numbers',      access: 'Assigned companies only' },
+  admin:             { label: 'Admin',             ...ROLE_NEUTRAL, desc: 'Full access to everything',          access: 'All pages, all companies' },
+  designer:          { label: 'Designer',          ...ROLE_NEUTRAL, desc: 'Internal. Websites, phones, blog',  access: 'All companies' },
+  external_designer: { label: 'External Designer', ...ROLE_NEUTRAL, desc: 'External. Scoped to one company',   access: 'Assigned companies only' },
+  writer:            { label: 'Writer',            ...ROLE_NEUTRAL, desc: 'Blog content creation',              access: 'All blog posts' },
+  indoor_sales:      { label: 'Indoor Sales',      ...ROLE_NEUTRAL, desc: 'View websites & phone numbers',      access: 'Assigned companies only' },
+  manager:           { label: 'Manager',           ...ROLE_NEUTRAL, desc: 'View websites & phone numbers',      access: 'Assigned companies only' },
 }
 
 const SCOPED_ROLES: UserRole[] = ['indoor_sales', 'manager', 'external_designer']

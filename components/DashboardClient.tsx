@@ -67,8 +67,8 @@ export default function DashboardClient({ role, isScoped, websiteCount, phoneCou
         {!isWriter && (
           <Card variant="default">
             <div className="flex items-center gap-3 mb-3">
-              <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: '#eff6ff' }}>
-                <svg className="w-4.5 h-4.5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8">
+              <div className="w-9 h-9 rounded-lg flex items-center justify-center bg-slate-100">
+                <svg className="w-4.5 h-4.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z" />
                 </svg>
               </div>
@@ -82,8 +82,8 @@ export default function DashboardClient({ role, isScoped, websiteCount, phoneCou
         {!isWriter && (
           <Card variant="default">
             <div className="flex items-center gap-3 mb-3">
-              <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: '#fef3c7' }}>
-                <svg className="w-4.5 h-4.5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8">
+              <div className="w-9 h-9 rounded-lg flex items-center justify-center bg-slate-100">
+                <svg className="w-4.5 h-4.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
                 </svg>
               </div>
@@ -97,8 +97,8 @@ export default function DashboardClient({ role, isScoped, websiteCount, phoneCou
         {!isScoped && (
           <Card variant="default">
             <div className="flex items-center gap-3 mb-3">
-              <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: '#f0fdf4' }}>
-                <svg className="w-4.5 h-4.5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8">
+              <div className="w-9 h-9 rounded-lg flex items-center justify-center bg-slate-100">
+                <svg className="w-4.5 h-4.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
                 </svg>
               </div>
