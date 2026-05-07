@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useToast } from '@/contexts/ToastContext'
+import { LoadingOverlay } from '@/components/ui/Spinner'
 
 interface Company { id: string; name: string }
 
@@ -106,7 +107,8 @@ export default function AddWebsiteModal({ open, onClose, onCreated, presetCompan
 
   return (
     <div className="fixed inset-0 z-50 flex items-start justify-center p-4 sm:p-8 overflow-y-auto backdrop-blur-sm" style={{ background: 'rgba(15, 23, 42, 0.45)' }}>
-      <div className="w-full max-w-xl rounded-2xl bg-white shadow-2xl my-4 overflow-hidden" style={{ border: '1px solid #e2e8f0' }}>
+      <div className="relative w-full max-w-xl rounded-2xl bg-white shadow-2xl my-4 overflow-hidden" style={{ border: '1px solid #e2e8f0' }}>
+        <LoadingOverlay visible={saving} label="Connecting website…" />
         {/* Header */}
         <div className="px-6 pt-6 pb-4 flex items-start justify-between gap-4">
           <div>

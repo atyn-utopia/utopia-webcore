@@ -38,8 +38,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" className={`h-full ${inter.variable} ${nunito.variable}`}>
       <head>
-        <meta name="theme-color" content="#14181f" />
-        <link rel="apple-touch-icon" href="/icon-192.png" />
+        <meta name="theme-color" content="#1E5BFF" />
+        <link rel="apple-touch-icon" href="/utopia-webcore-logo.png" />
       </head>
       <body className="min-h-full font-inter">
         <LoadingBar />

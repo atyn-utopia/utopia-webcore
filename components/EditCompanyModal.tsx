@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { useToast } from '@/contexts/ToastContext'
+import { LoadingOverlay } from '@/components/ui/Spinner'
 
 interface Props {
   open: boolean
@@ -110,7 +111,8 @@ export default function EditCompanyModal({ open, company, onClose, onSaved }: Pr
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center px-4" style={{ background: 'rgba(0,0,0,0.4)' }} onClick={onClose}>
-      <div className="w-full max-w-md rounded-xl bg-white shadow-2xl overflow-hidden" onClick={e => e.stopPropagation()}>
+      <div className="relative w-full max-w-md rounded-xl bg-white shadow-2xl overflow-hidden" onClick={e => e.stopPropagation()}>
+        <LoadingOverlay visible={busy} label={uploading ? 'Uploading logo…' : 'Saving…'} />
         <div className="px-5 py-4 flex items-center justify-between" style={{ borderBottom: '1px solid #e2e8f0' }}>
           <h2 className="text-base font-semibold" style={{ color: 'var(--foreground)' }}>Edit company</h2>
           <button

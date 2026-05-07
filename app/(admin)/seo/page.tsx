@@ -9,7 +9,7 @@ import { matchPattern, suggestPatterns } from '@/lib/seoPattern'
 import { Button } from '@/components/ui/Button'
 import { Input, Textarea } from '@/components/ui/Input'
 import { Card } from '@/components/ui/Card'
-import { Spinner } from '@/components/ui/Spinner'
+import { Spinner, LoadingOverlay } from '@/components/ui/Spinner'
 
 // ---------------------------------------------------------------------------
 // Types
@@ -373,7 +373,8 @@ function BrandProfileModal({ domain, profile, onClose, onSaved }: { domain: stri
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center px-4" style={{ background: 'rgba(0,0,0,0.4)' }} onClick={onClose}>
-      <div className="w-full max-w-md rounded-xl bg-white shadow-2xl overflow-hidden" onClick={e => e.stopPropagation()}>
+      <div className="relative w-full max-w-md rounded-xl bg-white shadow-2xl overflow-hidden" onClick={e => e.stopPropagation()}>
+        <LoadingOverlay visible={saving} label="Saving brand profile…" />
         <div className="px-5 py-4 flex items-center justify-between" style={{ borderBottom: '1px solid #e2e8f0' }}>
           <h2 className="text-base font-semibold" style={{ color: 'var(--foreground)' }}>Edit brand profile</h2>
           <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-md transition-colors hover:bg-slate-100" style={{ color: '#94a3b8' }}>
@@ -1967,7 +1968,8 @@ function SeoOverrideModal({ domain, row, onClose, onSaved }: { domain: string; r
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center px-4" style={{ background: 'rgba(0,0,0,0.4)' }} onClick={onClose}>
-      <div className="w-full max-w-md rounded-xl bg-white shadow-2xl overflow-hidden" onClick={e => e.stopPropagation()}>
+      <div className="relative w-full max-w-md rounded-xl bg-white shadow-2xl overflow-hidden" onClick={e => e.stopPropagation()}>
+        <LoadingOverlay visible={saving} label="Saving page override…" />
         <div className="px-5 py-4 flex items-center justify-between" style={{ borderBottom: '1px solid #e2e8f0' }}>
           <h2 className="text-base font-semibold" style={{ color: 'var(--foreground)' }}>Add another page</h2>
           <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-md transition-colors hover:bg-slate-100" style={{ color: '#94a3b8' }}>
