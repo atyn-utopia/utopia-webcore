@@ -14,8 +14,8 @@ export default function AskCoxyPill() {
       onClick={() => setOpen(true)}
       className="hidden md:inline-flex items-center gap-1.5 h-9 pl-3.5 pr-4 rounded-full text-xs font-semibold text-white transition-all hover:brightness-110"
       style={{
-        background: 'linear-gradient(135deg, #7c3aed, #a855f7)',
-        boxShadow: '0 1px 2px rgba(124, 58, 237, 0.4)',
+        background: '#fb4f9a',
+        boxShadow: '0 1px 2px rgba(251, 79, 154, 0.45)',
       }}
       title="Ask Coxy"
     >
