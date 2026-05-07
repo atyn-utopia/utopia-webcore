@@ -53,7 +53,11 @@ const BASE = [
   'focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-2',
 ].join(' ')
 
-function Spinner({ size }: { size: Size }) {
+function ButtonSpinner({ size }: { size: Size }) {
+  // CSS spinner instead of the brand GIF here: button text colour drives the
+  // spinner colour via currentColor, so it stays visible on every variant
+  // (primary, secondary, ghost, danger). The brand GIF is reserved for
+  // operation-area / page-level loading where we control the backdrop.
   const dim = size === 'sm' ? 'w-3 h-3' : size === 'md' ? 'w-3.5 h-3.5' : 'w-4 h-4'
   return (
     <span className={`${dim} rounded-full border-2 border-current border-t-transparent animate-spin opacity-70`} aria-hidden />
@@ -75,7 +79,7 @@ export function Button(props: Props) {
   const cls = [BASE, SIZE[size], VARIANT_CLASS[variant], fullWidth ? 'w-full' : '', className].filter(Boolean).join(' ')
   const inner = (
     <>
-      {loading ? <Spinner size={size} /> : iconLeft}
+      {loading ? <ButtonSpinner size={size} /> : iconLeft}
       {children}
       {iconRight}
     </>

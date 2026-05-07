@@ -9,6 +9,7 @@ import { matchPattern, suggestPatterns } from '@/lib/seoPattern'
 import { Button } from '@/components/ui/Button'
 import { Input, Textarea } from '@/components/ui/Input'
 import { Card } from '@/components/ui/Card'
+import { Spinner } from '@/components/ui/Spinner'
 
 // ---------------------------------------------------------------------------
 // Types
@@ -643,18 +644,20 @@ function Step1Card({
       defaultOpen
     >
       <div className="px-5 py-3 flex items-center justify-between gap-3" style={{ borderBottom: '1px solid #f1f5f9', background: '#fafbfc' }}>
-        <p className="text-[11px]" style={{ color: '#94a3b8' }}>
-          {auditing ? 'Auditing homepage…' : audit ? `Audited ${new Date(audit.fetchedAt).toLocaleTimeString()}` : 'Not yet audited'}
-        </p>
-        <button
-          type="button"
+        <div className="flex items-center gap-2">
+          {auditing && <Spinner size="sm" />}
+          <p className="text-[11px]" style={{ color: '#94a3b8' }}>
+            {auditing ? 'Auditing homepage…' : audit ? `Audited ${new Date(audit.fetchedAt).toLocaleTimeString()}` : 'Not yet audited'}
+          </p>
+        </div>
+        <Button
+          variant="secondary"
+          size="sm"
           onClick={onRunAudit}
-          disabled={auditing}
-          className="text-[11px] font-medium px-3 h-7 rounded-md border transition-colors hover:bg-slate-50 disabled:opacity-50"
-          style={{ borderColor: '#e2e8f0', color: '#475569', background: 'white' }}
+          loading={auditing}
         >
           {auditing ? 'Running…' : 'Re-run audit'}
-        </button>
+        </Button>
       </div>
 
       <Task
