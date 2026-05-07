@@ -5,6 +5,7 @@ import { useSearchParams } from 'next/navigation'
 import PageHeader from '@/components/PageHeader'
 import { useToast } from '@/contexts/ToastContext'
 import { useConfirm } from '@/contexts/ConfirmContext'
+import { matchPattern } from '@/lib/seoPattern'
 
 // ---------------------------------------------------------------------------
 // Types
@@ -30,7 +31,7 @@ interface Override {
 
 interface AltOverride { id: string; image_src: string; alt: string; updated_at: string }
 
-interface SiteProfile { website: string; brand_name: string; location: string; keywords: string[]; updated_at: string }
+interface SiteProfile { website: string; brand_name: string; location: string; keywords: string[]; languages: Language[]; updated_at: string }
 
 interface SitemapResult { ok: boolean; source: 'sitemap' | 'sitemap_index' | 'fallback'; paths: string[]; error?: string }
 
@@ -137,6 +138,20 @@ function SeoInner() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [domain])
 
+  // Languages the site has opted into via the brand profile. Falls back to
+  // ['en'] until the profile loads or if it's never been configured.
+  const enabledLanguages: Language[] = profile && profile.languages.length > 0
+    ? profile.languages.filter((l): l is Language => l === 'en' || l === 'ms')
+    : ['en']
+
+  // If the active language is no longer available (profile changed, BM was
+  // disabled, etc.) snap back to the first enabled one. Hook lives above the
+  // domain early-return so the hook order stays constant across renders.
+  useEffect(() => {
+    if (!enabledLanguages.includes(language)) setLanguage(enabledLanguages[0] ?? 'en')
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [enabledLanguages.join(',')])
+
   if (!domain) {
     return (
       <div>
@@ -160,7 +175,7 @@ function SeoInner() {
             description={<span>Complete all SEO tasks to help <code className="font-mono text-xs px-1.5 py-0.5 rounded" style={{ background: '#f1f5f9', color: '#475569' }}>{domain}</code> get found in search results and AI chat responses.</span>}
           />
         </div>
-        <LanguageToggle value={language} onChange={setLanguage} />
+        <LanguageToggle value={language} onChange={setLanguage} enabled={enabledLanguages} />
       </div>
 
       <BusinessInfoBar domain={domain} profile={profile} onSaved={loadProfile} />
@@ -206,10 +221,14 @@ function SeoInner() {
 // Language toggle — pinned to the top right of the page header
 // ---------------------------------------------------------------------------
 
-function LanguageToggle({ value, onChange }: { value: Language; onChange: (l: Language) => void }) {
+function LanguageToggle({ value, onChange, enabled }: { value: Language; onChange: (l: Language) => void; enabled: Language[] }) {
+  // Hide the toggle entirely when the site only publishes one language —
+  // there's nothing to toggle to. The default state stays 'en'.
+  if (enabled.length <= 1) return null
+  const visible = LANGUAGES.filter(l => enabled.includes(l.code))
   return (
     <div className="inline-flex items-center rounded-full p-0.5 mt-1 flex-shrink-0" style={{ background: '#f1f5f9', border: '1px solid #e2e8f0' }}>
-      {LANGUAGES.map(({ code, label }) => {
+      {visible.map(({ code, label }) => {
         const active = value === code
         return (
           <button
@@ -285,7 +304,22 @@ function BrandProfileModal({ domain, profile, onClose, onSaved }: { domain: stri
   const [brandName, setBrandName] = useState(profile?.brand_name ?? '')
   const [location, setLocation] = useState(profile?.location ?? '')
   const [keywordsText, setKeywordsText] = useState((profile?.keywords ?? []).join(', '))
+  const [languages, setLanguages] = useState<Language[]>(
+    profile?.languages && profile.languages.length > 0
+      ? profile.languages.filter((l): l is Language => l === 'en' || l === 'ms')
+      : ['en']
+  )
   const [saving, setSaving] = useState(false)
+
+  function toggleLang(code: Language) {
+    setLanguages(prev => {
+      // Don't allow removing the last enabled language — every site needs one.
+      if (prev.includes(code)) {
+        return prev.length > 1 ? prev.filter(l => l !== code) : prev
+      }
+      return [...prev, code]
+    })
+  }
 
   async function save() {
     setSaving(true)
@@ -298,7 +332,7 @@ function BrandProfileModal({ domain, profile, onClose, onSaved }: { domain: stri
       const res = await fetch('/api/seo/profile', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ website: domain, brand_name: brandName.trim(), location: location.trim(), keywords }),
+        body: JSON.stringify({ website: domain, brand_name: brandName.trim(), location: location.trim(), keywords, languages }),
       })
       const data = await res.json()
       if (!res.ok) {
@@ -356,6 +390,22 @@ function BrandProfileModal({ domain, profile, onClose, onSaved }: { domain: stri
               style={{ borderColor: '#e2e8f0', background: 'white' }}
             />
             <p className="text-[10px] mt-1" style={{ color: '#94a3b8' }}>These ground the AI title-suggestion endpoint and will surface in the audit&apos;s keyword check.</p>
+          </div>
+          <div>
+            <label className="block text-xs font-medium mb-1.5" style={{ color: '#475569' }}>Site languages</label>
+            <div className="flex flex-wrap gap-2">
+              {LANGUAGES.map(({ code, label }) => {
+                const checked = languages.includes(code)
+                return (
+                  <label key={code} className="inline-flex items-center gap-1.5 text-xs px-2.5 h-8 rounded-full cursor-pointer transition-colors" style={{ background: checked ? '#eff6ff' : 'white', border: `1px solid ${checked ? '#bfdbfe' : '#e2e8f0'}`, color: checked ? 'var(--primary)' : '#475569' }}>
+                    <input type="checkbox" checked={checked} onChange={() => toggleLang(code)} className="w-3 h-3" />
+                    <span className="font-semibold tracking-wider">{label}</span>
+                    <span className="text-[10px]" style={{ color: '#94a3b8' }}>{code === 'en' ? 'English' : 'Bahasa Malaysia'}</span>
+                  </label>
+                )
+              })}
+            </div>
+            <p className="text-[10px] mt-1" style={{ color: '#94a3b8' }}>Pick the languages this site publishes in. The EN | BM toggle on the SEO checklist only shows the languages enabled here.</p>
           </div>
         </div>
 
@@ -687,10 +737,26 @@ function Step2Card({
   // so we exclude them from the page enumeration here.
   const exactOverrides = overrides.filter(o => !o.is_pattern)
   const patternOverrides = overrides.filter(o => o.is_pattern)
-  const paths = new Set<string>(['/'])
-  ;(sitemap?.paths ?? []).forEach(p => paths.add(p))
-  exactOverrides.forEach(o => paths.add(o.path))
-  const orderedPaths = [...paths].sort((a, b) => a === '/' ? -1 : b === '/' ? 1 : a.localeCompare(b))
+  const allPaths = new Set<string>(['/'])
+  ;(sitemap?.paths ?? []).forEach(p => allPaths.add(p))
+  exactOverrides.forEach(o => allPaths.add(o.path))
+
+  // Hide paths that are already covered by an active-language pattern. They
+  // appear under the "Patterns" section instead, so listing them again as
+  // standalone tasks is just noise. Homepage is always shown so the audit
+  // tasks (alt text, h1, etc.) stay visible. An exact-path override beats
+  // any pattern, so paths with their own override stay too.
+  const activePatterns = patternOverrides.filter(p => p.language === language)
+  const exactPathSet = new Set(exactOverrides.filter(o => o.language === language).map(o => o.path))
+  const hiddenByPattern: string[] = []
+  const visibleAfterPattern: string[] = []
+  for (const p of allPaths) {
+    const exempt = p === '/' || exactPathSet.has(p)
+    const matched = !exempt && activePatterns.some(pat => matchPattern(pat.path, p) !== null)
+    if (matched) hiddenByPattern.push(p)
+    else visibleAfterPattern.push(p)
+  }
+  const orderedPaths = visibleAfterPattern.sort((a, b) => a === '/' ? -1 : b === '/' ? 1 : a.localeCompare(b))
   // Truncate the visible list to keep the section scannable. The "See all"
   // affordance (next to the "Add page" button) reveals the rest.
   const COLLAPSE_LIMIT = 5
@@ -740,14 +806,18 @@ function Step2Card({
     >
       {/* Pattern rules — listed first so admins see the meta-rules that affect
           every matching page below. Filtered to the active language. */}
-      {patternOverrides.filter(p => p.language === language).length > 0 && (
+      {activePatterns.length > 0 && (
         <div>
           <div className="px-5 py-2.5 flex items-center gap-2" style={{ background: '#eff6ff', borderBottom: '1px solid #f1f5f9' }}>
             <span className="text-xs font-semibold" style={{ color: 'var(--primary)' }}>Patterns</span>
-            <span className="text-[10px]" style={{ color: '#94a3b8' }}>Apply to every page that matches the wildcard</span>
+            <span className="text-[10px]" style={{ color: '#94a3b8' }}>
+              {hiddenByPattern.length > 0
+                ? `Apply to ${hiddenByPattern.length} matching page${hiddenByPattern.length === 1 ? '' : 's'} (hidden from the list below)`
+                : 'Apply to every page that matches the wildcard'}
+            </span>
           </div>
-          {patternOverrides.filter(p => p.language === language).map(p => (
-            <PatternRow key={p.id} domain={domain} override={p} onRefresh={onRefresh} />
+          {activePatterns.map(p => (
+            <PatternRow key={p.id} domain={domain} override={p} matchedPaths={hiddenByPattern} onRefresh={onRefresh} />
           ))}
         </div>
       )}
@@ -1387,13 +1457,18 @@ function AltRow({
 // Pattern row — displays a saved pattern override with edit + delete
 // ---------------------------------------------------------------------------
 
-function PatternRow({ domain, override, onRefresh }: { domain: string; override: Override; onRefresh: () => void }) {
+function PatternRow({ domain, override, matchedPaths, onRefresh }: { domain: string; override: Override; matchedPaths?: string[]; onRefresh: () => void }) {
   const toast = useToast()
   const confirm = useConfirm()
   const [open, setOpen] = useState(false)
   const [title, setTitle] = useState(override.title ?? '')
   const [description, setDescription] = useState(override.description ?? '')
   const [saving, setSaving] = useState(false)
+
+  // Filter the supplied matched-paths list down to ones THIS pattern actually
+  // captures. The parent passes the union of all matched paths so we have to
+  // re-filter per pattern.
+  const myMatches = (matchedPaths ?? []).filter(p => matchPattern(override.path, p) !== null)
 
   // Show what {match} would render as for a sample slug
   const sampleSubst = (s: string) => s.replace(/\{match\}/g, 'Shah Alam')
@@ -1454,6 +1529,11 @@ function PatternRow({ domain, override, onRefresh }: { domain: string; override:
           <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3"><path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
         </span>
         <code className="flex-1 text-xs font-mono truncate" style={{ color: '#475569' }}>{override.path}</code>
+        {myMatches.length > 0 && (
+          <span className="text-[10px] font-medium px-1.5 py-0.5 rounded" style={{ background: '#dcfce7', color: '#16a34a' }} title={myMatches.slice(0, 10).join('\n') + (myMatches.length > 10 ? `\n…and ${myMatches.length - 10} more` : '')}>
+            {myMatches.length} match{myMatches.length === 1 ? '' : 'es'}
+          </span>
+        )}
         <span className="text-[10px] uppercase font-semibold tracking-wider px-1.5 py-0.5 rounded" style={{ background: '#dbeafe', color: '#1e40af' }}>{override.language === 'ms' ? 'BM' : 'EN'}</span>
         <svg className={`w-3.5 h-3.5 transition-transform ${open ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" style={{ color: '#94a3b8' }}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
@@ -1509,6 +1589,19 @@ function PatternRow({ domain, override, onRefresh }: { domain: string; override:
             </button>
             <p className="text-[10px] ml-auto" style={{ color: '#94a3b8' }}>Use <code className="font-mono">{'{match}'}</code> to insert the wildcard portion.</p>
           </div>
+          {myMatches.length > 0 && (
+            <div>
+              <p className="text-[11px] font-semibold uppercase tracking-wider mb-1" style={{ color: '#94a3b8' }}>Matching pages ({myMatches.length})</p>
+              <div className="flex flex-wrap gap-1">
+                {myMatches.slice(0, 24).map(p => (
+                  <code key={p} className="text-[10px] font-mono px-1.5 py-0.5 rounded" style={{ background: 'white', border: '1px solid #e2e8f0', color: '#475569' }}>{p}</code>
+                ))}
+                {myMatches.length > 24 && (
+                  <span className="text-[10px]" style={{ color: '#94a3b8' }}>… +{myMatches.length - 24} more</span>
+                )}
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>
