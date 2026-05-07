@@ -28,7 +28,7 @@ export function Logo({ size = 44, rounded = 'xl', className = '', style }: LogoP
   return (
     // eslint-disable-next-line @next/next/no-img-element
     <img
-      src="/utopia-webcore-logo.png"
+      src="/utopia-webcore-logo-256.png"
       alt="Utopia Webcore"
       width={size}
       height={size}

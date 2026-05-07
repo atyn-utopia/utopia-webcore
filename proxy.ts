@@ -42,8 +42,31 @@ export async function proxy(request: NextRequest) {
     return supabaseResponse
   }
 
-  // Skip PWA/static assets + tracking script
-  if (pathname === '/sw.js' || pathname === '/manifest.webmanifest' || pathname.startsWith('/icon-') || pathname === '/icon.svg' || pathname === '/character.gif' || pathname === '/character-floating.gif' || pathname.startsWith('/character-logo.') || pathname === '/t.js') {
+  // Skip PWA/static assets + tracking script. Anything reachable from the
+  // unauthenticated /login page (logo, spinner GIF) or fetched by the browser
+  // for PWA validation (manifest icons) must be listed here, otherwise the
+  // middleware redirects the asset request to /login and the image breaks.
+  if (
+    pathname === '/sw.js' ||
+    pathname === '/manifest.webmanifest' ||
+    pathname.startsWith('/icon-') ||
+    pathname === '/icon.svg' ||
+    pathname === '/icon.png' ||
+    pathname === '/apple-icon.png' ||
+    pathname === '/favicon.ico' ||
+    pathname === '/utopia-webcore-logo.png' ||
+    pathname === '/utopia-webcore-logo-256.png' ||
+    pathname === '/utopia-webcore-icon-192.png' ||
+    pathname === '/utopia-webcore-icon-512.png' ||
+    pathname === '/utopia-webcore-apple-touch.png' ||
+    pathname === '/loading-animation.gif' ||
+    pathname === '/avatar-coxy.png' ||
+    pathname === '/coxy-floating.gif' ||
+    pathname === '/character.gif' ||
+    pathname === '/character-floating.gif' ||
+    pathname.startsWith('/character-logo.') ||
+    pathname === '/t.js'
+  ) {
     return supabaseResponse
   }
 
