@@ -145,8 +145,11 @@ export default function Breadcrumb() {
 
   const crumbs = getCrumbs()
 
+  // Dashboard home is its own destination — no breadcrumb needed there.
+  if (pathname === '/') return null
+
   return (
-    <nav className="flex items-center gap-2 text-sm min-w-0" aria-label="Breadcrumb">
+    <nav className="flex items-center gap-2 text-sm min-w-0 mb-4" aria-label="Breadcrumb">
       {/* Home */}
       <Link
         href="/"
