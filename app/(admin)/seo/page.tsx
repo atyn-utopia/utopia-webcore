@@ -75,6 +75,7 @@ function SeoInner() {
   const [profile, setProfile] = useState<SiteProfile | null>(null)
   const [sitemap, setSitemap] = useState<SitemapResult | null>(null)
   const [language, setLanguage] = useState<Language>('en')
+  const [editingProfile, setEditingProfile] = useState(false)
 
   function loadOverrides() {
     if (!domain) return
@@ -175,10 +176,10 @@ function SeoInner() {
             description={<span>Complete all SEO tasks to help <code className="font-mono text-xs px-1.5 py-0.5 rounded" style={{ background: '#f1f5f9', color: '#475569' }}>{domain}</code> get found in search results and AI chat responses.</span>}
           />
         </div>
-        <LanguageToggle value={language} onChange={setLanguage} enabled={enabledLanguages} />
+        <LanguageToggle value={language} onChange={setLanguage} enabled={enabledLanguages} onManage={() => setEditingProfile(true)} />
       </div>
 
-      <BusinessInfoBar domain={domain} profile={profile} onSaved={loadProfile} />
+      <BusinessInfoBar domain={domain} profile={profile} editing={editingProfile} onEditingChange={setEditingProfile} onSaved={loadProfile} />
 
       <div className="space-y-3 mt-4">
         <Step1Card
@@ -221,11 +222,9 @@ function SeoInner() {
 // Language toggle — pinned to the top right of the page header
 // ---------------------------------------------------------------------------
 
-function LanguageToggle({ value, onChange, enabled }: { value: Language; onChange: (l: Language) => void; enabled: Language[] }) {
-  // Hide the toggle entirely when the site only publishes one language —
-  // there's nothing to toggle to. The default state stays 'en'.
-  if (enabled.length <= 1) return null
+function LanguageToggle({ value, onChange, enabled, onManage }: { value: Language; onChange: (l: Language) => void; enabled: Language[]; onManage: () => void }) {
   const visible = LANGUAGES.filter(l => enabled.includes(l.code))
+  const hasMore = enabled.length < LANGUAGES.length
   return (
     <div className="inline-flex items-center rounded-full p-0.5 mt-1 flex-shrink-0" style={{ background: '#f1f5f9', border: '1px solid #e2e8f0' }}>
       {visible.map(({ code, label }) => {
@@ -246,6 +245,17 @@ function LanguageToggle({ value, onChange, enabled }: { value: Language; onChang
           </button>
         )
       })}
+      {hasMore && (
+        <button
+          type="button"
+          onClick={onManage}
+          title="Add another language"
+          className="text-[11px] font-semibold w-7 h-7 rounded-full transition-colors hover:bg-white"
+          style={{ color: 'var(--primary)' }}
+        >
+          +
+        </button>
+      )}
     </div>
   )
 }
@@ -254,8 +264,7 @@ function LanguageToggle({ value, onChange, enabled }: { value: Language; onChang
 // Business info bar — brand / location / keywords with inline edit modal
 // ---------------------------------------------------------------------------
 
-function BusinessInfoBar({ domain, profile, onSaved }: { domain: string; profile: SiteProfile | null; onSaved: () => void }) {
-  const [editing, setEditing] = useState(false)
+function BusinessInfoBar({ domain, profile, editing, onEditingChange, onSaved }: { domain: string; profile: SiteProfile | null; editing: boolean; onEditingChange: (next: boolean) => void; onSaved: () => void }) {
   const brand = profile?.brand_name || '—'
   const location = profile?.location || '—'
   const keywords = profile && profile.keywords.length > 0 ? profile.keywords.join(', ') : '—'
@@ -270,7 +279,7 @@ function BusinessInfoBar({ domain, profile, onSaved }: { domain: string; profile
         <InfoCell label="Keywords" value={keywords} wide />
         <button
           type="button"
-          onClick={() => setEditing(true)}
+          onClick={() => onEditingChange(true)}
           title="Edit brand profile"
           className="ml-auto w-7 h-7 rounded-full flex items-center justify-center transition-colors hover:bg-slate-100"
           style={{ color: 'var(--primary)' }}
@@ -282,8 +291,8 @@ function BusinessInfoBar({ domain, profile, onSaved }: { domain: string; profile
         <BrandProfileModal
           domain={domain}
           profile={profile}
-          onClose={() => setEditing(false)}
-          onSaved={() => { setEditing(false); onSaved() }}
+          onClose={() => onEditingChange(false)}
+          onSaved={() => { onEditingChange(false); onSaved() }}
         />
       )}
     </>
