@@ -14,7 +14,7 @@ interface ProfileRow {
   updated_at: string
 }
 
-const ALLOWED_LANGUAGES = new Set(['en', 'ms'])
+const ALLOWED_LANGUAGES = new Set(['en', 'ms', 'zh'])
 
 async function checkAccess(userId: string, website: string) {
   const scope = await getUserScope(userId)

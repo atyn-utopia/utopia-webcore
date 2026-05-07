@@ -47,7 +47,7 @@ export async function POST(request: Request) {
   if (typeof website !== 'string' || !website) return NextResponse.json({ error: 'website is required' }, { status: 400 })
   if (typeof current_heading !== 'string' || !current_heading.trim()) return NextResponse.json({ error: 'current_heading is required' }, { status: 400 })
   const lvl = level === 3 ? 3 : 2
-  const lang = typeof language === 'string' && (language === 'en' || language === 'ms') ? language : 'en'
+  const lang = typeof language === 'string' && (language === 'en' || language === 'ms' || language === 'zh') ? language : 'en'
 
   const scope = await getUserScope(user.id)
   if (!ALLOWED_ROLES.has(scope.role)) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
@@ -63,7 +63,7 @@ export async function POST(request: Request) {
     .maybeSingle()
   const p = (profile ?? { brand_name: '', location: '', keywords: [] }) as ProfileRow
 
-  const langLabel = lang === 'ms' ? 'Bahasa Malaysia' : 'English'
+  const langLabel = lang === 'ms' ? 'Bahasa Malaysia' : lang === 'zh' ? 'Mandarin Chinese (Simplified)' : 'English'
   const prompt = [
     `You are an SEO/UX writer suggesting alternative phrasings for an <h${lvl}> heading on a small business website.`,
     `Domain: ${website}`,

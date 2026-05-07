@@ -7,6 +7,22 @@ import { useWebsite } from '@/contexts/WebsiteContext'
 import type { UserRole } from '@/contexts/UserContext'
 import { useLanguage } from '@/contexts/LanguageContext'
 import type { TranslationKey } from '@/lib/i18n/en'
+import {
+  HomeIcon,
+  GlobeAltIcon,
+  ChatBubbleOvalLeftEllipsisIcon,
+  CubeIcon,
+  PencilSquareIcon,
+  UsersIcon,
+  KeyIcon,
+  ClipboardDocumentListIcon,
+  TicketIcon,
+  QuestionMarkCircleIcon,
+  MagnifyingGlassIcon,
+  LinkIcon,
+  Cog6ToothIcon,
+  AcademicCapIcon,
+} from '@heroicons/react/24/solid'
 
 interface SidebarProps {
   userRole: UserRole
@@ -17,113 +33,17 @@ interface SidebarProps {
 }
 
 const navItems: { href: string; labelKey: TranslationKey; roles: UserRole[]; icon: React.ReactNode }[] = [
-  {
-    href: '/',
-    labelKey: 'nav.dashboard',
-    roles: ['admin', 'designer', 'external_designer', 'writer', 'indoor_sales', 'manager'],
-    icon: (
-      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-      </svg>
-    ),
-  },
-  {
-    href: '/websites',
-    labelKey: 'nav.websites',
-    roles: ['admin', 'designer', 'external_designer', 'writer', 'indoor_sales', 'manager'],
-    icon: (
-      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <rect x="2" y="3" width="20" height="14" rx="2" strokeWidth="1.8"/>
-        <path strokeWidth="1.8" strokeLinecap="round" d="M2 7h20"/>
-        <circle cx="5" cy="5" r="0.8" fill="currentColor" stroke="none"/>
-        <circle cx="7.5" cy="5" r="0.8" fill="currentColor" stroke="none"/>
-        <circle cx="10" cy="5" r="0.8" fill="currentColor" stroke="none"/>
-        <path strokeWidth="1.8" strokeLinecap="round" d="M8 21h8M12 17v4"/>
-      </svg>
-    ),
-  },
-  {
-    href: '/phone-numbers',
-    labelKey: 'nav.phoneNumbers',
-    roles: ['admin', 'designer', 'external_designer', 'indoor_sales', 'manager'],
-    icon: (
-      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z" />
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M9.5 10.5c.3.6.8 1.2 1.4 1.7.6.5 1.2.9 1.9 1.1l.7-.7a.5.5 0 01.5-.1l1.3.5a.5.5 0 01.3.5v1a.5.5 0 01-.5.5C11.5 15 8.5 12 8.5 8.5a.5.5 0 01.5-.5h1a.5.5 0 01.5.3l.5 1.3a.5.5 0 01-.1.5l-.9.9z" />
-      </svg>
-    ),
-  },
-  {
-    href: '/products',
-    labelKey: 'nav.products',
-    roles: ['admin', 'designer', 'external_designer'],
-    icon: (
-      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-      </svg>
-    ),
-  },
-  {
-    href: '/blog',
-    labelKey: 'nav.blogPosts',
-    roles: ['admin', 'designer', 'external_designer', 'writer'],
-    icon: (
-      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-        <path strokeLinecap="round" strokeWidth={1.8} d="M7 13h3M7 9h7"/>
-      </svg>
-    ),
-  },
-  {
-    href: '/users',
-    labelKey: 'nav.users',
-    roles: ['admin'],
-    icon: (
-      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-      </svg>
-    ),
-  },
-  {
-    href: '/api-keys',
-    labelKey: 'nav.apiKeys',
-    roles: ['admin', 'designer', 'external_designer'],
-    icon: (
-      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
-      </svg>
-    ),
-  },
-  {
-    href: '/audit',
-    labelKey: 'nav.audit',
-    roles: ['admin'],
-    icon: (
-      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M9 12h6m-6 4h6m-6-8h6M5 3h14a2 2 0 012 2v14a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2z" />
-      </svg>
-    ),
-  },
-  {
-    href: '/tickets',
-    labelKey: 'nav.tickets',
-    roles: ['admin'],
-    icon: (
-      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
-      </svg>
-    ),
-  },
-  {
-    href: '/help',
-    labelKey: 'nav.help',
-    roles: ['admin', 'designer', 'external_designer', 'writer', 'indoor_sales', 'manager'],
-    icon: (
-      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-      </svg>
-    ),
-  },
+  { href: '/',              labelKey: 'nav.dashboard',    roles: ['admin', 'designer', 'external_designer', 'writer', 'indoor_sales', 'manager'], icon: <HomeIcon className="w-4 h-4" /> },
+  { href: '/websites',      labelKey: 'nav.websites',     roles: ['admin', 'designer', 'external_designer', 'writer', 'indoor_sales', 'manager'], icon: <GlobeAltIcon className="w-4 h-4" /> },
+  { href: '/phone-numbers', labelKey: 'nav.phoneNumbers', roles: ['admin', 'designer', 'external_designer', 'indoor_sales', 'manager'],            icon: <ChatBubbleOvalLeftEllipsisIcon className="w-4 h-4" /> },
+  { href: '/products',      labelKey: 'nav.products',     roles: ['admin', 'designer', 'external_designer'],                                       icon: <CubeIcon className="w-4 h-4" /> },
+  { href: '/blog',          labelKey: 'nav.blogPosts',    roles: ['admin', 'designer', 'external_designer', 'writer'],                              icon: <PencilSquareIcon className="w-4 h-4" /> },
+  { href: '/users',         labelKey: 'nav.users',        roles: ['admin'],                                                                         icon: <UsersIcon className="w-4 h-4" /> },
+  { href: '/api-keys',      labelKey: 'nav.apiKeys',      roles: ['admin', 'designer', 'external_designer'],                                       icon: <KeyIcon className="w-4 h-4" /> },
+  { href: '/audit',         labelKey: 'nav.audit',        roles: ['admin'],                                                                         icon: <ClipboardDocumentListIcon className="w-4 h-4" /> },
+  { href: '/tickets',       labelKey: 'nav.tickets',      roles: ['admin'],                                                                         icon: <TicketIcon className="w-4 h-4" /> },
+  { href: '/tutorial',      labelKey: 'nav.tutorial',     roles: ['admin', 'designer', 'external_designer', 'writer', 'indoor_sales', 'manager'], icon: <AcademicCapIcon className="w-4 h-4" /> },
+  { href: '/help',          labelKey: 'nav.help',         roles: ['admin', 'designer', 'external_designer', 'writer', 'indoor_sales', 'manager'], icon: <QuestionMarkCircleIcon className="w-4 h-4" /> },
 ]
 
 // Site-scoped nav: rendered when the URL has ?website=DOMAIN. Tabs target the
@@ -138,79 +58,13 @@ type SiteNavItem = {
 }
 
 const siteNavItems: SiteNavItem[] = [
-  {
-    basePath: '/websites',
-    label: 'Dashboard',
-    roles: ['admin', 'designer', 'external_designer', 'writer', 'indoor_sales', 'manager'],
-    icon: (
-      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-      </svg>
-    ),
-  },
-  {
-    basePath: '/products',
-    label: 'Products',
-    roles: ['admin', 'designer', 'external_designer'],
-    icon: (
-      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-      </svg>
-    ),
-  },
-  {
-    basePath: '/phone-numbers',
-    label: 'Phone Numbers',
-    roles: ['admin', 'designer', 'external_designer', 'indoor_sales', 'manager'],
-    icon: (
-      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z" />
-      </svg>
-    ),
-  },
-  {
-    basePath: '/blog',
-    label: 'Blog',
-    roles: ['admin', 'designer', 'external_designer', 'writer'],
-    icon: (
-      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-        <path strokeLinecap="round" strokeWidth={1.8} d="M7 13h3M7 9h7"/>
-      </svg>
-    ),
-  },
-  {
-    basePath: '/seo',
-    label: 'SEO',
-    roles: ['admin', 'designer', 'external_designer'],
-    icon: (
-      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8">
-        <circle cx="11" cy="11" r="7" />
-        <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35" />
-      </svg>
-    ),
-  },
-  {
-    basePath: '/integrations',
-    label: 'Integrations',
-    roles: ['admin', 'designer', 'external_designer'],
-    icon: (
-      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
-      </svg>
-    ),
-  },
-  {
-    basePath: '/site-settings',
-    label: 'Settings',
-    roles: ['admin', 'designer', 'external_designer'],
-    icon: (
-      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-        <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-      </svg>
-    ),
-  },
+  { basePath: '/websites',      label: 'Dashboard',     roles: ['admin', 'designer', 'external_designer', 'writer', 'indoor_sales', 'manager'], icon: <HomeIcon className="w-4 h-4" /> },
+  { basePath: '/products',      label: 'Products',      roles: ['admin', 'designer', 'external_designer'],                                       icon: <CubeIcon className="w-4 h-4" /> },
+  { basePath: '/phone-numbers', label: 'Phone Numbers', roles: ['admin', 'designer', 'external_designer', 'indoor_sales', 'manager'],            icon: <ChatBubbleOvalLeftEllipsisIcon className="w-4 h-4" /> },
+  { basePath: '/blog',          label: 'Blog',          roles: ['admin', 'designer', 'external_designer', 'writer'],                              icon: <PencilSquareIcon className="w-4 h-4" /> },
+  { basePath: '/seo',           label: 'SEO',           roles: ['admin', 'designer', 'external_designer'],                                       icon: <MagnifyingGlassIcon className="w-4 h-4" /> },
+  { basePath: '/integrations',  label: 'Integrations',  roles: ['admin', 'designer', 'external_designer'],                                       icon: <LinkIcon className="w-4 h-4" /> },
+  { basePath: '/site-settings', label: 'Settings',      roles: ['admin', 'designer', 'external_designer'],                                       icon: <Cog6ToothIcon className="w-4 h-4" /> },
 ]
 
 // Items that always show in the bottom group, regardless of site context.

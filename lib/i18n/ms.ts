@@ -61,6 +61,7 @@ export const ms: Record<TranslationKey, string> = {
   'nav.tickets': 'Tiket',
   'nav.apiKeys': 'Kunci API',
   'nav.audit': 'Jejak Audit',
+  'nav.tutorial': 'Tutorial',
   'nav.help': 'Bantuan',
   'nav.manage': 'Urus',
   'nav.signOut': 'Log keluar',

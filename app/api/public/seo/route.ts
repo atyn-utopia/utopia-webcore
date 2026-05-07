@@ -35,7 +35,7 @@ function normalizePath(p: string): string {
   return v || '/'
 }
 
-const ALLOWED_LANGUAGES = new Set(['en', 'ms'])
+const ALLOWED_LANGUAGES = new Set(['en', 'ms', 'zh'])
 function normalizeLang(l: string | null): string | null {
   if (!l) return null
   const v = l.toLowerCase()

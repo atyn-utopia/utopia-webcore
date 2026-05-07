@@ -15,10 +15,11 @@ import { Spinner, LoadingOverlay } from '@/components/ui/Spinner'
 // Types
 // ---------------------------------------------------------------------------
 
-type Language = 'en' | 'ms'
+type Language = 'en' | 'ms' | 'zh'
 const LANGUAGES: { code: Language; label: string }[] = [
   { code: 'en', label: 'EN' },
   { code: 'ms', label: 'BM' },
+  { code: 'zh', label: '中文' },
 ]
 
 interface Override {
@@ -157,7 +158,7 @@ function SeoInner() {
   // Languages the site has opted into via the brand profile. Falls back to
   // ['en'] until the profile loads or if it's never been configured.
   const enabledLanguages: Language[] = profile && profile.languages.length > 0
-    ? profile.languages.filter((l): l is Language => l === 'en' || l === 'ms')
+    ? profile.languages.filter((l): l is Language => l === 'en' || l === 'ms' || l === 'zh')
     : ['en']
 
   // If the active language is no longer available (profile changed, BM was
@@ -331,7 +332,7 @@ function BrandProfileModal({ domain, profile, onClose, onSaved }: { domain: stri
   const [keywordsText, setKeywordsText] = useState((profile?.keywords ?? []).join(', '))
   const [languages, setLanguages] = useState<Language[]>(
     profile?.languages && profile.languages.length > 0
-      ? profile.languages.filter((l): l is Language => l === 'en' || l === 'ms')
+      ? profile.languages.filter((l): l is Language => l === 'en' || l === 'ms' || l === 'zh')
       : ['en']
   )
   const [saving, setSaving] = useState(false)
@@ -420,7 +421,7 @@ function BrandProfileModal({ domain, profile, onClose, onSaved }: { domain: stri
                   <label key={code} className="inline-flex items-center gap-1.5 text-xs px-2.5 h-8 rounded-full cursor-pointer transition-colors" style={{ background: checked ? '#eff6ff' : 'white', border: `1px solid ${checked ? '#bfdbfe' : '#e2e8f0'}`, color: checked ? 'var(--primary)' : '#475569' }}>
                     <input type="checkbox" checked={checked} onChange={() => toggleLang(code)} className="w-3 h-3" />
                     <span className="font-semibold tracking-wider">{label}</span>
-                    <span className="text-[10px]" style={{ color: '#94a3b8' }}>{code === 'en' ? 'English' : 'Bahasa Malaysia'}</span>
+                    <span className="text-[10px]" style={{ color: '#94a3b8' }}>{code === 'en' ? 'English' : code === 'ms' ? 'Bahasa Malaysia' : 'Mandarin'}</span>
                   </label>
                 )
               })}
@@ -928,7 +929,7 @@ function Step2Card({
                 <span className="text-xs font-semibold" style={{ color: '#475569' }}>{friendly}</span>
                 {otherLangs.length > 0 && (
                   <span className="text-[10px] font-medium px-1.5 py-0.5 rounded uppercase tracking-wider" style={{ background: '#dbeafe', color: '#1e40af' }} title={`Also saved in: ${otherLangs.join(', ')}`}>
-                    +{otherLangs.map(l => l.toUpperCase() === 'MS' ? 'BM' : l.toUpperCase()).join('/')}
+                    +{otherLangs.map(l => l === 'ms' ? 'BM' : l === 'zh' ? '中' : l.toUpperCase()).join('/')}
                   </span>
                 )}
               </div>
@@ -1613,7 +1614,7 @@ function PatternRow({ domain, override, matchedPaths, onRefresh }: { domain: str
             {myMatches.length} match{myMatches.length === 1 ? '' : 'es'}
           </span>
         )}
-        <span className="text-[10px] uppercase font-semibold tracking-wider px-1.5 py-0.5 rounded" style={{ background: '#dbeafe', color: '#1e40af' }}>{override.language === 'ms' ? 'BM' : 'EN'}</span>
+        <span className="text-[10px] uppercase font-semibold tracking-wider px-1.5 py-0.5 rounded" style={{ background: '#dbeafe', color: '#1e40af' }}>{override.language === 'ms' ? 'BM' : override.language === 'zh' ? '中文' : 'EN'}</span>
         <svg className={`w-3.5 h-3.5 transition-transform ${open ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" style={{ color: '#94a3b8' }}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
         </svg>

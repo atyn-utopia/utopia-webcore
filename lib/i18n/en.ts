@@ -59,6 +59,7 @@ export const en = {
   'nav.tickets': 'Tickets',
   'nav.apiKeys': 'API Keys',
   'nav.audit': 'Audit Trail',
+  'nav.tutorial': 'Tutorial',
   'nav.help': 'Help',
   'nav.manage': 'Manage',
   'nav.signOut': 'Sign out',

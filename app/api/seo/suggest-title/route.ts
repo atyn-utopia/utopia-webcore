@@ -43,7 +43,7 @@ export async function POST(request: Request) {
 
   const { website, path, language, current_title, page_summary } = body as Record<string, unknown>
   if (typeof website !== 'string' || !website) return NextResponse.json({ error: 'website is required' }, { status: 400 })
-  const lang = typeof language === 'string' && (language === 'en' || language === 'ms') ? language : 'en'
+  const lang = typeof language === 'string' && (language === 'en' || language === 'ms' || language === 'zh') ? language : 'en'
 
   const scope = await getUserScope(user.id)
   if (!ALLOWED_ROLES.has(scope.role)) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
@@ -65,7 +65,7 @@ export async function POST(request: Request) {
   const safeCurrent = typeof current_title === 'string' ? current_title.slice(0, 200) : ''
   const safeSummary = typeof page_summary === 'string' ? page_summary.slice(0, 600) : ''
 
-  const langLabel = lang === 'ms' ? 'Bahasa Malaysia' : 'English'
+  const langLabel = lang === 'ms' ? 'Bahasa Malaysia' : lang === 'zh' ? 'Mandarin Chinese (Simplified)' : 'English'
   const prompt = [
     `You are an SEO writer suggesting page-title alternatives for a small business website.`,
     `Domain: ${website}`,
