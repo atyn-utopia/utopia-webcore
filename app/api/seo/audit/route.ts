@@ -31,7 +31,7 @@ interface AuditResult {
     ogDescription: string | null
     twitterImage: string | null
   }
-  headings: { h1Count: number; total: number; h1Texts: string[]; byLevel?: { h1: number; h2: number; h3: number; h4: number; h5: number; h6: number } }
+  headings: { h1Count: number; total: number; h1Texts: string[]; byLevel?: { h1: number; h2: number; h3: number; h4: number; h5: number; h6: number }; texts?: { h2: string[]; h3: string[] } }
   images: {
     total: number
     missingAlt: number
@@ -76,6 +76,8 @@ function audit(html: string): Omit<AuditResult, 'url' | 'fetchedAt' | 'ok' | 'st
   // Headings — count by level so the UI can flag missing structure (a page
   // with only an <h1> usually means sub-sections aren't marked up properly).
   const h1List = $('h1').map((_, el) => $(el).text().trim()).get().filter(Boolean)
+  const h2List = $('h2').map((_, el) => $(el).text().trim()).get().filter(Boolean).slice(0, 12)
+  const h3List = $('h3').map((_, el) => $(el).text().trim()).get().filter(Boolean).slice(0, 12)
   const byLevel = {
     h1: $('h1').length,
     h2: $('h2').length,
@@ -126,7 +128,7 @@ function audit(html: string): Omit<AuditResult, 'url' | 'fetchedAt' | 'ok' | 'st
       ogDescription,
       twitterImage,
     },
-    headings: { h1Count: h1List.length, total: totalHeadings, h1Texts: h1List.slice(0, 5), byLevel },
+    headings: { h1Count: h1List.length, total: totalHeadings, h1Texts: h1List.slice(0, 5), byLevel, texts: { h2: h2List, h3: h3List } },
     images: { total: imgs.length, missingAlt, emptyAlt, samples },
     issues,
   }

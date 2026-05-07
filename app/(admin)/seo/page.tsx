@@ -5,7 +5,7 @@ import { useSearchParams } from 'next/navigation'
 import PageHeader from '@/components/PageHeader'
 import { useToast } from '@/contexts/ToastContext'
 import { useConfirm } from '@/contexts/ConfirmContext'
-import { matchPattern } from '@/lib/seoPattern'
+import { matchPattern, suggestPatterns } from '@/lib/seoPattern'
 
 // ---------------------------------------------------------------------------
 // Types
@@ -35,6 +35,8 @@ interface SiteProfile { website: string; brand_name: string; location: string; k
 
 interface SitemapResult { ok: boolean; source: 'sitemap' | 'sitemap_index' | 'fallback'; paths: string[]; error?: string }
 
+interface Integration { id: string; website: string; provider: string; property_id: string | null; connected_at: string; updated_at: string }
+
 interface AuditIssue { type: 'error' | 'warn' | 'info'; category: 'meta' | 'images' | 'headings' | 'social'; message: string; detail?: string }
 interface AuditResult {
   url: string
@@ -43,7 +45,7 @@ interface AuditResult {
   status?: number
   error?: string
   meta: { title: string | null; titleLength: number; description: string | null; descriptionLength: number; canonical: string | null; robots: string | null; ogImage: string | null; ogTitle: string | null; ogDescription: string | null; twitterImage: string | null }
-  headings: { h1Count: number; total: number; h1Texts: string[]; byLevel?: { h1: number; h2: number; h3: number; h4: number; h5: number; h6: number } }
+  headings: { h1Count: number; total: number; h1Texts: string[]; byLevel?: { h1: number; h2: number; h3: number; h4: number; h5: number; h6: number }; texts?: { h2: string[]; h3: string[] } }
   images: { total: number; missingAlt: number; emptyAlt: number; samples: { src: string; alt: string | null; reason: 'missing' | 'empty' }[] }
   issues: AuditIssue[]
 }
@@ -71,9 +73,10 @@ function SeoInner() {
   const [altOverrides, setAltOverrides] = useState<AltOverride[]>([])
   const [audit, setAudit] = useState<AuditResult | null>(null)
   const [auditing, setAuditing] = useState(false)
-  const [adding, setAdding] = useState(false)
+  const [addingRow, setAddingRow] = useState<Partial<Override> | null>(null)
   const [profile, setProfile] = useState<SiteProfile | null>(null)
   const [sitemap, setSitemap] = useState<SitemapResult | null>(null)
+  const [integrations, setIntegrations] = useState<Integration[]>([])
   const [language, setLanguage] = useState<Language>('en')
   const [editingProfile, setEditingProfile] = useState(false)
 
@@ -103,6 +106,13 @@ function SeoInner() {
     fetch(`/api/seo/sitemap?website=${encodeURIComponent(domain)}`)
       .then(r => r.ok ? r.json() : null)
       .then(d => { if (d) setSitemap(d) })
+      .catch(() => {})
+  }
+  function loadIntegrations() {
+    if (!domain) return
+    fetch(`/api/integrations?domain=${encodeURIComponent(domain)}`)
+      .then(r => r.ok ? r.json() : [])
+      .then(d => { if (Array.isArray(d)) setIntegrations(d) })
       .catch(() => {})
   }
   async function runAudit(path: string) {
@@ -135,6 +145,7 @@ function SeoInner() {
     loadAlts()
     loadProfile()
     loadSitemap()
+    loadIntegrations()
     runAudit('/')
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [domain])
@@ -189,6 +200,7 @@ function SeoInner() {
           auditing={auditing}
           profile={profile}
           language={language}
+          gscIntegration={integrations.find(i => i.provider === 'gsc') ?? null}
           onRefresh={onRefresh}
           onRunAudit={() => runAudit('/')}
         />
@@ -201,17 +213,17 @@ function SeoInner() {
           profile={profile}
           language={language}
           onRefresh={onRefresh}
-          onAdd={() => setAdding(true)}
+          onAdd={prefill => setAddingRow(prefill ?? { path: '/', language, title: '', description: '', og_image: '' })}
         />
         <Step3Card domain={domain} />
       </div>
 
-      {adding && (
+      {addingRow && (
         <SeoOverrideModal
           domain={domain}
-          row={{ path: '/', language, title: '', description: '', og_image: '' }}
-          onClose={() => setAdding(false)}
-          onSaved={() => { setAdding(false); onRefresh() }}
+          row={addingRow}
+          onClose={() => setAddingRow(null)}
+          onSaved={() => { setAddingRow(null); onRefresh() }}
         />
       )}
     </div>
@@ -577,6 +589,7 @@ function Step1Card({
   auditing,
   profile,
   language,
+  gscIntegration,
   onRefresh,
   onRunAudit,
 }: {
@@ -586,6 +599,7 @@ function Step1Card({
   auditing: boolean
   profile: SiteProfile | null
   language: Language
+  gscIntegration: Integration | null
   onRefresh: () => void
   onRunAudit: () => void
 }) {
@@ -618,7 +632,14 @@ function Step1Card({
 
   const canonicalStatus: TaskStatus = audit ? (audit.meta.canonical ? 'done' : 'warn') : 'unknown'
 
-  const tasks: TaskStatus[] = [titleStatus, descStatus, ogStatus, headingStatus, indexStatus, canonicalStatus]
+  // GSC: 'done' once an integration row with a chosen property exists. A row
+  // without property_id means the user authorised but didn't pick the
+  // property — still 'warn' until they finish that flow.
+  const gscStatus: TaskStatus = gscIntegration
+    ? gscIntegration.property_id ? 'done' : 'warn'
+    : 'warn'
+
+  const tasks: TaskStatus[] = [titleStatus, descStatus, ogStatus, headingStatus, indexStatus, canonicalStatus, gscStatus]
   const done = tasks.filter(s => s === 'done').length
 
   return (
@@ -672,7 +693,7 @@ function Step1Card({
         status={indexStatus}
         title="Allow indexing to make this homepage visible in search results"
       >
-        <IndexingDetail domain={domain} path="/" robots={audit?.meta.robots ?? null} />
+        <IndexingDetail domain={domain} path="/" robots={audit?.meta.robots ?? null} gscIntegration={gscIntegration} />
       </Task>
 
       <Task
@@ -695,19 +716,51 @@ function Step1Card({
       </Task>
 
       <Task
-        status="unknown"
+        status={gscStatus}
         title={<span>Connect this site to <span className="font-semibold" style={{ color: 'var(--foreground)' }}>Google Search Console</span></span>}
+        hint={gscIntegration?.property_id ? gscIntegration.property_id : undefined}
       >
         <div className="space-y-2">
-          <p className="text-xs" style={{ color: '#475569' }}>Search Console reports indexing errors, search performance, and lets you submit sitemaps.</p>
-          <a
-            href={`/integrations?website=${encodeURIComponent(domain)}`}
-            className="inline-flex items-center gap-1.5 text-xs font-medium px-3 h-8 rounded-md text-white transition-opacity hover:opacity-90"
-            style={{ background: 'var(--primary)' }}
-          >
-            Open Integrations
-            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
-          </a>
+          {gscIntegration?.property_id ? (
+            <>
+              <p className="text-xs" style={{ color: '#16a34a' }}>
+                <svg className="w-3.5 h-3.5 inline -mt-0.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+                Connected to <code className="font-mono text-[11px]">{gscIntegration.property_id}</code>
+              </p>
+              <a
+                href={`/integrations?website=${encodeURIComponent(domain)}`}
+                className="inline-flex items-center gap-1.5 text-xs font-medium px-3 h-8 rounded-md border transition-colors hover:bg-slate-50"
+                style={{ borderColor: '#e2e8f0', color: '#475569', background: 'white' }}
+              >
+                Manage in Integrations
+                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
+              </a>
+            </>
+          ) : gscIntegration ? (
+            <>
+              <p className="text-xs" style={{ color: '#a16207' }}>Authorised — but no property selected yet. Pick the right Search Console property to finish the connection.</p>
+              <a
+                href={`/integrations?website=${encodeURIComponent(domain)}`}
+                className="inline-flex items-center gap-1.5 text-xs font-medium px-3 h-8 rounded-md text-white transition-opacity hover:opacity-90"
+                style={{ background: 'var(--primary)' }}
+              >
+                Pick property
+                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
+              </a>
+            </>
+          ) : (
+            <>
+              <p className="text-xs" style={{ color: '#475569' }}>Search Console reports indexing errors, search performance, and lets you submit sitemaps.</p>
+              <a
+                href={`/integrations?website=${encodeURIComponent(domain)}`}
+                className="inline-flex items-center gap-1.5 text-xs font-medium px-3 h-8 rounded-md text-white transition-opacity hover:opacity-90"
+                style={{ background: 'var(--primary)' }}
+              >
+                Open Integrations
+                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
+              </a>
+            </>
+          )}
         </div>
       </Task>
     </StepCard>
@@ -737,7 +790,7 @@ function Step2Card({
   profile: SiteProfile | null
   language: Language
   onRefresh: () => void
-  onAdd: () => void
+  onAdd: (prefill?: Partial<Override>) => void
 }) {
   // Page list = sitemap paths ∪ override paths ∪ homepage. The sitemap is the
   // authoritative source of "every page that exists on this site"; overrides
@@ -772,6 +825,15 @@ function Step2Card({
   const [showAll, setShowAll] = useState(false)
   const visiblePaths = showAll ? orderedPaths : orderedPaths.slice(0, COLLAPSE_LIMIT)
   const hiddenCount = orderedPaths.length - visiblePaths.length
+
+  // Detect groups of similar paths the user could replace with one pattern.
+  // Skips paths already covered by exact overrides or existing patterns so we
+  // don't suggest something the admin already set up.
+  const suggestions = suggestPatterns(
+    [...allPaths],
+    new Set(orderedPaths.filter(p => exactPathSet.has(p))),
+    activePatterns.map(p => p.path),
+  ).slice(0, 3)
 
   // Per-task tally:
   //   - title set (override.title not null)
@@ -813,6 +875,34 @@ function Step2Card({
       done={doneTasks}
       total={totalTasks}
     >
+      {/* Pattern suggestions — surfaces the feature when the sitemap reveals
+          groups of similar paths. One click pre-fills the modal so admins
+          don't have to remember the syntax. */}
+      {suggestions.length > 0 && (
+        <div className="px-5 py-3" style={{ background: '#fffbeb', borderBottom: '1px solid #fde68a' }}>
+          <p className="text-xs font-semibold mb-1.5" style={{ color: '#a16207' }}>
+            <svg className="w-3.5 h-3.5 inline -mt-0.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" /></svg>
+            Set one rule, apply to many pages
+          </p>
+          <p className="text-[11px] mb-2" style={{ color: '#92400e' }}>The sitemap shows groups of similar pages. Save one pattern and the title/description applies to every match — no need to fill them in one by one.</p>
+          <div className="space-y-1.5">
+            {suggestions.map(s => (
+              <button
+                key={s.pattern}
+                type="button"
+                onClick={() => onAdd({ path: s.pattern, language, is_pattern: true, title: '', description: '', og_image: '' })}
+                className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-md text-left transition-colors hover:bg-amber-100"
+                style={{ background: 'white', border: '1px solid #fde68a' }}
+              >
+                <code className="text-xs font-mono flex-shrink-0" style={{ color: 'var(--primary)' }}>{s.pattern}</code>
+                <span className="text-[11px]" style={{ color: '#64748b' }}>covers {s.matches.length} pages: <span className="font-mono">{s.matches.slice(0, 3).map(m => m.split('/').pop()).join(', ')}{s.matches.length > 3 ? `, +${s.matches.length - 3} more` : ''}</span></span>
+                <span className="ml-auto text-[10px] font-medium px-1.5 py-0.5 rounded-full flex-shrink-0" style={{ background: 'var(--primary)', color: 'white' }}>Set up</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Pattern rules — listed first so admins see the meta-rules that affect
           every matching page below. Filtered to the active language. */}
       {activePatterns.length > 0 && (
@@ -899,7 +989,7 @@ function Step2Card({
         )}
         <button
           type="button"
-          onClick={onAdd}
+          onClick={() => onAdd()}
           className="inline-flex items-center gap-1.5 text-xs font-medium px-3 h-8 rounded-full border transition-colors hover:bg-white"
           style={{ borderColor: '#e2e8f0', color: 'var(--primary)', background: 'white' }}
         >
@@ -1649,11 +1739,34 @@ function HeadingDetail({ audit }: { audit: AuditResult | null }) {
 
       {audit.headings.h1Texts.length > 0 && (
         <div>
-          <p className="text-[11px] font-semibold uppercase tracking-wider mb-1" style={{ color: '#94a3b8' }}>Current h1 text</p>
+          <p className="text-[11px] font-semibold uppercase tracking-wider mb-1" style={{ color: '#94a3b8' }}>Current &lt;h1&gt; ({audit.headings.h1Texts.length})</p>
           <ul className="space-y-1">
             {audit.headings.h1Texts.map((t, i) => (
-              <li key={i} className="text-xs px-2 py-1 rounded font-mono truncate" style={{ background: '#fafbfc', border: '1px solid #f1f5f9', color: '#475569' }}>{t}</li>
+              <li key={i} className="text-xs px-2 py-1 rounded font-mono truncate" style={{ background: '#fafbfc', border: '1px solid #f1f5f9', color: '#475569' }} title={t}>{t}</li>
             ))}
+          </ul>
+        </div>
+      )}
+
+      {audit.headings.texts && audit.headings.texts.h2.length > 0 && (
+        <div>
+          <p className="text-[11px] font-semibold uppercase tracking-wider mb-1" style={{ color: '#94a3b8' }}>Current &lt;h2&gt; ({audit.headings.texts.h2.length}{levels.h2 > audit.headings.texts.h2.length ? ` of ${levels.h2}` : ''})</p>
+          <ul className="space-y-1">
+            {audit.headings.texts.h2.map((t, i) => (
+              <li key={i} className="text-xs px-2 py-1 rounded font-mono truncate" style={{ background: '#fafbfc', border: '1px solid #f1f5f9', color: '#475569' }} title={t}>{t}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {audit.headings.texts && audit.headings.texts.h3.length > 0 && (
+        <div>
+          <p className="text-[11px] font-semibold uppercase tracking-wider mb-1" style={{ color: '#94a3b8' }}>Current &lt;h3&gt; ({audit.headings.texts.h3.length}{levels.h3 > audit.headings.texts.h3.length ? ` of ${levels.h3}` : ''})</p>
+          <ul className="space-y-1">
+            {audit.headings.texts.h3.slice(0, 8).map((t, i) => (
+              <li key={i} className="text-xs px-2 py-1 rounded font-mono truncate" style={{ background: '#fafbfc', border: '1px solid #f1f5f9', color: '#475569' }} title={t}>{t}</li>
+            ))}
+            {audit.headings.texts.h3.length > 8 && <li className="text-[10px]" style={{ color: '#94a3b8' }}>… +{audit.headings.texts.h3.length - 8} more</li>}
           </ul>
         </div>
       )}
@@ -1663,7 +1776,7 @@ function HeadingDetail({ audit }: { audit: AuditResult | null }) {
         <ul className="text-xs space-y-1 mt-1" style={{ color: '#475569' }}>
           {tips.map((t, i) => <li key={i}>· {t}</li>)}
         </ul>
-        <p className="text-[10px] mt-2" style={{ color: '#94a3b8' }}>Headings live in the designer site&apos;s code — webcore can&apos;t inject them remotely. Update the page templates and re-run the audit.</p>
+        <p className="text-[10px] mt-2" style={{ color: '#94a3b8' }}>Headings live in the designer site&apos;s code — unlike alt text, webcore can&apos;t safely rewrite them at runtime (text content varies wildly and rewriting would break design). Update the page templates and re-run the audit.</p>
       </div>
     </div>
   )
@@ -1673,15 +1786,21 @@ function HeadingDetail({ audit }: { audit: AuditResult | null }) {
 // Indexing detail — robots check + GSC URL Inspection deep link
 // ---------------------------------------------------------------------------
 
-function IndexingDetail({ domain, path, robots }: { domain: string; path: string; robots: string | null }) {
+function IndexingDetail({ domain, path, robots, gscIntegration }: { domain: string; path: string; robots: string | null; gscIntegration: Integration | null }) {
   const url = `https://${domain}${path === '/' ? '' : path}`
   const noindex = robots ? /noindex/i.test(robots) : false
-  // GSC URL Inspection deep link — opens the inspect view for the given URL
-  // in the user's already-authenticated GSC session. They can click "Request
-  // indexing" from there. The Indexing API itself is gated to job postings
-  // and livestreams so we can't trigger crawls server-side.
-  const gscDomain = domain.startsWith('www.') ? `sc-domain:${domain.replace(/^www\./, '')}` : `https://${domain}/`
-  const inspectUrl = `https://search.google.com/search-console/inspect?resource_id=${encodeURIComponent(gscDomain)}&id=${encodeURIComponent(url)}`
+  // GSC URL Inspection deep link. The resource_id format depends on whether
+  // the GSC property is a domain property (sc-domain:example.com) or a
+  // URL-prefix property (https://example.com/). We can't guess — different
+  // accounts have different setups. So:
+  //   - If the user has connected GSC and we have property_id, use it.
+  //   - Otherwise omit resource_id; GSC will show a property picker.
+  // Either way the URL ends up at the right inspection screen instead of 404ing.
+  const propertyId = gscIntegration?.property_id ?? null
+  const params = new URLSearchParams()
+  if (propertyId) params.set('resource_id', propertyId)
+  params.set('id', url)
+  const inspectUrl = `https://search.google.com/search-console/inspect?${params.toString()}`
 
   return (
     <div className="space-y-3">
@@ -1707,7 +1826,7 @@ function IndexingDetail({ domain, path, robots }: { domain: string; path: string
           Request indexing on Google
           <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
         </a>
-        <p className="text-[10px] mt-2" style={{ color: '#94a3b8' }}>Opens Search Console&apos;s URL Inspection for <code className="font-mono">{url}</code>. Sign in with the Google account that owns this property, then click <strong>Request Indexing</strong> on the inspection page.</p>
+        <p className="text-[10px] mt-2" style={{ color: '#94a3b8' }}>Opens Search Console&apos;s URL Inspection for <code className="font-mono">{url}</code>. {propertyId ? <>Pre-filled for property <code className="font-mono">{propertyId}</code>.</> : <>Pick the right property when prompted, then click <strong>Request Indexing</strong>.</>}</p>
       </div>
     </div>
   )
