@@ -63,9 +63,16 @@ export default async function Image() {
             marginBottom: '44px',
           }}
         >
-          {/* Sparkle shape — scaled from the app icon */}
-          <svg width="80" height="80" viewBox="0 0 24 24" fill="white">
-            <path d="M12 2L9.5 9.5 2 12l7.5 2.5L12 22l2.5-7.5L22 12l-7.5-2.5z" />
+          {/* W-in-ring brand mark, scaled up from the app icon */}
+          <svg width="92" height="92" viewBox="0 0 100 100" fill="none">
+            <circle cx="50" cy="50" r="40" stroke="white" strokeWidth="6" />
+            <path
+              d="M28 33 L38 72 L50 48 L62 72 L72 33"
+              stroke="white"
+              strokeWidth="9"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
           </svg>
         </div>
 

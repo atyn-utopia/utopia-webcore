@@ -7,6 +7,7 @@ import { LanguageProvider, useLanguage } from '@/contexts/LanguageContext'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Card } from '@/components/ui/Card'
+import { Logo } from '@/components/ui/Logo'
 
 function LoginPageInner() {
   const router = useRouter()
@@ -100,11 +101,7 @@ function LoginPageInner() {
     <div className="min-h-screen flex items-center justify-center p-4 bg-slate-50">
       <div className="w-full max-w-sm">
         <div className="flex flex-col items-center mb-8">
-          <div className="w-11 h-11 rounded-xl flex items-center justify-center mb-4 bg-slate-900">
-            <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M12 2L9.5 9.5 2 12l7.5 2.5L12 22l2.5-7.5L22 12l-7.5-2.5z"/>
-            </svg>
-          </div>
+          <Logo size={44} rounded="xl" className="mb-4" />
           <h1 className="text-lg font-semibold tracking-tight text-slate-900">{t('login.title')}</h1>
           <p className="text-[13px] mt-1 text-slate-500">{t('login.subtitle')}</p>
 
