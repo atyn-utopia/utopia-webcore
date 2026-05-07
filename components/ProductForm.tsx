@@ -220,7 +220,7 @@ export default function ProductForm({ mode, productId, initialData = {} }: Produ
               Cancel
             </button>
             <button type="button" onClick={handleSave} disabled={saving}
-              className="inline-flex items-center gap-2 text-white text-sm font-medium px-4 h-9 rounded-lg transition-opacity disabled:opacity-50"
+              className="inline-flex items-center gap-2 text-white text-sm font-medium px-4 h-9 rounded-full transition-opacity disabled:opacity-50"
               style={{ background: 'var(--primary)' }}>
               {saving ? 'Saving…' : mode === 'new' ? 'Create Product' : 'Save Changes'}
             </button>
@@ -274,7 +274,7 @@ export default function ProductForm({ mode, productId, initialData = {} }: Produ
                   style={{ borderColor: '#cbd5e1' }}
                   onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addPhoto() } }} />
                 <button type="button" onClick={addPhoto}
-                  className="px-4 py-2 text-sm font-medium rounded-lg border transition-colors hover:border-[var(--primary)] hover:text-[var(--primary)]"
+                  className="px-4 py-2 text-sm font-medium rounded-full border transition-colors hover:border-[var(--primary)] hover:text-[var(--primary)]"
                   style={{ borderColor: '#cbd5e1', color: '#475569' }}>
                   Add Photo
                 </button>
@@ -289,7 +289,7 @@ export default function ProductForm({ mode, productId, initialData = {} }: Produ
                 <h3 className="text-sm font-semibold" style={{ color: 'var(--foreground)' }}>Sub-Products</h3>
                 <Link
                   href={`/products/new?website=${encodeURIComponent(website)}&parent_id=${productId}`}
-                  className="text-xs font-medium px-3 py-1.5 rounded-md border transition-colors hover:border-[var(--primary)] hover:text-[var(--primary)]"
+                  className="text-xs font-medium px-3 py-1.5 rounded-full border transition-colors hover:border-[var(--primary)] hover:text-[var(--primary)]"
                   style={{ borderColor: '#cbd5e1', color: '#475569' }}>
                   + Add Sub-Product
                 </Link>
@@ -316,7 +316,7 @@ export default function ProductForm({ mode, productId, initialData = {} }: Produ
                         </div>
                       </div>
                       <Link href={`/products/${sub.id}/edit`}
-                        className="text-xs font-medium px-2.5 py-1 rounded-md border border-[#e2e8f0] text-[#475569] transition-colors hover:border-[var(--primary)] hover:text-[var(--primary)]">
+                        className="text-xs font-medium px-2.5 py-1 rounded-full border border-[#e2e8f0] text-[#475569] transition-colors hover:border-[var(--primary)] hover:text-[var(--primary)]">
                         Edit
                       </Link>
                       <button type="button" onClick={() => deleteSubProduct(sub)}

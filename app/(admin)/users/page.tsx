@@ -174,7 +174,7 @@ export default function UsersPage() {
         actions={
           <div className="flex items-center gap-2">
             <Link href="/users/onboard"
-              className="inline-flex items-center gap-2 text-sm font-medium px-4 h-9 rounded-lg border transition-colors hover:bg-slate-50"
+              className="inline-flex items-center gap-2 text-sm font-medium px-4 h-9 rounded-full border transition-colors hover:bg-slate-50"
               style={{ borderColor: '#cbd5e1', color: '#475569' }}
             >
               <BoltIcon className="w-4 h-4" />
@@ -294,7 +294,7 @@ export default function UsersPage() {
                 className="px-4 py-2 text-sm rounded-lg border transition-colors hover:bg-slate-50"
                 style={{ borderColor: '#cbd5e1', color: '#475569' }}>Cancel</button>
               <button type="submit" disabled={saving}
-                className="px-5 py-2 text-sm font-medium text-white rounded-lg transition-opacity disabled:opacity-50"
+                className="px-5 py-2 text-sm font-medium text-white rounded-full transition-opacity disabled:opacity-50"
                 style={{ background: 'var(--primary)' }}>
                 {saving ? 'Creating…' : 'Create User'}
               </button>
@@ -451,10 +451,10 @@ export default function UsersPage() {
                     )}
                     <div className="flex items-center justify-end gap-2">
                       <button type="button" onClick={cancelEdit}
-                        className="px-4 py-2 text-sm rounded-lg border transition-colors hover:bg-white"
+                        className="px-4 py-2 text-sm rounded-full border transition-colors hover:bg-white"
                         style={{ borderColor: '#cbd5e1', color: '#475569' }}>Cancel</button>
                       <button type="button" onClick={saveEdit} disabled={saving}
-                        className="px-5 py-2 text-sm font-medium text-white rounded-lg transition-opacity disabled:opacity-50"
+                        className="px-5 py-2 text-sm font-medium text-white rounded-full transition-opacity disabled:opacity-50"
                         style={{ background: 'var(--primary)' }}>
                         {saving ? 'Saving…' : 'Save Changes'}
                       </button>

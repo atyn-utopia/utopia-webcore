@@ -108,7 +108,7 @@ export default function HelpPage() {
               <button type="button" onClick={() => setShowForm(false)}
                 className="px-4 py-2 text-xs rounded-lg border transition-colors hover:bg-slate-50" style={{ borderColor: '#cbd5e1', color: '#475569' }}>Cancel</button>
               <button type="submit" disabled={saving}
-                className="px-4 py-2 text-xs font-medium text-white rounded-lg transition-opacity disabled:opacity-50" style={{ background: 'var(--primary)' }}>
+                className="px-4 py-2 text-xs font-medium text-white rounded-full transition-opacity disabled:opacity-50" style={{ background: 'var(--primary)' }}>
                 {saving ? 'Submitting…' : 'Submit Ticket'}
               </button>
             </div>

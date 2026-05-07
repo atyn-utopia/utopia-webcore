@@ -84,7 +84,7 @@ export default function BlogViewPage() {
               )}
             </div>
             <Link href={`/blog/${id}/edit`}
-              className="inline-flex items-center gap-2 text-white text-sm font-medium px-4 h-9 rounded-lg transition-opacity"
+              className="inline-flex items-center gap-2 text-white text-sm font-medium px-4 h-9 rounded-full transition-opacity"
               style={{ background: 'var(--primary)' }}>
               Edit
             </Link>

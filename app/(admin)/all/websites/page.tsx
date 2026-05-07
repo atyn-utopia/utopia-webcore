@@ -172,7 +172,7 @@ export default function AllWebsitesPage() {
 
         {hasActiveFilters && (
           <button onClick={clearFilters}
-            className="text-xs font-medium px-3 h-9 rounded-md transition-colors"
+            className="text-xs font-medium px-3 h-9 rounded-full transition-colors"
             style={{ color: '#64748b' }}
             onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = 'var(--primary)'}
             onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = '#64748b'}
@@ -264,12 +264,12 @@ export default function AllWebsitesPage() {
                           </a>
                           {!isWriter && (
                             <Link href={`/phone-numbers?website=${encodeURIComponent(site.domain)}`} title="Phone numbers"
-                              className="w-7 h-7 flex items-center justify-center rounded-md border transition-colors hover:border-[var(--primary)] hover:text-[var(--primary)]" style={{ borderColor: '#e2e8f0', color: '#94a3b8' }}>
+                              className="w-7 h-7 flex items-center justify-center rounded-full border transition-colors hover:border-[var(--primary)] hover:text-[var(--primary)]" style={{ borderColor: '#e2e8f0', color: '#94a3b8' }}>
                               <PhoneIcon className="w-3.5 h-3.5" />
                             </Link>
                           )}
                           <Link href={`/blog?website=${encodeURIComponent(site.domain)}`} title="Blog posts"
-                            className="w-7 h-7 flex items-center justify-center rounded-md border transition-colors hover:border-[var(--primary)] hover:text-[var(--primary)]" style={{ borderColor: '#e2e8f0', color: '#94a3b8' }}>
+                            className="w-7 h-7 flex items-center justify-center rounded-full border transition-colors hover:border-[var(--primary)] hover:text-[var(--primary)]" style={{ borderColor: '#e2e8f0', color: '#94a3b8' }}>
                             <DocumentTextIcon className="w-3.5 h-3.5" />
                           </Link>
                         </div>

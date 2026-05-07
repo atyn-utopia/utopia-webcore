@@ -486,7 +486,7 @@ export default function WebsitesPage() {
                 <td className="px-4 py-3.5">
                   <div className="flex items-center gap-1.5 justify-center">
                     <Link href={`/websites?website=${encodeURIComponent(site.domain)}&company=${encodeURIComponent(openCompany)}`}
-                      className="inline-flex items-center gap-1.5 text-[11px] font-medium px-2.5 h-7 rounded-md text-white transition-opacity hover:opacity-90"
+                      className="inline-flex items-center gap-1.5 text-[11px] font-medium px-2.5 h-7 rounded-full text-white transition-opacity hover:opacity-90"
                       style={{ background: 'var(--primary)' }} title="Open site dashboard">
                       <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
                         <path strokeLinecap="round" strokeLinejoin="round" d="M3 20h18M7 20V13m5 7V8m5 12v-5" />
@@ -496,10 +496,10 @@ export default function WebsitesPage() {
                     <a href={`https://${site.domain}`} target="_blank" rel="noopener noreferrer" className="group/tip relative w-7 h-7 flex items-center justify-center rounded-md border border-[#e2e8f0] text-[#94a3b8] transition-colors hover:border-[var(--primary)] hover:text-[var(--primary)]" title="Open website">
                       <ArrowTopRightOnSquareIcon className="w-3.5 h-3.5" />
                     </a>
-                    {!isWriter && <Link href={`/phone-numbers?website=${encodeURIComponent(site.domain)}`} className="w-7 h-7 flex items-center justify-center rounded-md border border-[#e2e8f0] text-[#94a3b8] transition-colors hover:border-[var(--primary)] hover:text-[var(--primary)]" title="Phone numbers">
+                    {!isWriter && <Link href={`/phone-numbers?website=${encodeURIComponent(site.domain)}`} className="w-7 h-7 flex items-center justify-center rounded-full border border-[#e2e8f0] text-[#94a3b8] transition-colors hover:border-[var(--primary)] hover:text-[var(--primary)]" title="Phone numbers">
                       <PhoneIcon className="w-3.5 h-3.5" />
                     </Link>}
-                    <Link href={`/blog?website=${encodeURIComponent(site.domain)}`} className="w-7 h-7 flex items-center justify-center rounded-md border border-[#e2e8f0] text-[#94a3b8] transition-colors hover:border-[var(--primary)] hover:text-[var(--primary)]" title="Blog posts">
+                    <Link href={`/blog?website=${encodeURIComponent(site.domain)}`} className="w-7 h-7 flex items-center justify-center rounded-full border border-[#e2e8f0] text-[#94a3b8] transition-colors hover:border-[var(--primary)] hover:text-[var(--primary)]" title="Blog posts">
                       <DocumentTextIcon className="w-3.5 h-3.5" />
                     </Link>
                   </div>

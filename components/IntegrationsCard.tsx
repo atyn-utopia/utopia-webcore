@@ -198,20 +198,20 @@ function GoogleSearchConsoleSection({ domain }: { domain: string }) {
         <div className="flex items-center gap-2 flex-shrink-0">
           {gsc && (
             <button type="button" onClick={openPicker} disabled={busy}
-              className="text-[11px] font-medium px-3 py-1.5 rounded-md border disabled:opacity-50 transition-colors hover:bg-slate-50"
+              className="text-[11px] font-medium px-3 py-1.5 rounded-full border disabled:opacity-50 transition-colors hover:bg-slate-50"
               style={{ borderColor: '#e2e8f0', color: '#475569', background: 'white' }}>
               {gsc.property_id ? 'Change property' : 'Select property'}
             </button>
           )}
           {gsc ? (
             <button type="button" onClick={disconnectGsc} disabled={busy}
-              className="text-[11px] font-medium px-3 py-1.5 rounded-md border disabled:opacity-50 transition-colors"
+              className="text-[11px] font-medium px-3 py-1.5 rounded-full border disabled:opacity-50 transition-colors"
               style={{ borderColor: '#e2e8f0', color: '#b91c1c', background: 'white' }}>
               Disconnect
             </button>
           ) : (
             <button type="button" onClick={connectGsc} disabled={busy}
-              className="text-[11px] font-medium px-3 py-1.5 rounded-md text-white disabled:opacity-50 transition-opacity hover:opacity-90"
+              className="text-[11px] font-medium px-3 py-1.5 rounded-full text-white disabled:opacity-50 transition-opacity hover:opacity-90"
               style={{ background: 'var(--primary)' }}>
               {busy ? 'Starting…' : 'Connect Search Console'}
             </button>
@@ -261,7 +261,7 @@ function GoogleSearchConsoleSection({ domain }: { domain: string }) {
                 Google revoked Webcore&apos;s access (token expired or permission removed). Reconnect to pick a property.
               </p>
               <button type="button" onClick={connectGsc} disabled={busy}
-                className="text-[11px] font-medium px-3 py-1.5 rounded-md text-white disabled:opacity-50 transition-opacity hover:opacity-90 flex-shrink-0"
+                className="text-[11px] font-medium px-3 py-1.5 rounded-full text-white disabled:opacity-50 transition-opacity hover:opacity-90 flex-shrink-0"
                 style={{ background: 'var(--primary)' }}>
                 Reconnect Search Console
               </button>
@@ -297,7 +297,7 @@ function GoogleSearchConsoleSection({ domain }: { domain: string }) {
                   className="text-[11px] font-medium px-3 py-1.5 rounded-md transition-colors hover:bg-slate-100"
                   style={{ color: '#475569' }}>Cancel</button>
                 <button type="button" onClick={saveProperty} disabled={!selected || saving}
-                  className="text-[11px] font-medium px-3 py-1.5 rounded-md text-white disabled:opacity-50 transition-opacity hover:opacity-90"
+                  className="text-[11px] font-medium px-3 py-1.5 rounded-full text-white disabled:opacity-50 transition-opacity hover:opacity-90"
                   style={{ background: 'var(--primary)' }}>
                   {saving ? 'Saving…' : 'Save property'}
                 </button>
@@ -452,7 +452,7 @@ function LiveRevalidationSection({ domain }: { domain: string }) {
             <button
               onClick={save}
               disabled={saving || urlInput === (settings?.revalidate_url ?? '')}
-              className="text-xs font-medium px-3 py-2 rounded-md text-white disabled:opacity-40"
+              className="text-xs font-medium px-3 py-2 rounded-full text-white disabled:opacity-40"
               style={{ background: 'var(--primary)' }}
             >
               {saving ? 'Saving…' : 'Save'}
@@ -482,7 +482,7 @@ function LiveRevalidationSection({ domain }: { domain: string }) {
                 </code>
                 <button
                   onClick={copySecret}
-                  className="text-xs font-medium px-3 py-2 rounded-md border"
+                  className="text-xs font-medium px-3 py-2 rounded-full border"
                   style={{ borderColor: '#e2e8f0', color: '#475569', background: 'white' }}
                 >
                   Copy
@@ -490,7 +490,7 @@ function LiveRevalidationSection({ domain }: { domain: string }) {
                 <button
                   onClick={rotate}
                   disabled={rotating}
-                  className="text-xs font-medium px-3 py-2 rounded-md border disabled:opacity-40"
+                  className="text-xs font-medium px-3 py-2 rounded-full border disabled:opacity-40"
                   style={{ borderColor: '#fecaca', color: '#b91c1c', background: 'white' }}
                 >
                   {rotating ? '…' : 'Rotate'}

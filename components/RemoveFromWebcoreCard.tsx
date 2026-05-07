@@ -72,7 +72,7 @@ export default function RemoveFromWebcoreCard({ domain }: { domain: string }) {
         <button
           onClick={remove}
           disabled={busy}
-          className="inline-flex items-center justify-center text-xs font-medium px-3 h-9 rounded-md text-white transition-opacity disabled:opacity-50 flex-shrink-0"
+          className="inline-flex items-center justify-center text-xs font-medium px-3 h-9 rounded-full text-white transition-opacity disabled:opacity-50 flex-shrink-0"
           style={{ background: '#dc2626' }}
         >
           {busy ? 'Removing…' : 'Remove from webcore'}

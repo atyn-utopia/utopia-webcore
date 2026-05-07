@@ -341,7 +341,7 @@ export default function PhoneNumbersPage() {
                   </span>
                   <Link
                     href={`/phone-numbers/edit?website=${encodeURIComponent(website)}${openCompany ? `&company=${encodeURIComponent(openCompany)}` : ''}`}
-                    className="inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-1 rounded-md text-white transition-opacity hover:opacity-90"
+                    className="inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-1 rounded-full text-white transition-opacity hover:opacity-90"
                     style={{ background: '#dc2626' }}>
                     Adjust
                     <ArrowRightIcon className="w-3 h-3" />
@@ -376,7 +376,7 @@ export default function PhoneNumbersPage() {
                         <td colSpan={6} className="px-4 py-5 text-center">
                           <Link
                             href={`/phone-numbers/edit?website=${encodeURIComponent(website)}${openCompany ? `&company=${encodeURIComponent(openCompany)}` : ''}`}
-                            className="inline-flex items-center gap-2 text-xs font-medium px-3 py-2 rounded-lg transition-colors"
+                            className="inline-flex items-center gap-2 text-xs font-medium px-3 py-2 rounded-full transition-colors"
                             style={{ background: '#fef3c7', color: '#92400e', border: '1px solid #fde68a' }}>
                             <ExclamationTriangleIcon className="w-4 h-4" />
                             Please add a default phone number

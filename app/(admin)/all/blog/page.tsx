@@ -183,7 +183,7 @@ export default function AllBlogPage() {
                     <td className="px-4 py-3 align-middle text-center">
                       <div className="flex items-center gap-1.5 justify-end">
                         <Link href={`/blog/${post.id}/edit`}
-                          className="group/tip relative w-7 h-7 flex items-center justify-center rounded-md border transition-colors hover:border-[var(--primary)] hover:text-[var(--primary)]" style={{ borderColor: '#e2e8f0', color: '#94a3b8' }}>
+                          className="group/tip relative w-7 h-7 flex items-center justify-center rounded-full border transition-colors hover:border-[var(--primary)] hover:text-[var(--primary)]" style={{ borderColor: '#e2e8f0', color: '#94a3b8' }}>
                           <PencilSquareIcon className="w-3.5 h-3.5" />
                           <div className="pointer-events-none absolute top-full left-1/2 -translate-x-1/2 mt-2 px-3 py-1.5 rounded-lg text-[10px] font-medium text-white whitespace-nowrap opacity-0 group-hover/tip:opacity-100 transition-opacity z-20" style={{ background: '#1e293b' }}>
                             Edit post
@@ -191,7 +191,7 @@ export default function AllBlogPage() {
                           </div>
                         </Link>
                         <Link href={`/blog/${post.id}/view`}
-                          className="group/tip relative w-7 h-7 flex items-center justify-center rounded-md border transition-colors hover:border-[var(--primary)] hover:text-[var(--primary)]" style={{ borderColor: '#e2e8f0', color: '#94a3b8' }}>
+                          className="group/tip relative w-7 h-7 flex items-center justify-center rounded-full border transition-colors hover:border-[var(--primary)] hover:text-[var(--primary)]" style={{ borderColor: '#e2e8f0', color: '#94a3b8' }}>
                           <EyeIcon className="w-3.5 h-3.5" />
                           <div className="pointer-events-none absolute top-full left-1/2 -translate-x-1/2 mt-2 px-3 py-1.5 rounded-lg text-[10px] font-medium text-white whitespace-nowrap opacity-0 group-hover/tip:opacity-100 transition-opacity z-20" style={{ background: '#1e293b' }}>
                             Preview

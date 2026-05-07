@@ -194,10 +194,10 @@ export default function OnboardPage() {
         </div>
 
         <div className="px-6 py-4 flex items-center justify-end gap-2" style={{ borderTop: '1px solid #e2e8f0', background: '#f8fafc' }}>
-          <Link href="/users" className="px-4 py-2 text-sm rounded-lg border transition-colors hover:bg-white"
+          <Link href="/users" className="px-4 py-2 text-sm rounded-full border transition-colors hover:bg-white"
             style={{ borderColor: '#cbd5e1', color: '#475569' }}>Cancel</Link>
           <button type="submit" disabled={saving}
-            className="px-4 py-2 text-sm font-medium text-white rounded-lg disabled:opacity-50"
+            className="px-4 py-2 text-sm font-medium text-white rounded-full disabled:opacity-50"
             style={{ background: 'var(--primary)' }}>
             {saving ? 'Onboarding…' : 'Onboard Designer'}
           </button>
@@ -283,10 +283,10 @@ function ResultView({ result, onReset }: { result: OnboardResult; onReset: () =>
           {copied === 'all' ? 'Copied all!' : 'Copy all as one block'}
         </button>
         <div className="flex gap-2">
-          <Link href="/users" className="px-4 py-2 text-sm rounded-lg border transition-colors hover:bg-slate-50"
+          <Link href="/users" className="px-4 py-2 text-sm rounded-full border transition-colors hover:bg-slate-50"
             style={{ borderColor: '#cbd5e1', color: '#475569' }}>Back to Users</Link>
           <button onClick={onReset}
-            className="px-4 py-2 text-sm font-medium text-white rounded-lg"
+            className="px-4 py-2 text-sm font-medium text-white rounded-full"
             style={{ background: 'var(--primary)' }}>Onboard another</button>
         </div>
       </div>

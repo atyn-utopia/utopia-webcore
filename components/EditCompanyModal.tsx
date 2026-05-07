@@ -118,7 +118,7 @@ export default function EditCompanyModal({ open, company, onClose, onSaved }: Pr
           <h2 className="text-base font-semibold" style={{ color: 'var(--foreground)' }}>Edit company</h2>
           <button
             onClick={onClose}
-            className="w-8 h-8 flex items-center justify-center rounded-md transition-colors hover:bg-slate-100"
+            className="w-8 h-8 flex items-center justify-center rounded-full transition-colors hover:bg-slate-100"
             style={{ color: '#94a3b8' }}
           >
             <XMarkIcon className="w-4 h-4" />
@@ -168,7 +168,7 @@ export default function EditCompanyModal({ open, company, onClose, onSaved }: Pr
                       type="button"
                       onClick={removeLogo}
                       disabled={busy}
-                      className="text-xs font-medium px-3 h-9 rounded-md border transition-colors hover:bg-red-50 disabled:opacity-50"
+                      className="text-xs font-medium px-3 h-9 rounded-full border transition-colors hover:bg-red-50 disabled:opacity-50"
                       style={{ borderColor: '#e2e8f0', color: '#b91c1c', background: 'white' }}
                     >
                       Remove
@@ -221,7 +221,7 @@ export default function EditCompanyModal({ open, company, onClose, onSaved }: Pr
         <div className="px-5 py-3 flex items-center justify-end gap-2" style={{ borderTop: '1px solid #e2e8f0', background: '#f8fafc' }}>
           <button
             onClick={onClose}
-            className="text-xs font-medium px-3 h-9 rounded-md transition-colors hover:bg-slate-100"
+            className="text-xs font-medium px-3 h-9 rounded-full transition-colors hover:bg-slate-100"
             style={{ color: '#475569' }}
           >
             Cancel
@@ -229,7 +229,7 @@ export default function EditCompanyModal({ open, company, onClose, onSaved }: Pr
           <button
             onClick={save}
             disabled={busy || !dirty || !name.trim()}
-            className="text-xs font-medium px-3 h-9 rounded-md text-white transition-opacity disabled:opacity-40 hover:opacity-90"
+            className="text-xs font-medium px-3 h-9 rounded-full text-white transition-opacity disabled:opacity-40 hover:opacity-90"
             style={{ background: 'var(--primary)' }}
           >
             {saving ? 'Saving…' : 'Save changes'}

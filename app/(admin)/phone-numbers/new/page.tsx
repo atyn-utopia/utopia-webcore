@@ -633,7 +633,7 @@ export default function NewPhoneNumberPage() {
                                   <button
                                     type="button"
                                     onClick={cancelEdit}
-                                    className="text-xs px-3 py-1.5 rounded-md border transition-colors"
+                                    className="text-xs px-3 py-1.5 rounded-full border transition-colors"
                                     style={{ borderColor: '#e2e8f0', color: '#64748b' }}
                                   >
                                     Cancel
@@ -642,7 +642,7 @@ export default function NewPhoneNumberPage() {
                                     type="button"
                                     onClick={saveEdit}
                                     disabled={savingEdit}
-                                    className="text-xs font-medium px-3 py-1.5 rounded-md text-white transition-opacity disabled:opacity-50"
+                                    className="text-xs font-medium px-3 py-1.5 rounded-full text-white transition-opacity disabled:opacity-50"
                                     style={{ background: 'var(--primary)' }}
                                   >
                                     {savingEdit ? 'Saving…' : 'Save'}
@@ -678,7 +678,7 @@ export default function NewPhoneNumberPage() {
                       type="button"
                       onClick={addRow}
                       disabled={!website}
-                      className="text-sm font-medium px-3 py-2 rounded-lg border transition-colors disabled:opacity-40 disabled:cursor-not-allowed hover:border-[var(--primary)] hover:text-[var(--primary)]"
+                      className="text-sm font-medium px-3 py-2 rounded-full border transition-colors disabled:opacity-40 disabled:cursor-not-allowed hover:border-[var(--primary)] hover:text-[var(--primary)]"
                       style={{ borderColor: '#cbd5e1', color: '#475569' }}
                     >
                       + Add another
@@ -848,7 +848,7 @@ export default function NewPhoneNumberPage() {
             <div className="px-6 py-5 flex items-center justify-between gap-3" style={{ borderTop: '1px solid #e2e8f0', background: '#f8fafc' }}>
               <Link
                 href="/phone-numbers"
-                className="text-sm font-medium px-5 py-2.5 rounded-lg border transition-all hover:bg-white hover:border-slate-400"
+                className="text-sm font-medium px-5 py-2.5 rounded-full border transition-all hover:bg-white hover:border-slate-400"
                 style={{ borderColor: '#cbd5e1', color: '#475569', background: 'white' }}
               >
                 Cancel
@@ -857,7 +857,7 @@ export default function NewPhoneNumberPage() {
                 <button
                   type="submit"
                   disabled={saving || !website}
-                  className="group/btn flex items-center gap-2 text-sm font-semibold px-6 py-3 rounded-lg text-white transition-all disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none shadow-md hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0 active:shadow-md"
+                  className="group/btn flex items-center gap-2 text-sm font-semibold px-6 py-3 rounded-full text-white transition-all disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none shadow-md hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0 active:shadow-md"
                   style={{ background: 'var(--primary)', minWidth: '200px', justifyContent: 'center' }}
                   onMouseEnter={e => { if (website && !saving) (e.currentTarget as HTMLElement).style.background = 'var(--primary-hover)' }}
                   onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'var(--primary)'}

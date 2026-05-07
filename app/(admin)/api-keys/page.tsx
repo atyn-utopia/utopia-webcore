@@ -291,7 +291,7 @@ function KeyCard({ k, nowMs, copiedToken, snippetExpanded, onCopy, onToggleSnipp
 
         {k.is_active && (
           <button type="button" onClick={onRevoke}
-            className="inline-flex items-center gap-1.5 text-[11px] font-medium px-2.5 py-1.5 rounded-md transition-all flex-shrink-0"
+            className="inline-flex items-center gap-1.5 text-[11px] font-medium px-2.5 py-1.5 rounded-full transition-all flex-shrink-0"
             style={{ background: 'white', border: '1px solid #e2e8f0', color: '#64748b' }}
             onMouseEnter={e => { e.currentTarget.style.background = '#fef2f2'; e.currentTarget.style.borderColor = '#fca5a5'; e.currentTarget.style.color = '#b91c1c' }}
             onMouseLeave={e => { e.currentTarget.style.background = 'white'; e.currentTarget.style.borderColor = '#e2e8f0'; e.currentTarget.style.color = '#64748b' }}>
@@ -462,7 +462,7 @@ function EmptyState({ onCreate }: { onCreate: () => void }) {
       <h3 className="text-sm font-semibold mb-1" style={{ color: 'var(--foreground)' }}>No API keys yet</h3>
       <p className="text-xs mb-4" style={{ color: '#94a3b8' }}>Generate a key to let an external website fetch data from webcore.</p>
       <button onClick={onCreate}
-        className="inline-flex items-center gap-2 text-white text-xs font-medium px-4 py-2 rounded-lg transition-opacity hover:opacity-90"
+        className="inline-flex items-center gap-2 text-white text-xs font-medium px-4 py-2 rounded-full transition-opacity hover:opacity-90"
         style={{ background: 'var(--primary)' }}>
         <PlusIcon className="w-3.5 h-3.5" />
         Generate your first key
@@ -538,10 +538,10 @@ function CreateForm({ form, websites, saving, onChange, onCancel, onSubmit, onTo
 
       <div className="px-5 py-4 flex items-center justify-end gap-2" style={{ borderTop: '1px solid #f1f5f9', background: '#fafbfc' }}>
         <button type="button" onClick={onCancel}
-          className="px-4 py-2 text-sm font-medium rounded-lg transition-colors hover:bg-slate-100"
+          className="px-4 py-2 text-sm font-medium rounded-full transition-colors hover:bg-slate-100"
           style={{ color: '#475569' }}>Cancel</button>
         <button type="submit" disabled={saving}
-          className="px-4 py-2 text-sm font-medium text-white rounded-lg disabled:opacity-50 transition-opacity"
+          className="px-4 py-2 text-sm font-medium text-white rounded-full disabled:opacity-50 transition-opacity"
           style={{ background: 'var(--primary)' }}>
           {saving ? 'Generating…' : 'Generate key'}
         </button>

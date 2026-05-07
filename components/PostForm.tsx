@@ -269,7 +269,7 @@ export default function PostForm({ mode, initialData = {}, postId }: PostFormPro
           {/* Preview */}
           {mode === 'edit' && (
             <Link href={`/blog/${postId}/view`}
-              className="flex items-center justify-center gap-2 w-full px-4 py-2.5 rounded-lg text-xs font-medium transition-colors text-white"
+              className="flex items-center justify-center gap-2 w-full px-4 py-2.5 rounded-full text-xs font-medium transition-colors text-white"
               style={{ background: 'var(--primary)' }}>
               <EyeIcon className="w-3.5 h-3.5" />
               Preview

@@ -158,7 +158,7 @@ export default function Sidebar({ userRole, open, onClose, collapsed = false, on
         {/* Mobile close */}
         <button
           onClick={onClose}
-          className="md:hidden w-7 h-7 flex items-center justify-center rounded-md text-white/70 hover:text-white hover:bg-white/10 transition-colors flex-shrink-0"
+          className="md:hidden w-7 h-7 flex items-center justify-center rounded-full text-white/70 hover:text-white hover:bg-white/10 transition-colors flex-shrink-0"
         >
           <XMarkIcon className="w-4 h-4" />
         </button>

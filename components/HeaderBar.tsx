@@ -30,7 +30,7 @@ export default function HeaderBar({ onMobileMenuOpen }: Props) {
       {onMobileMenuOpen && (
         <button
           onClick={onMobileMenuOpen}
-          className="md:hidden w-9 h-9 flex items-center justify-center rounded-md transition-colors"
+          className="md:hidden w-9 h-9 flex items-center justify-center rounded-full transition-colors"
           style={{ color: 'var(--header-text)' }}
           onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = 'var(--header-hover)'}
           onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'}

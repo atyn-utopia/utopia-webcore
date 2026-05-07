@@ -86,7 +86,7 @@ export default function ComparisonColumn({ domain, period, onRemove, canRemove }
         </div>
         {canRemove && (
           <button type="button" onClick={onRemove} aria-label={`Remove ${domain} from comparison`}
-            className="flex-shrink-0 w-7 h-7 flex items-center justify-center rounded-md transition-colors hover:bg-red-50 hover:text-red-600"
+            className="flex-shrink-0 w-7 h-7 flex items-center justify-center rounded-full transition-colors hover:bg-red-50 hover:text-red-600"
             style={{ color: '#94a3b8' }}>
             <XMarkIcon className="w-3.5 h-3.5" />
           </button>

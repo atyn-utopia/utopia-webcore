@@ -83,7 +83,7 @@ export default function CompareModal({ open, onClose, preselect }: CompareModalP
             </p>
           </div>
           <button onClick={onClose} aria-label="Close"
-            className="flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-lg hover:bg-slate-100 transition-colors"
+            className="flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-full hover:bg-slate-100 transition-colors"
             style={{ color: '#64748b' }}>
             <XMarkIcon className="w-4 h-4" />
           </button>
@@ -153,10 +153,10 @@ export default function CompareModal({ open, onClose, preselect }: CompareModalP
         {/* Footer */}
         <div className="px-6 py-4 flex items-center justify-end gap-2 flex-shrink-0" style={{ borderTop: '1px solid #e2e8f0', background: '#fafbfc' }}>
           <button type="button" onClick={onClose}
-            className="px-4 py-2 text-sm font-medium rounded-lg transition-colors hover:bg-slate-100"
+            className="px-4 py-2 text-sm font-medium rounded-full transition-colors hover:bg-slate-100"
             style={{ color: '#475569' }}>Cancel</button>
           <button type="button" onClick={confirm} disabled={selected.length < 2}
-            className="px-4 py-2 text-sm font-medium text-white rounded-lg disabled:opacity-40 disabled:cursor-not-allowed transition-opacity hover:opacity-90"
+            className="px-4 py-2 text-sm font-medium text-white rounded-full disabled:opacity-40 disabled:cursor-not-allowed transition-opacity hover:opacity-90"
             style={{ background: 'var(--primary)' }}>
             {selected.length < 2 ? `Select at least 2` : `Compare ${selected.length} sites`}
           </button>

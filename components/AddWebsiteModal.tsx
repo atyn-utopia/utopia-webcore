@@ -123,7 +123,7 @@ export default function AddWebsiteModal({ open, onClose, onCreated, presetCompan
             </p>
           </div>
           <button onClick={onClose} aria-label="Close"
-            className="flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-lg hover:bg-slate-100 transition-colors"
+            className="flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-full hover:bg-slate-100 transition-colors"
             style={{ color: '#64748b' }}>
             <XMarkIcon className="w-4 h-4" />
           </button>
@@ -203,10 +203,10 @@ export default function AddWebsiteModal({ open, onClose, onCreated, presetCompan
 
             <div className="px-6 py-4 mt-4 flex items-center justify-end gap-2" style={{ borderTop: '1px solid #f1f5f9', background: '#fafbfc' }}>
               <button type="button" onClick={onClose}
-                className="px-4 py-2 text-sm font-medium rounded-lg transition-colors hover:bg-slate-100"
+                className="px-4 py-2 text-sm font-medium rounded-full transition-colors hover:bg-slate-100"
                 style={{ color: '#475569' }}>Cancel</button>
               <button type="submit" disabled={saving}
-                className="px-4 py-2 text-sm font-medium text-white rounded-lg disabled:opacity-50 transition-opacity"
+                className="px-4 py-2 text-sm font-medium text-white rounded-full disabled:opacity-50 transition-opacity"
                 style={{ background: 'var(--primary)' }}>
                 {saving ? 'Connecting…' : 'Connect'}
               </button>
@@ -242,10 +242,10 @@ function ResultBody({ result, copied, onCopy, onAddAnother, onClose }: {
 
       <div className="px-6 py-4 flex items-center justify-end gap-2" style={{ borderTop: '1px solid #f1f5f9', background: '#fafbfc' }}>
         <button onClick={onAddAnother}
-          className="px-4 py-2 text-sm font-medium rounded-lg transition-colors hover:bg-slate-100"
+          className="px-4 py-2 text-sm font-medium rounded-full transition-colors hover:bg-slate-100"
           style={{ color: '#475569' }}>Add another</button>
         <button onClick={onClose}
-          className="px-4 py-2 text-sm font-medium text-white rounded-lg transition-opacity"
+          className="px-4 py-2 text-sm font-medium text-white rounded-full transition-opacity"
           style={{ background: 'var(--primary)' }}>Done</button>
       </div>
     </div>
