@@ -6,6 +6,9 @@ import PageHeader from '@/components/PageHeader'
 import { useToast } from '@/contexts/ToastContext'
 import { useConfirm } from '@/contexts/ConfirmContext'
 import { matchPattern, suggestPatterns } from '@/lib/seoPattern'
+import { Button } from '@/components/ui/Button'
+import { Input, Textarea } from '@/components/ui/Input'
+import { Card } from '@/components/ui/Card'
 
 // ---------------------------------------------------------------------------
 // Types
@@ -380,35 +383,29 @@ function BrandProfileModal({ domain, profile, onClose, onSaved }: { domain: stri
         <div className="px-5 py-4 space-y-4">
           <div>
             <label className="block text-xs font-medium mb-1.5" style={{ color: '#475569' }}>Business or brand name</label>
-            <input
-              type="text"
+            <Input
+              size="lg"
               value={brandName}
               onChange={e => setBrandName(e.target.value)}
               placeholder="e.g. Aircond Service & Pasang Aircond"
-              className="w-full h-9 px-3 text-sm rounded-md border outline-none focus:border-[var(--primary)]"
-              style={{ borderColor: '#e2e8f0', background: 'white' }}
             />
           </div>
           <div>
             <label className="block text-xs font-medium mb-1.5" style={{ color: '#475569' }}>Location / market</label>
-            <input
-              type="text"
+            <Input
+              size="lg"
               value={location}
               onChange={e => setLocation(e.target.value)}
               placeholder="e.g. Malaysia, Klang Valley"
-              className="w-full h-9 px-3 text-sm rounded-md border outline-none focus:border-[var(--primary)]"
-              style={{ borderColor: '#e2e8f0', background: 'white' }}
             />
           </div>
           <div>
             <label className="block text-xs font-medium mb-1.5" style={{ color: '#475569' }}>Keywords (comma-separated)</label>
-            <textarea
+            <Textarea
               value={keywordsText}
               onChange={e => setKeywordsText(e.target.value)}
               placeholder="aircond installation, aircond service, pasang aircond"
               rows={3}
-              className="w-full px-3 py-2 text-sm rounded-md border outline-none focus:border-[var(--primary)] resize-y"
-              style={{ borderColor: '#e2e8f0', background: 'white' }}
             />
             <p className="text-[10px] mt-1" style={{ color: '#94a3b8' }}>These ground the AI title-suggestion endpoint and will surface in the audit&apos;s keyword check.</p>
           </div>
@@ -430,16 +427,11 @@ function BrandProfileModal({ domain, profile, onClose, onSaved }: { domain: stri
           </div>
         </div>
 
-        <div className="px-5 py-3 flex items-center justify-end gap-2" style={{ borderTop: '1px solid #e2e8f0', background: '#f8fafc' }}>
-          <button onClick={onClose} className="text-xs font-medium px-3 h-9 rounded-md transition-colors hover:bg-slate-100" style={{ color: '#475569' }}>Cancel</button>
-          <button
-            onClick={save}
-            disabled={saving}
-            className="text-xs font-medium px-3 h-9 rounded-md text-white transition-opacity disabled:opacity-40 hover:opacity-90"
-            style={{ background: 'var(--primary)' }}
-          >
+        <div className="px-5 py-3 flex items-center justify-end gap-2 bg-slate-50 border-t border-slate-100">
+          <Button variant="ghost" size="lg" onClick={onClose}>Cancel</Button>
+          <Button variant="primary" size="lg" onClick={save} loading={saving}>
             {saving ? 'Saving…' : 'Save'}
-          </button>
+          </Button>
         </div>
       </div>
     </div>
@@ -1152,21 +1144,20 @@ function TitleEditor({ domain, path, language, current, override, otherFields, p
           </div>
         )}
 
-        <input
-          type="text"
+        <Input
+          size="lg"
           value={value}
           onChange={e => { setValue(e.target.value); setChosen(null) }}
           placeholder="Enter a title…"
-          className="w-full h-9 px-3 text-sm rounded-md border outline-none focus:border-[var(--primary)]"
-          style={{ borderColor: tooLong ? '#fecaca' : '#e2e8f0', background: 'white' }}
+          invalid={tooLong}
         />
         <p className="text-[10px] mt-1" style={{ color: tooLong ? '#b91c1c' : tooShort ? '#a16207' : '#94a3b8' }}>
-          {value.length}/60 · {tooLong ? 'Google may truncate over 60 characters.' : tooShort ? 'Aim for 50–60 characters.' : 'Looking good.'}
+          {value.length}/60 · {tooLong ? 'Google may truncate over 60 characters.' : tooShort ? 'Aim for 50 to 60 characters.' : 'Looking good.'}
         </p>
 
         {hasKeywords && (
           <div className="mt-2 flex items-center gap-1.5 text-[10px]">
-            <span className={matchesKeyword ? 'inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full' : 'inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full'}
+            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full"
               style={{ background: matchesKeyword ? '#dcfce7' : '#fef3c7', color: matchesKeyword ? '#16a34a' : '#a16207' }}>
               {matchesKeyword
                 ? <><svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg> includes a target keyword</>
@@ -1176,26 +1167,29 @@ function TitleEditor({ domain, path, language, current, override, otherFields, p
         )}
 
         <div className="mt-3 flex items-center gap-2 flex-wrap">
-          <button
-            type="button"
+          <Button
+            variant="primary"
+            size="md"
             onClick={save}
-            disabled={saving || !value.trim()}
-            className="text-xs font-medium px-3 h-8 rounded-full text-white transition-opacity disabled:opacity-40 hover:opacity-90"
-            style={{ background: 'var(--primary)' }}
+            loading={saving}
+            disabled={!value.trim()}
+            className="!rounded-full"
           >
-            {saving ? 'Saving…' : 'Apply & Publish'}
-          </button>
-          <button
-            type="button"
+            Apply & Publish
+          </Button>
+          <Button
+            variant="secondary"
+            size="md"
             onClick={suggest}
-            disabled={suggesting}
-            className="inline-flex items-center gap-1.5 text-xs font-medium px-3 h-8 rounded-full border transition-colors hover:bg-slate-50 disabled:opacity-50"
-            style={{ borderColor: '#e2e8f0', color: '#475569', background: 'white' }}
+            loading={suggesting}
             title={hasKeywords ? 'Generate AI title suggestions' : 'Set keywords in the brand profile for better suggestions'}
+            className="!rounded-full"
+            iconLeft={
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8"><path strokeLinecap="round" strokeLinejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" /></svg>
+            }
           >
-            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8"><path strokeLinecap="round" strokeLinejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" /></svg>
             {suggesting ? 'Thinking…' : 'Suggest titles'}
-          </button>
+          </Button>
         </div>
       </div>
       <GooglePreview domain={domain} path={path} title={value || current || domain} description={otherFields?.description ?? null} />
@@ -1244,26 +1238,25 @@ function DescriptionEditor({ domain, path, language, current, override, otherFie
         <h4 className="text-xs font-semibold mb-1.5" style={{ color: 'var(--foreground)' }}>Why it&apos;s important</h4>
         <p className="text-xs mb-3" style={{ color: '#475569' }}>The meta description is the snippet Google shows under the title in search results. A strong description increases click-through.</p>
         <h4 className="text-xs font-semibold mb-1.5" style={{ color: 'var(--foreground)' }}>How to do it</h4>
-        <textarea
+        <Textarea
           value={value}
           onChange={e => setValue(e.target.value)}
-          placeholder="Write a 1–2 sentence summary of this page…"
+          placeholder="Write a one or two sentence summary of this page…"
           rows={3}
-          className="w-full px-3 py-2 text-sm rounded-md border outline-none focus:border-[var(--primary)] resize-y"
-          style={{ borderColor: tooLong ? '#fecaca' : '#e2e8f0', background: 'white' }}
+          invalid={tooLong}
         />
         <p className="text-[10px] mt-1" style={{ color: tooLong ? '#b91c1c' : tooShort ? '#a16207' : '#94a3b8' }}>
-          {value.length}/160 · {tooLong ? 'Google truncates over 160 characters.' : tooShort ? 'Aim for 120–160 characters.' : 'Looking good.'}
+          {value.length}/160 · {tooLong ? 'Google truncates over 160 characters.' : tooShort ? 'Aim for 120 to 160 characters.' : 'Looking good.'}
         </p>
-        <button
-          type="button"
+        <Button
+          variant="primary"
+          size="md"
           onClick={save}
-          disabled={saving}
-          className="mt-3 text-xs font-medium px-3 h-8 rounded-full text-white transition-opacity disabled:opacity-40 hover:opacity-90"
-          style={{ background: 'var(--primary)' }}
+          loading={saving}
+          className="mt-3 !rounded-full"
         >
-          {saving ? 'Saving…' : 'Apply & Publish'}
-        </button>
+          Apply & Publish
+        </Button>
       </div>
       <GooglePreview domain={domain} path={path} title={otherFields?.title ?? current ?? domain} description={value || current || ''} />
     </div>
@@ -1348,46 +1341,35 @@ function OgImageEditor({ domain, path, language, current, override, otherFields,
             }}
           />
           <div className="flex items-center gap-2">
-            <button
-              type="button"
+            <Button
+              variant="secondary"
+              size="md"
               onClick={() => fileInputRef.current?.click()}
-              disabled={uploading || saving}
-              className="text-xs font-medium px-3 h-8 rounded-md border transition-colors hover:bg-slate-50 disabled:opacity-50"
-              style={{ borderColor: '#e2e8f0', color: '#475569', background: 'white' }}
+              loading={uploading}
+              disabled={saving}
             >
-              {uploading ? 'Uploading…' : value ? 'Replace' : 'Upload'}
-            </button>
+              {value ? 'Replace' : 'Upload'}
+            </Button>
             {value && (
-              <button
-                type="button"
-                onClick={() => setValue('')}
-                className="text-xs font-medium px-3 h-8 rounded-md border transition-colors hover:bg-slate-50"
-                style={{ borderColor: '#e2e8f0', color: '#94a3b8', background: 'white' }}
-              >
+              <Button variant="ghost" size="md" onClick={() => setValue('')}>
                 Clear
-              </button>
+              </Button>
             )}
           </div>
-          <input
+          <Input
             type="url"
+            size="md"
             value={value}
             onChange={e => setValue(e.target.value)}
             placeholder="…or paste an image URL"
-            className="w-full h-8 mt-1.5 px-3 text-xs rounded-md border outline-none focus:border-[var(--primary)]"
-            style={{ borderColor: '#e2e8f0', background: 'white' }}
+            className="mt-1.5"
           />
         </div>
       </div>
       <p className="text-[10px]" style={{ color: '#94a3b8' }}>PNG / JPG / WebP / GIF · max 4 MB · 1200 × 630 is ideal.</p>
-      <button
-        type="button"
-        onClick={save}
-        disabled={saving}
-        className="text-xs font-medium px-3 h-8 rounded-full text-white transition-opacity disabled:opacity-40 hover:opacity-90"
-        style={{ background: 'var(--primary)' }}
-      >
-        {saving ? 'Saving…' : 'Apply & Publish'}
-      </button>
+      <Button variant="primary" size="md" onClick={save} loading={saving} className="!rounded-full">
+        Apply & Publish
+      </Button>
     </div>
   )
 }
@@ -1514,33 +1496,27 @@ function AltRow({
           </p>
         )}
         <div className="flex items-center gap-1.5 mt-1.5">
-          <input
-            type="text"
+          <Input
+            size="md"
             value={value}
             onChange={e => setValue(e.target.value)}
             placeholder="Describe this image for screen readers and search engines"
             onKeyDown={e => { if (e.key === 'Enter' && dirty && !saving) save() }}
-            className="flex-1 h-8 px-2.5 text-xs rounded border outline-none focus:border-[var(--primary)]"
-            style={{ borderColor: '#e2e8f0', background: 'white' }}
+            className="flex-1"
           />
-          <button
-            type="button"
+          <Button
+            variant="primary"
+            size="md"
             onClick={save}
-            disabled={!dirty || !value.trim() || saving}
-            className="text-[11px] font-medium px-2.5 h-8 rounded text-white transition-opacity disabled:opacity-40 hover:opacity-90"
-            style={{ background: 'var(--primary)' }}
+            loading={saving}
+            disabled={!dirty || !value.trim()}
           >
-            {saving ? '…' : 'Save'}
-          </button>
+            Save
+          </Button>
           {onDelete && initialAlt !== undefined && (
-            <button
-              type="button"
-              onClick={() => onDelete(imageSrc)}
-              className="text-[11px] font-medium px-2.5 h-8 rounded border transition-colors hover:bg-red-50 hover:border-red-200 hover:text-red-600"
-              style={{ borderColor: '#e2e8f0', color: '#94a3b8', background: 'white' }}
-            >
+            <Button variant="danger" size="md" onClick={() => onDelete(imageSrc)}>
               Remove
-            </button>
+            </Button>
           )}
         </div>
       </div>
@@ -1642,13 +1618,11 @@ function PatternRow({ domain, override, matchedPaths, onRefresh }: { domain: str
         <div className="px-5 py-4 space-y-3" style={{ background: '#fafbfc', borderTop: '1px solid #f1f5f9' }}>
           <div>
             <label className="block text-[11px] font-medium mb-1" style={{ color: '#475569' }}>Title template</label>
-            <input
-              type="text"
+            <Input
+              size="md"
               value={title}
               onChange={e => setTitle(e.target.value)}
               placeholder="{match} Aircond Service | Brand"
-              className="w-full h-8 px-2.5 text-xs rounded border outline-none focus:border-[var(--primary)]"
-              style={{ borderColor: '#e2e8f0', background: 'white' }}
             />
             {title.includes('{match}') && (
               <p className="text-[10px] mt-1" style={{ color: 'var(--primary)' }}>Preview: <strong>{sampleSubst(title)}</strong></p>
@@ -1656,36 +1630,19 @@ function PatternRow({ domain, override, matchedPaths, onRefresh }: { domain: str
           </div>
           <div>
             <label className="block text-[11px] font-medium mb-1" style={{ color: '#475569' }}>Description template</label>
-            <textarea
+            <Textarea
               value={description}
               onChange={e => setDescription(e.target.value)}
               rows={2}
               placeholder="Find {match} aircond services. Same-day install…"
-              className="w-full px-2.5 py-1.5 text-xs rounded border outline-none focus:border-[var(--primary)] resize-y"
-              style={{ borderColor: '#e2e8f0', background: 'white' }}
             />
             {description.includes('{match}') && (
               <p className="text-[10px] mt-1" style={{ color: 'var(--primary)' }}>Preview: <strong>{sampleSubst(description)}</strong></p>
             )}
           </div>
           <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={save}
-              disabled={saving}
-              className="text-[11px] font-medium px-2.5 h-7 rounded text-white transition-opacity disabled:opacity-40 hover:opacity-90"
-              style={{ background: 'var(--primary)' }}
-            >
-              {saving ? 'Saving…' : 'Save'}
-            </button>
-            <button
-              type="button"
-              onClick={remove}
-              className="text-[11px] font-medium px-2.5 h-7 rounded border transition-colors hover:bg-red-50 hover:border-red-200 hover:text-red-600"
-              style={{ borderColor: '#e2e8f0', color: '#94a3b8', background: 'white' }}
-            >
-              Remove
-            </button>
+            <Button variant="primary" size="sm" onClick={save} loading={saving}>Save</Button>
+            <Button variant="danger" size="sm" onClick={remove}>Remove</Button>
             <p className="text-[10px] ml-auto" style={{ color: '#94a3b8' }}>Use <code className="font-mono">{'{match}'}</code> to insert the wildcard portion.</p>
           </div>
           {myMatches.length > 0 && (
@@ -2031,13 +1988,12 @@ function SeoOverrideModal({ domain, row, onClose, onSaved }: { domain: string; r
 
           <div>
             <label className="block text-xs font-medium mb-1.5" style={{ color: '#475569' }}>{isPattern ? 'Path pattern' : 'Page path'}</label>
-            <input
-              type="text"
+            <Input
+              size="lg"
               value={path}
               onChange={e => setPath(e.target.value)}
               placeholder={isPattern ? '/aircond-service-*' : '/products'}
-              className="w-full h-9 px-3 text-sm rounded-md border outline-none focus:border-[var(--primary)] font-mono"
-              style={{ borderColor: '#e2e8f0', background: 'white' }}
+              className="font-mono"
             />
             <p className="text-[10px] mt-1" style={{ color: '#94a3b8' }}>
               {isPattern
@@ -2048,13 +2004,11 @@ function SeoOverrideModal({ domain, row, onClose, onSaved }: { domain: string; r
 
           <div>
             <label className="block text-xs font-medium mb-1.5" style={{ color: '#475569' }}>Title (optional)</label>
-            <input
-              type="text"
+            <Input
+              size="lg"
               value={title}
               onChange={e => setTitle(e.target.value)}
               placeholder={isPattern ? '{match} Aircond Service | Brand' : 'Leave blank to use the live title'}
-              className="w-full h-9 px-3 text-sm rounded-md border outline-none focus:border-[var(--primary)]"
-              style={{ borderColor: '#e2e8f0', background: 'white' }}
             />
             {isPattern && title.includes('{match}') && (
               <p className="text-[10px] mt-1" style={{ color: 'var(--primary)' }}>Preview: <strong>{titlePreview}</strong></p>
@@ -2063,13 +2017,11 @@ function SeoOverrideModal({ domain, row, onClose, onSaved }: { domain: string; r
 
           <div>
             <label className="block text-xs font-medium mb-1.5" style={{ color: '#475569' }}>Description (optional)</label>
-            <textarea
+            <Textarea
               value={description}
               onChange={e => setDescription(e.target.value)}
               rows={3}
               placeholder={isPattern ? 'Find {match} aircond services. Same-day install…' : 'Leave blank to use the live description'}
-              className="w-full px-3 py-2 text-sm rounded-md border outline-none focus:border-[var(--primary)] resize-y"
-              style={{ borderColor: '#e2e8f0', background: 'white' }}
             />
             {isPattern && description.includes('{match}') && (
               <p className="text-[10px] mt-1" style={{ color: 'var(--primary)' }}>Preview: <strong>{descPreview}</strong></p>
@@ -2078,16 +2030,11 @@ function SeoOverrideModal({ domain, row, onClose, onSaved }: { domain: string; r
           <p className="text-[10px]" style={{ color: '#94a3b8' }}>{isPattern ? 'Pattern overrides apply to every URL that matches. Exact-path overrides always win when both exist.' : 'Once added, the page appears in the Step 2 list and you can fill in title, description, and alt text from there.'}</p>
         </div>
 
-        <div className="px-5 py-3 flex items-center justify-end gap-2" style={{ borderTop: '1px solid #e2e8f0', background: '#f8fafc' }}>
-          <button onClick={onClose} className="text-xs font-medium px-3 h-9 rounded-md transition-colors hover:bg-slate-100" style={{ color: '#475569' }}>Cancel</button>
-          <button
-            onClick={save}
-            disabled={saving || !path.trim()}
-            className="text-xs font-medium px-3 h-9 rounded-md text-white transition-opacity disabled:opacity-40 hover:opacity-90"
-            style={{ background: 'var(--primary)' }}
-          >
-            {saving ? 'Saving…' : 'Add page'}
-          </button>
+        <div className="px-5 py-3 flex items-center justify-end gap-2 bg-slate-50 border-t border-slate-100">
+          <Button variant="ghost" size="lg" onClick={onClose}>Cancel</Button>
+          <Button variant="primary" size="lg" onClick={save} loading={saving} disabled={!path.trim()}>
+            Add page
+          </Button>
         </div>
       </div>
     </div>
