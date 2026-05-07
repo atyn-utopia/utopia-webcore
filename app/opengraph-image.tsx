@@ -49,30 +49,45 @@ export default async function Image() {
           }}
         />
 
-        {/* Logo card */}
+        {/* Logo card — solid electric blue with the cursive W mark */}
         <div
           style={{
-            width: '140px',
-            height: '140px',
-            borderRadius: '32px',
-            background: 'linear-gradient(135deg, #2979d6, #1a3a6e)',
+            width: '160px',
+            height: '160px',
+            borderRadius: '36px',
+            background: '#1E5BFF',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            boxShadow: '0 20px 60px rgba(0,0,0,0.35)',
+            boxShadow: '0 20px 60px rgba(15, 91, 255, 0.45)',
             marginBottom: '44px',
+            position: 'relative',
+            overflow: 'hidden',
           }}
         >
-          {/* W-in-ring brand mark, scaled up from the app icon */}
-          <svg width="92" height="92" viewBox="0 0 100 100" fill="none">
-            <circle cx="50" cy="50" r="40" stroke="white" strokeWidth="6" />
-            <path
-              d="M28 33 L38 72 L50 48 L62 72 L72 33"
-              stroke="white"
-              strokeWidth="9"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
+          <svg width="160" height="160" viewBox="0 0 100 100" fill="none">
+            {/* Playful accents */}
+            <path d="M 22 60 Q 26 70 32 72" stroke="#FF4D6D" strokeWidth="5" strokeLinecap="round" fill="none" />
+            <path d="M 76 26 Q 82 32 80 42" stroke="#FFC83D" strokeWidth="5" strokeLinecap="round" fill="none" />
+            <circle cx="83" cy="56" r="3.5" fill="#22D3EE" />
+            {/* Cursive W */}
+            <g transform="translate(0 4)">
+              <path
+                d="M 26 32 C 26 50, 30 64, 36 64 C 42 64, 46 54, 50 46 C 54 54, 58 64, 64 64 C 70 64, 74 50, 74 32"
+                stroke="white"
+                strokeWidth="7"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                fill="none"
+              />
+              <path
+                d="M 74 32 c 4 -3, 8 1, 6 6 c -2 3, -5 1, -3 -2"
+                stroke="white"
+                strokeWidth="6"
+                strokeLinecap="round"
+                fill="none"
+              />
+            </g>
           </svg>
         </div>
 

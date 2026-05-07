@@ -351,7 +351,7 @@ export default function UsersPage() {
               <div key={user.id} style={{ borderBottom: i < filtered.length - 1 ? '1px solid #f1f5f9' : 'none' }}>
                 {!isEditing ? (
                   <div className="px-5 py-4 flex items-center gap-4 hover:bg-[#f8fafc] transition-colors">
-                    <div className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold text-white flex-shrink-0" style={{ background: 'linear-gradient(135deg, #1a3a6e, #2979d6)' }}>
+                    <div className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold text-white flex-shrink-0" style={{ background: '#1E5BFF' }}>
                       {user.name[0]?.toUpperCase() ?? '?'}
                     </div>
                     <div className="flex-1 min-w-0">
@@ -386,7 +386,7 @@ export default function UsersPage() {
                   /* Inline edit panel */
                   <div className="p-5" style={{ background: '#fafbfc' }}>
                     <div className="flex items-center gap-3 mb-4">
-                      <div className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold text-white flex-shrink-0" style={{ background: 'linear-gradient(135deg, #1a3a6e, #2979d6)' }}>
+                      <div className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold text-white flex-shrink-0" style={{ background: '#1E5BFF' }}>
                         {user.name[0]?.toUpperCase() ?? '?'}
                       </div>
                       <div>

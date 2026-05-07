@@ -14,8 +14,13 @@
   --sidebar-active: rgba(255,255,255,0.15);
   --sidebar-text: #94a3b8;
   --sidebar-muted: #64748b;
-  --primary: #2975cc;
-  --primary-hover: #2061b3;
+  --primary: #1E5BFF;
+  --primary-hover: #1646D9;
+  /* Logo accent colors — match the playful curves on the brand mark.
+     Used for chips, dots, and the occasional accent stroke. */
+  --accent-pink: #FF4D6D;
+  --accent-yellow: #FFC83D;
+  --accent-cyan: #22D3EE;
   --border: #e2e8f0;
   --card: #ffffff;
   --font-inter: 'Inter', sans-serif;

@@ -121,7 +121,7 @@ export default function TicketsPage() {
                     {ticket.description && <p className="text-xs mt-0.5 line-clamp-2" style={{ color: '#475569' }}>{ticket.description}</p>}
                     <div className="flex items-center gap-2 mt-1.5">
                       <div className="flex items-center gap-1.5">
-                        <div className="w-4 h-4 rounded-full flex items-center justify-center text-[8px] font-bold text-white" style={{ background: 'linear-gradient(135deg, #1a3a6e, #2979d6)' }}>
+                        <div className="w-4 h-4 rounded-full flex items-center justify-center text-[8px] font-bold text-white" style={{ background: '#1E5BFF' }}>
                           {ticket.user_name[0]?.toUpperCase()}
                         </div>
                         <span className="text-[10px]" style={{ color: '#475569' }}>{ticket.user_name}</span>

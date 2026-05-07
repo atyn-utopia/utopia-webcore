@@ -1899,7 +1899,7 @@ function GooglePreview({ domain, path, title, description }: { domain: string; p
     <div className="rounded-md p-3" style={{ background: '#fafbfc', border: '1px solid #e2e8f0' }}>
       <p className="text-[10px] font-semibold uppercase tracking-wider mb-2" style={{ color: '#94a3b8' }}>Google preview</p>
       <div className="flex items-start gap-2 mb-1">
-        <div className="w-6 h-6 rounded-full flex-shrink-0 flex items-center justify-center text-[10px] font-bold text-white" style={{ background: 'linear-gradient(135deg, #1a3a6e, #2979d6)' }}>
+        <div className="w-6 h-6 rounded-full flex-shrink-0 flex items-center justify-center text-[10px] font-bold text-white" style={{ background: '#1E5BFF' }}>
           {domain[0]?.toUpperCase() ?? '?'}
         </div>
         <div className="min-w-0 flex-1">

@@ -65,7 +65,7 @@ export default function UserMenu() {
         onClick={() => setOpen(v => !v)}
         className="w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold text-white transition-all"
         style={{
-          background: 'linear-gradient(135deg, #1a3a6e, #2979d6)',
+          background: '#1E5BFF',
           boxShadow: open ? '0 0 0 2px rgba(255,255,255,0.4)' : 'none',
         }}
         aria-haspopup="menu"
@@ -79,7 +79,7 @@ export default function UserMenu() {
         <div className="absolute right-0 top-11 w-64 rounded-md shadow-lg z-50 overflow-hidden" style={{ background: 'white', border: '1px solid #e2e8f0' }}>
           {/* Identity header */}
           <div className="px-4 py-3 flex items-center gap-3" style={{ borderBottom: '1px solid #f1f5f9' }}>
-            <div className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold text-white flex-shrink-0" style={{ background: 'linear-gradient(135deg, #1a3a6e, #2979d6)' }}>
+            <div className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold text-white flex-shrink-0" style={{ background: '#1E5BFF' }}>
               {name[0]?.toUpperCase() ?? '?'}
             </div>
             <div className="min-w-0">

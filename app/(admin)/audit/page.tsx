@@ -236,7 +236,7 @@ export default function AuditTrailPage() {
                   </div>
 
                   {/* Avatar */}
-                  <div className="w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold text-white flex-shrink-0" style={{ background: 'linear-gradient(135deg, #1a3a6e, #2979d6)' }}>
+                  <div className="w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold text-white flex-shrink-0" style={{ background: '#1E5BFF' }}>
                     {log.user_name[0]?.toUpperCase() ?? '?'}
                   </div>
 
