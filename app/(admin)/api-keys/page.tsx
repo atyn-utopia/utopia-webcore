@@ -218,7 +218,7 @@ export default function ApiKeysPage() {
                 <button type="button" onClick={() => setHistoryOpen(v => !v)}
                   className="inline-flex items-center gap-1.5 text-xs font-medium transition-colors hover:underline"
                   style={{ color: '#94a3b8' }}>
-                  <ChevronRightIcon className="w-3 h-3 transition-transform ${historyOpen ? 'rotate-90' : ''}" />
+                  <ChevronRightIcon className={`w-3 h-3 transition-transform ${historyOpen ? 'rotate-90' : ''}`} />
                   History ({historyKeys.length})
                 </button>
                 {historyOpen && (
@@ -334,7 +334,7 @@ function KeyCard({ k, nowMs, copiedToken, snippetExpanded, onCopy, onToggleSnipp
           <button type="button" onClick={onToggleSnippet}
             className="inline-flex items-center gap-1 text-[11px] font-medium transition-colors hover:underline"
             style={{ color: '#64748b' }}>
-            <ChevronRightIcon className="w-3 h-3 transition-transform ${snippetExpanded ? 'rotate-90' : ''}" />
+            <ChevronRightIcon className={`w-3 h-3 transition-transform ${snippetExpanded ? 'rotate-90' : ''}`} />
             {snippetExpanded ? 'Hide' : 'Show'} tracking snippet
           </button>
           {snippetExpanded && (

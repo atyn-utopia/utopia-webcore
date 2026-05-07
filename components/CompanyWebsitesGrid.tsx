@@ -100,7 +100,7 @@ export default function CompanyWebsitesGrid({ domains, initialSites }: { domains
           >
             <span>{ACTIVITY_LABEL[activity]}</span>
             <span className="text-xs" style={{ color: '#cbd5e1' }}>({scoped.length})</span>
-            <ChevronDownIcon className="w-3.5 h-3.5 transition-transform ${scopeOpen ? 'rotate-180' : ''}" />
+            <ChevronDownIcon className={`w-3.5 h-3.5 transition-transform ${scopeOpen ? 'rotate-180' : ''}`} />
           </button>
           {scopeOpen && (
             <div className="absolute top-11 left-0 w-44 rounded-md shadow-lg z-30 py-1" style={{ background: 'white', border: '1px solid #e2e8f0' }}>

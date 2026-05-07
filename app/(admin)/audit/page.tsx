@@ -233,7 +233,7 @@ export default function AuditTrailPage() {
                   {/* Expand caret */}
                   <div className="w-4 flex-shrink-0 flex justify-center">
                     {canExpand && (
-                      <ChevronRightIcon className="w-3.5 h-3.5 transition-transform ${isExpanded ? 'rotate-90' : ''}" />
+                      <ChevronRightIcon className={`w-3.5 h-3.5 transition-transform ${isExpanded ? 'rotate-90' : ''}`} />
                     )}
                   </div>
 

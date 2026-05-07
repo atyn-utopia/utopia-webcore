@@ -1,6 +1,7 @@
 'use client'
 
-import { Suspense, useEffect, useRef, useState } from 'react'
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import PageHeader from '@/components/PageHeader'
 import { useToast } from '@/contexts/ToastContext'
@@ -492,7 +493,7 @@ function StepCard({
         <div className="flex items-center gap-3 flex-shrink-0">
           {total > 0 && <ProgressPill done={done} total={total} complete={complete} pct={pct} />}
           <span className="w-7 h-7 rounded-full flex items-center justify-center" style={{ border: '1px solid #e2e8f0', color: '#94a3b8' }}>
-            <ChevronDownIcon className="w-3.5 h-3.5 transition-transform ${open ? 'rotate-180' : ''}" />
+            <ChevronDownIcon className={`w-3.5 h-3.5 transition-transform ${open ? 'rotate-180' : ''}`} />
           </span>
         </div>
       </button>
@@ -552,7 +553,7 @@ function Task({
         <span className="flex-1 text-sm" style={{ color: 'var(--foreground)' }}>{title}</span>
         {hint && <span className="text-xs" style={{ color: '#94a3b8' }}>{hint}</span>}
         {expandable && (
-          <ChevronDownIcon className="w-3.5 h-3.5 transition-transform ${open ? 'rotate-180' : ''}" />
+          <ChevronDownIcon className={`w-3.5 h-3.5 transition-transform ${open ? 'rotate-180' : ''}`} />
         )}
       </button>
       {expandable && open && (
@@ -1012,35 +1013,205 @@ function Step2Card({
 }
 
 // ---------------------------------------------------------------------------
-// Step 3 — Continued progress (educational/static)
+// Step 3 — Site health checks + ongoing maintenance tips
 // ---------------------------------------------------------------------------
 
+type HealthCheck = {
+  domain: string
+  favicon: { ok: boolean; status: number | null; foundAt: string | null }
+  robots: { ok: boolean; status: number | null }
+  sitemap: { ok: boolean; status: number | null }
+  https: { ok: boolean; status: number | null }
+  tracker: { ok: boolean; eventCount7d: number }
+  revalidate: { configured: boolean; url: string | null }
+  productsCount: number
+  gscConnected: boolean
+}
+
 function Step3Card({ domain }: { domain: string }) {
+  const [data, setData] = useState<HealthCheck | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  const runChecks = useCallback(() => {
+    setLoading(true)
+    setError(null)
+    fetch(`/api/seo/health-check?domain=${encodeURIComponent(domain)}`)
+      .then(r => r.ok ? r.json() : Promise.reject(new Error(`HTTP ${r.status}`)))
+      .then((d: HealthCheck) => setData(d))
+      .catch(e => setError((e as Error).message || 'Failed to load checks'))
+      .finally(() => setLoading(false))
+  }, [domain])
+
+  useEffect(() => { runChecks() }, [runChecks])
+
+  // Score: count automated checks that passed, out of those that apply.
+  const checks = useMemo(() => {
+    if (!data) return [] as { key: string; ok: boolean; label: string; detail: string; href?: string; applicable: boolean }[]
+    return [
+      {
+        key: 'https',
+        ok: data.https.ok,
+        applicable: true,
+        label: 'Site responds over HTTPS',
+        detail: data.https.ok
+          ? `Root URL returns ${data.https.status}. SSL is active.`
+          : `Could not reach https://${domain}. Verify DNS/SSL.`,
+      },
+      {
+        key: 'favicon',
+        ok: data.favicon.ok,
+        applicable: true,
+        label: 'Favicon present',
+        detail: data.favicon.ok
+          ? `Found at ${data.favicon.foundAt}. Browser tabs and search results show your icon.`
+          : 'No favicon found at /favicon.ico, /icon.png, or /apple-touch-icon.png. Upload one — search results render the missing icon as a generic globe.',
+      },
+      {
+        key: 'robots',
+        ok: data.robots.ok,
+        applicable: true,
+        label: 'robots.txt reachable',
+        detail: data.robots.ok
+          ? 'Crawlers can read crawl rules.'
+          : 'No robots.txt at the root. Without one, search engines guess what they can index.',
+      },
+      {
+        key: 'sitemap',
+        ok: data.sitemap.ok,
+        applicable: true,
+        label: 'sitemap.xml reachable',
+        detail: data.sitemap.ok
+          ? 'Sitemap is served. Submit it in Search Console so Google fetches it on every change.'
+          : `No sitemap at /sitemap.xml. Generate one — Google indexes pages much faster when a sitemap lists them.`,
+      },
+      {
+        key: 'tracker',
+        ok: data.tracker.ok,
+        applicable: true,
+        label: 'Webcore tracker connected',
+        detail: data.tracker.ok
+          ? `${data.tracker.eventCount7d.toLocaleString()} events in the last 7 days. Analytics + lead attribution working.`
+          : 'No tracker events received in the last 7 days. The tracker JS may be missing or blocked — without it, the dashboards show nothing for this site.',
+      },
+      {
+        key: 'revalidate',
+        ok: data.revalidate.configured,
+        applicable: data.productsCount > 0,
+        label: 'Product / blog revalidation wired',
+        detail: data.revalidate.configured
+          ? `Webhook posts to ${data.revalidate.url}. Edits in webcore appear on the live site within seconds.`
+          : `No revalidate URL configured. With ${data.productsCount} products on this site, edits won't reach the live page until the host rebuilds. Add a webhook in Settings → Revalidation.`,
+      },
+      {
+        key: 'gsc',
+        ok: data.gscConnected,
+        applicable: true,
+        label: 'Google Search Console connected',
+        detail: data.gscConnected
+          ? 'Search analytics + index coverage available inside webcore.'
+          : 'Connect Search Console to see clicks, impressions, queries, and indexing issues without leaving webcore.',
+        href: `/integrations?website=${encodeURIComponent(domain)}`,
+      },
+    ]
+  }, [data, domain])
+
+  const applicable = checks.filter(c => c.applicable)
+  const done = applicable.filter(c => c.ok).length
+  const total = applicable.length
+
   return (
     <StepCard
       step={3}
-      title="Keep building on this site's SEO progress"
-      subtitle="SEO is a work in progress. Learn more about what it can do for this site."
-      done={0}
-      total={0}
+      title="Site health and ongoing SEO"
+      subtitle="Automated checks for the things that quietly break — plus the maintenance habits that keep rankings from drifting."
+      done={done}
+      total={total}
     >
-      <div className="px-5 py-4 space-y-3">
-        <Tip
-          title="Submit a sitemap to Google"
-          body={<>Add <code className="font-mono text-[11px] px-1 py-0.5 rounded" style={{ background: '#f1f5f9' }}>{`https://${domain}/sitemap.xml`}</code> in Search Console &rsaquo; Sitemaps so Google can discover every page.</>}
-        />
-        <Tip
-          title="Run the audit weekly"
-          body="Designer-side changes can introduce regressions. A weekly re-audit catches new errors, broken canonicals, and missing alt text before they hurt rankings."
-        />
-        <Tip
-          title="Watch the Coverage report"
-          body="Search Console flags pages it can't index. Investigate any non-zero count under 'Pages → Why pages aren't indexed'."
-        />
-        <Tip
-          title="Keep WhatsApp / blog / product content fresh"
-          body="Search engines reward sites that update regularly. Use the webcore Blog and Products tabs to publish new content."
-        />
+      <div className="px-5 py-4 space-y-4">
+        {/* Header strip with refresh */}
+        <div className="flex items-center justify-between">
+          <p className="text-xs" style={{ color: '#64748b' }}>
+            {loading
+              ? 'Running checks…'
+              : error
+                ? <span style={{ color: '#b91c1c' }}>Couldn&apos;t run checks: {error}</span>
+                : `${done} of ${total} passing`}
+          </p>
+          <button
+            onClick={runChecks}
+            disabled={loading}
+            className="text-xs font-semibold transition-colors disabled:opacity-40"
+            style={{ color: 'var(--primary)' }}
+          >
+            {loading ? 'Refreshing…' : 'Re-run checks'}
+          </button>
+        </div>
+
+        {/* Automated checks */}
+        {!loading && !error && data && (
+          <div className="rounded-lg border overflow-hidden" style={{ borderColor: '#e2e8f0' }}>
+            {applicable.map((c, i) => (
+              <div
+                key={c.key}
+                className="flex items-start gap-3 px-4 py-3"
+                style={{ borderTop: i === 0 ? 'none' : '1px solid #f1f5f9' }}
+              >
+                <span
+                  className="w-5 h-5 rounded-full flex-shrink-0 flex items-center justify-center mt-0.5"
+                  style={{
+                    background: c.ok ? '#dcfce7' : '#fef2f2',
+                    color: c.ok ? '#15803d' : '#b91c1c',
+                  }}
+                >
+                  {c.ok ? <CheckIcon className="w-3 h-3" /> : <XMarkIcon className="w-3 h-3" />}
+                </span>
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs font-semibold" style={{ color: 'var(--foreground)' }}>{c.label}</p>
+                  <p className="text-[11px] mt-0.5" style={{ color: '#64748b' }}>{c.detail}</p>
+                </div>
+                {c.href && !c.ok && (
+                  <Link
+                    href={c.href}
+                    className="text-[11px] font-semibold whitespace-nowrap mt-0.5"
+                    style={{ color: 'var(--primary)' }}
+                  >
+                    Set up &rsaquo;
+                  </Link>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Maintenance tips — non-automated, ongoing reminders */}
+        <div className="space-y-2">
+          <p className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: '#94a3b8' }}>Ongoing maintenance</p>
+          <Tip
+            title="Submit the sitemap to Search Console"
+            body={<>Paste <code className="font-mono text-[11px] px-1 py-0.5 rounded" style={{ background: '#f1f5f9' }}>{`https://${domain}/sitemap.xml`}</code> into Search Console &rsaquo; Sitemaps. Google re-fetches it on every publish, so new pages get indexed within hours instead of weeks.</>}
+          />
+          <Tip
+            title="Re-run the audit weekly"
+            body="Designer changes can quietly introduce broken canonicals, oversized images, and stripped alt text. A weekly Step 1+2 audit catches regressions before they hurt rankings."
+          />
+          <Tip
+            title="Watch the Coverage report"
+            body="Search Console &rsaquo; Pages flags URLs it can't index. Any non-zero count in &lsquo;Why pages aren't indexed&rsquo; deserves a look."
+          />
+          <Tip
+            title="Validate structured data"
+            body={<>Open <a href={`https://search.google.com/test/rich-results?url=${encodeURIComponent(`https://${domain}`)}`} target="_blank" rel="noopener" className="underline" style={{ color: 'var(--primary)' }}>Rich Results Test</a> for the homepage and a key product/blog page. Schema errors silently strip eligibility for rich snippets.</>}
+          />
+          <Tip
+            title="Check Core Web Vitals"
+            body={<>Run <a href={`https://pagespeed.web.dev/report?url=${encodeURIComponent(`https://${domain}`)}`} target="_blank" rel="noopener" className="underline" style={{ color: 'var(--primary)' }}>PageSpeed Insights</a> monthly. LCP &lt; 2.5s, CLS &lt; 0.1, INP &lt; 200ms — anything worse and Google ranks competitors above you on mobile.</>}
+          />
+          <Tip
+            title="Publish fresh content on a cadence"
+            body="Search engines reward sites that update regularly. Use the Blog and Products tabs to publish at least a couple of items per month per site."
+          />
+        </div>
       </div>
     </StepCard>
   )
@@ -1623,7 +1794,7 @@ function PatternRow({ domain, override, matchedPaths, onRefresh }: { domain: str
           </span>
         )}
         <span className="text-[10px] uppercase font-semibold tracking-wider px-1.5 py-0.5 rounded" style={{ background: '#dbeafe', color: '#1e40af' }}>{override.language === 'ms' ? 'BM' : override.language === 'zh' ? '中文' : 'EN'}</span>
-        <ChevronDownIcon className="w-3.5 h-3.5 transition-transform ${open ? 'rotate-180' : ''}" />
+        <ChevronDownIcon className={`w-3.5 h-3.5 transition-transform ${open ? 'rotate-180' : ''}`} />
       </button>
       {open && (
         <div className="px-5 py-4 space-y-3" style={{ background: '#fafbfc', borderTop: '1px solid #f1f5f9' }}>

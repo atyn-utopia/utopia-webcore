@@ -128,7 +128,7 @@ export default function Sidebar({ userRole, open, onClose, collapsed = false, on
           title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
           aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
         >
-          <ChevronRightIcon className="w-3 h-3 transition-transform ${collapsed ? '' : 'rotate-180'}" />
+          <ChevronRightIcon className={`w-3 h-3 transition-transform ${collapsed ? '' : 'rotate-180'}`} />
         </button>
       )}
 
@@ -143,7 +143,7 @@ export default function Sidebar({ userRole, open, onClose, collapsed = false, on
           >
             <BoltIcon className="w-3.5 h-3.5" />
             Quick Actions
-            <ChevronDownIcon className="w-3 h-3 ml-0.5 opacity-60 transition-transform ${quickActionsOpen ? 'rotate-180' : ''}" />
+            <ChevronDownIcon className={`w-3 h-3 ml-0.5 opacity-60 transition-transform ${quickActionsOpen ? 'rotate-180' : ''}`} />
           </button>
         ) : (
           <button
