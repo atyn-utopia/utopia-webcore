@@ -11,6 +11,18 @@ import { Input, Textarea } from '@/components/ui/Input'
 import { Card } from '@/components/ui/Card'
 import { Spinner, LoadingOverlay } from '@/components/ui/Spinner'
 
+import {
+  ArrowRightIcon,
+  BoltIcon,
+  CheckIcon,
+  ChevronDownIcon,
+  LightBulbIcon,
+  MagnifyingGlassIcon,
+  PencilSquareIcon,
+  PhotoIcon,
+  PlusIcon,
+  XMarkIcon,
+} from '@heroicons/react/24/solid'
 // ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
@@ -301,7 +313,7 @@ function BusinessInfoBar({ domain, profile, editing, onEditingChange, onSaved }:
           className="ml-auto w-7 h-7 rounded-full flex items-center justify-center transition-colors hover:bg-slate-100"
           style={{ color: 'var(--primary)' }}
         >
-          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+          <PencilSquareIcon className="w-3.5 h-3.5" />
         </button>
       </div>
       {editing && (
@@ -379,7 +391,7 @@ function BrandProfileModal({ domain, profile, onClose, onSaved }: { domain: stri
         <div className="px-5 py-4 flex items-center justify-between" style={{ borderBottom: '1px solid #e2e8f0' }}>
           <h2 className="text-base font-semibold" style={{ color: 'var(--foreground)' }}>Edit brand profile</h2>
           <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-md transition-colors hover:bg-slate-100" style={{ color: '#94a3b8' }}>
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+            <XMarkIcon className="w-4 h-4" />
           </button>
         </div>
 
@@ -480,9 +492,7 @@ function StepCard({
         <div className="flex items-center gap-3 flex-shrink-0">
           {total > 0 && <ProgressPill done={done} total={total} complete={complete} pct={pct} />}
           <span className="w-7 h-7 rounded-full flex items-center justify-center" style={{ border: '1px solid #e2e8f0', color: '#94a3b8' }}>
-            <svg className={`w-3.5 h-3.5 transition-transform ${open ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-            </svg>
+            <ChevronDownIcon className="w-3.5 h-3.5 transition-transform ${open ? 'rotate-180' : ''}" />
           </span>
         </div>
       </button>
@@ -503,7 +513,7 @@ function ProgressPill({ done, total, complete, pct }: { done: number; total: num
       </div>
       {complete ? (
         <span className="w-4 h-4 rounded-full flex-shrink-0 flex items-center justify-center text-white" style={{ background: '#16a34a' }}>
-          <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+          <CheckIcon className="w-2.5 h-2.5" />
         </span>
       ) : (
         <span className="text-[11px] font-semibold tabular-nums" style={{ color: '#475569' }}>{done}/{total}</span>
@@ -542,9 +552,7 @@ function Task({
         <span className="flex-1 text-sm" style={{ color: 'var(--foreground)' }}>{title}</span>
         {hint && <span className="text-xs" style={{ color: '#94a3b8' }}>{hint}</span>}
         {expandable && (
-          <svg className={`w-3.5 h-3.5 transition-transform ${open ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" style={{ color: '#94a3b8' }}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-          </svg>
+          <ChevronDownIcon className="w-3.5 h-3.5 transition-transform ${open ? 'rotate-180' : ''}" />
         )}
       </button>
       {expandable && open && (
@@ -559,7 +567,7 @@ function Task({
 function StatusIcon({ status }: { status: TaskStatus }) {
   if (status === 'done') return (
     <span className="w-5 h-5 rounded-full flex-shrink-0 flex items-center justify-center text-white" style={{ background: '#16a34a' }}>
-      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+      <CheckIcon className="w-3 h-3" />
     </span>
   )
   if (status === 'error') return (
@@ -721,7 +729,7 @@ function Step1Card({
           {gscIntegration?.property_id ? (
             <>
               <p className="text-xs" style={{ color: '#16a34a' }}>
-                <svg className="w-3.5 h-3.5 inline -mt-0.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+                <CheckIcon className="w-3.5 h-3.5 inline -mt-0.5 mr-1" />
                 Connected to <code className="font-mono text-[11px]">{gscIntegration.property_id}</code>
               </p>
               <a
@@ -730,7 +738,7 @@ function Step1Card({
                 style={{ borderColor: '#e2e8f0', color: '#475569', background: 'white' }}
               >
                 Manage in Integrations
-                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
+                <ArrowRightIcon className="w-3 h-3" />
               </a>
             </>
           ) : gscIntegration ? (
@@ -742,7 +750,7 @@ function Step1Card({
                 style={{ background: 'var(--primary)' }}
               >
                 Pick property
-                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
+                <ArrowRightIcon className="w-3 h-3" />
               </a>
             </>
           ) : (
@@ -754,7 +762,7 @@ function Step1Card({
                 style={{ background: 'var(--primary)' }}
               >
                 Open Integrations
-                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
+                <ArrowRightIcon className="w-3 h-3" />
               </a>
             </>
           )}
@@ -878,7 +886,7 @@ function Step2Card({
       {suggestions.length > 0 && (
         <div className="px-5 py-3" style={{ background: '#fffbeb', borderBottom: '1px solid #fde68a' }}>
           <p className="text-xs font-semibold mb-1.5" style={{ color: '#a16207' }}>
-            <svg className="w-3.5 h-3.5 inline -mt-0.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" /></svg>
+            <LightBulbIcon className="w-3.5 h-3.5 inline -mt-0.5 mr-1" />
             Set one rule, apply to many pages
           </p>
           <p className="text-[11px] mb-2" style={{ color: '#92400e' }}>The sitemap shows groups of similar pages. Save one pattern and the title/description applies to every match. No need to fill them in one by one.</p>
@@ -990,7 +998,7 @@ function Step2Card({
           className="inline-flex items-center gap-1.5 text-xs font-medium px-3 h-8 rounded-full border transition-colors hover:bg-white"
           style={{ borderColor: '#e2e8f0', color: 'var(--primary)', background: 'white' }}
         >
-          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" /></svg>
+          <PlusIcon className="w-3.5 h-3.5" />
           Add another page override
         </button>
         {sitemap && (
@@ -1042,7 +1050,7 @@ function Tip({ title, body }: { title: string; body: React.ReactNode }) {
   return (
     <div className="flex items-start gap-2.5 px-3 py-2.5 rounded-md" style={{ background: '#fafbfc', border: '1px solid #f1f5f9' }}>
       <span className="w-5 h-5 rounded-full flex-shrink-0 flex items-center justify-center mt-0.5" style={{ background: '#fef3c7', color: '#a16207' }}>
-        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" /></svg>
+        <LightBulbIcon className="w-3 h-3" />
       </span>
       <div className="min-w-0">
         <p className="text-xs font-semibold" style={{ color: 'var(--foreground)' }}>{title}</p>
@@ -1165,7 +1173,7 @@ function TitleEditor({ domain, path, language, current, override, otherFields, p
             <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full"
               style={{ background: matchesKeyword ? '#dcfce7' : '#fef3c7', color: matchesKeyword ? '#16a34a' : '#a16207' }}>
               {matchesKeyword
-                ? <><svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg> includes a target keyword</>
+                ? <><CheckIcon className="w-2.5 h-2.5" /> includes a target keyword</>
                 : <><svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01M5.07 19h13.86c1.54 0 2.5-1.67 1.73-3L13.73 4c-.77-1.33-2.69-1.33-3.46 0L3.34 16c-.77 1.33.19 3 1.73 3z" /></svg> add at least one keyword</>}
             </span>
           </div>
@@ -1190,7 +1198,7 @@ function TitleEditor({ domain, path, language, current, override, otherFields, p
             title={hasKeywords ? 'Generate AI title suggestions' : 'Set keywords in the brand profile for better suggestions'}
             className="!rounded-full"
             iconLeft={
-              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8"><path strokeLinecap="round" strokeLinejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" /></svg>
+              <LightBulbIcon className="w-3.5 h-3.5" />
             }
           >
             {suggesting ? 'Thinking…' : 'Suggest titles'}
@@ -1330,7 +1338,7 @@ function OgImageEditor({ domain, path, language, current, override, otherFields,
             // eslint-disable-next-line @next/next/no-img-element
             <img src={value} alt="" className="w-full h-full object-cover" />
           ) : (
-            <svg className="w-5 h-5" fill="none" stroke="#cbd5e1" viewBox="0 0 24 24" strokeWidth="1.5"><path strokeLinecap="round" strokeLinejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+            <PhotoIcon className="w-5 h-5" />
           )}
         </div>
         <div className="flex-1 min-w-0">
@@ -1606,7 +1614,7 @@ function PatternRow({ domain, override, matchedPaths, onRefresh }: { domain: str
         className="w-full flex items-center gap-3 px-5 py-3 text-left hover:bg-slate-50 transition-colors"
       >
         <span className="w-5 h-5 rounded-full flex-shrink-0 flex items-center justify-center text-white" style={{ background: 'var(--primary)' }}>
-          <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3"><path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+          <BoltIcon className="w-2.5 h-2.5" />
         </span>
         <code className="flex-1 text-xs font-mono truncate" style={{ color: '#475569' }}>{override.path}</code>
         {myMatches.length > 0 && (
@@ -1615,9 +1623,7 @@ function PatternRow({ domain, override, matchedPaths, onRefresh }: { domain: str
           </span>
         )}
         <span className="text-[10px] uppercase font-semibold tracking-wider px-1.5 py-0.5 rounded" style={{ background: '#dbeafe', color: '#1e40af' }}>{override.language === 'ms' ? 'BM' : override.language === 'zh' ? '中文' : 'EN'}</span>
-        <svg className={`w-3.5 h-3.5 transition-transform ${open ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" style={{ color: '#94a3b8' }}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-        </svg>
+        <ChevronDownIcon className="w-3.5 h-3.5 transition-transform ${open ? 'rotate-180' : ''}" />
       </button>
       {open && (
         <div className="px-5 py-4 space-y-3" style={{ background: '#fafbfc', borderTop: '1px solid #f1f5f9' }}>
@@ -1869,9 +1875,9 @@ function IndexingDetail({ domain, path, robots, gscIntegration }: { domain: stri
           className="inline-flex items-center gap-1.5 text-xs font-medium px-3 h-8 rounded-full text-white transition-opacity hover:opacity-90 mt-3"
           style={{ background: 'var(--primary)' }}
         >
-          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8"><path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+          <MagnifyingGlassIcon className="w-3.5 h-3.5" />
           Request indexing on Google
-          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
+          <ArrowRightIcon className="w-3 h-3" />
         </a>
         <p className="text-[10px] mt-2" style={{ color: '#94a3b8' }}>Opens Search Console&apos;s URL Inspection for <code className="font-mono">{url}</code>. {propertyId ? <>Pre-filled for property <code className="font-mono">{propertyId}</code>.</> : <>Pick the right property when prompted, then click <strong>Request Indexing</strong>.</>}</p>
       </div>
@@ -1974,7 +1980,7 @@ function SeoOverrideModal({ domain, row, onClose, onSaved }: { domain: string; r
         <div className="px-5 py-4 flex items-center justify-between" style={{ borderBottom: '1px solid #e2e8f0' }}>
           <h2 className="text-base font-semibold" style={{ color: 'var(--foreground)' }}>Add another page</h2>
           <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-md transition-colors hover:bg-slate-100" style={{ color: '#94a3b8' }}>
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+            <XMarkIcon className="w-4 h-4" />
           </button>
         </div>
 

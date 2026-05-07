@@ -22,7 +22,7 @@ const STATUS_STYLE: Record<string, { bg: string; color: string; label: string }>
 
 const ROLE_STYLE: Record<string, { bg: string; color: string }> = {
   admin: { bg: '#e0ecf5', color: '#1e3a5f' },
-  designer: { bg: '#ede9fe', color: '#7c3aed' },
+  designer: { bg: '#eff6ff', color: '#1E5BFF' },
   writer: { bg: '#e0f2fe', color: '#0369a1' },
 }
 

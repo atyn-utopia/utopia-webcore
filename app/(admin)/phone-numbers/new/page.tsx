@@ -9,6 +9,14 @@ import { useConfirm } from '@/contexts/ConfirmContext'
 import { useToast } from '@/contexts/ToastContext'
 import { validatePhoneNumber, isDuplicatePhone } from '@/lib/validatePhone'
 
+import {
+  ArrowRightIcon,
+  ChevronDownIcon,
+  ExclamationTriangleIcon,
+  InformationCircleIcon,
+  PhoneIcon,
+  PlusIcon,
+} from '@heroicons/react/24/solid'
 const MY_STATES = [
   { label: 'Johor', slug: 'johor' },
   { label: 'Kedah', slug: 'kedah' },
@@ -31,7 +39,7 @@ const MY_STATES = [
 const LEADS_MODE: Record<string, { label: string; color: string; bg: string; desc: string }> = {
   single: { label: 'Single', color: '#475569', bg: '#f1f5f9', desc: '1 active number, all locations' },
   rotation: { label: 'Rotation', color: '#0369a1', bg: '#e0f2fe', desc: 'Multiple numbers rotate for all locations' },
-  location: { label: 'Location', color: '#7c3aed', bg: '#ede9fe', desc: 'Each number targets a specific location' },
+  location: { label: 'Location', color: '#1E5BFF', bg: '#eff6ff', desc: 'Each number targets a specific location' },
   hybrid: { label: 'Hybrid', color: '#b45309', bg: '#fef3c7', desc: 'Mix of all-location and specific-location numbers' },
 }
 
@@ -307,9 +315,7 @@ export default function NewPhoneNumberPage() {
           {/* Card header */}
           <div className="px-6 py-5 flex items-center gap-3" style={{ borderBottom: '1px solid #e2e8f0' }}>
             <div className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: '#e0f2fe' }}>
-              <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: 'var(--primary)' }}>
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-              </svg>
+              <PhoneIcon className="w-5 h-5 flex-shrink-0" />
             </div>
             <div>
               <h2 className="text-base font-semibold" style={{ color: 'var(--foreground)' }}>Phone Number Details</h2>
@@ -342,7 +348,7 @@ export default function NewPhoneNumberPage() {
                       <option value="">Select company…</option>
                       {companies.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                     </select>
-                    <svg className="w-3.5 h-3.5 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: '#94a3b8' }}><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+                    <ChevronDownIcon className="w-3.5 h-3.5 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                   </div>
                   {errors.company && <p className="mt-1 text-xs text-red-500">{errors.company}</p>}
                 </div>
@@ -361,7 +367,7 @@ export default function NewPhoneNumberPage() {
                       <option value="">{selectedCompany ? 'Select website…' : 'Select a company first'}</option>
                       {companyWebsites.map(w => <option key={w.domain} value={w.domain}>{w.domain}</option>)}
                     </select>
-                    <svg className="w-3.5 h-3.5 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: '#94a3b8' }}><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+                    <ChevronDownIcon className="w-3.5 h-3.5 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                   </div>
                   {errors.website && <p className="mt-1 text-xs text-red-500">{errors.website}</p>}
                 </div>
@@ -371,9 +377,7 @@ export default function NewPhoneNumberPage() {
               {website && (
                 <div className="rounded-xl border p-5" style={{ borderColor: modeChanged ? '#fbbf24' : '#e2e8f0', background: modeChanged ? '#fffbeb' : '#f8fafc' }}>
                   <div className="flex items-center gap-2 mb-4">
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: modeChanged ? '#d97706' : '#64748b' }} strokeWidth="1.8">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
+                    <InformationCircleIcon className="w-5 h-5" />
                     <span className="text-sm font-semibold" style={{ color: 'var(--foreground)' }}>Leads Mode</span>
                     {modeChanged && (
                       <span className="text-xs font-semibold ml-auto px-2 py-1 rounded-full" style={{ background: '#fef3c7', color: '#d97706' }}>
@@ -415,9 +419,7 @@ export default function NewPhoneNumberPage() {
                   <div className="text-sm mt-4 flex items-center gap-2 flex-wrap" style={{ color: '#475569' }}>
                     {!currentMode && existingNumbers.length === 0 && (
                       <span className="flex items-center gap-1.5">
-                        <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" style={{ color: '#94a3b8' }}>
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
+                        <InformationCircleIcon className="w-4 h-4 flex-shrink-0" />
                         This website has no numbers yet. The mode will be set once you add one.
                       </span>
                     )}
@@ -585,7 +587,7 @@ export default function NewPhoneNumberPage() {
                                       <option value="all">All locations</option>
                                       {MY_STATES.map(s => <option key={s.slug} value={s.slug}>{s.label}</option>)}
                                     </select>
-                                    <svg className="w-3 h-3 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: '#94a3b8' }}><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+                                    <ChevronDownIcon className="w-3 h-3 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                                   </div>
                                 </div>
                                 <div className="flex gap-3">
@@ -776,7 +778,7 @@ export default function NewPhoneNumberPage() {
                               <option value="">All locations</option>
                               {MY_STATES.map(s => <option key={s.slug} value={s.slug}>{s.label}</option>)}
                             </select>
-                            <svg className="w-3 h-3 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: '#94a3b8' }}><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+                            <ChevronDownIcon className="w-3 h-3 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                           </div>
                         </div>
 
@@ -817,9 +819,7 @@ export default function NewPhoneNumberPage() {
               <div className="grid grid-cols-2 gap-3">
                 <div className="rounded-lg border p-3" style={{ background: '#fff7ed', borderColor: '#fed7aa' }}>
                   <div className="flex items-center gap-1.5 mb-2">
-                    <svg className="w-3.5 h-3.5 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
-                    </svg>
+                    <ExclamationTriangleIcon className="w-3.5 h-3.5 text-orange-500" />
                     <span className="text-xs font-semibold text-orange-700">Important</span>
                   </div>
                   <ul className="space-y-1">
@@ -870,13 +870,9 @@ export default function NewPhoneNumberPage() {
                     </>
                   ) : (
                     <>
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
-                      </svg>
+                      <PlusIcon className="w-4 h-4" />
                       Add {rows.length} Number{rows.length > 1 ? 's' : ''}
-                      <svg className="w-4 h-4 transition-transform group-hover/btn:translate-x-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                      </svg>
+                      <ArrowRightIcon className="w-4 h-4 transition-transform group-hover/btn:translate-x-0.5" />
                     </>
                   )}
                 </button>

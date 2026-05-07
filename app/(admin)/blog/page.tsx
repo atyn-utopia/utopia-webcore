@@ -13,6 +13,19 @@ import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { PageSpinner } from '@/components/ui/Spinner'
 
+import {
+  ArrowTrendingDownIcon,
+  ArrowTrendingUpIcon,
+  BuildingOfficeIcon,
+  ChevronRightIcon,
+  DocumentTextIcon,
+  EyeIcon,
+  FolderIcon,
+  MagnifyingGlassIcon,
+  PencilSquareIcon,
+  PlusIcon,
+  XMarkIcon,
+} from '@heroicons/react/24/solid'
 interface Post {
   id: string
   website: string
@@ -176,7 +189,7 @@ export default function BlogListPage() {
                 variant="primary"
                 size="lg"
                 href="/blog/new"
-                iconLeft={<svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>}
+                iconLeft={<PlusIcon className="w-4 h-4" />}
               >
                 {t('button.newPost')}
               </Button>
@@ -185,13 +198,13 @@ export default function BlogListPage() {
         />
         <div className="mb-5">
           <div className="relative max-w-sm">
-            <svg className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: '#475569' }}><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+            <MagnifyingGlassIcon className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
             <input type="text" value={search} onChange={e => setSearch(e.target.value)} placeholder="Search companies…"
               className="w-full pl-9 pr-9 py-2 text-sm rounded-lg border focus:outline-none" style={{ borderColor: '#cbd5e1', background: 'white' }}
               onFocus={e => e.currentTarget.style.borderColor = 'var(--primary)'} onBlur={e => e.currentTarget.style.borderColor = '#cbd5e1'} />
             {search && (
               <button onClick={() => setSearch('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 flex items-center justify-center rounded-full hover:bg-slate-200 transition-colors" style={{ background: '#e2e8f0', color: '#64748b' }}>
-                <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                <XMarkIcon className="w-2.5 h-2.5" />
               </button>
             )}
           </div>
@@ -205,9 +218,7 @@ export default function BlogListPage() {
                 className="group block rounded-xl border bg-white p-5 hover:shadow-sm transition-all hover:border-slate-300" style={{ borderColor: '#e2e8f0' }}>
                 <div className="flex items-start gap-3">
                   <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: '#f1f5f9' }}>
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: 'var(--primary)' }} strokeWidth="1.5">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                    </svg>
+                    <BuildingOfficeIcon className="w-5 h-5" />
                   </div>
                   <div className="min-w-0 flex-1">
                     <p className="text-sm font-semibold truncate group-hover:text-[var(--primary)] transition-colors" style={{ color: 'var(--foreground)' }}>{c.name}</p>
@@ -216,9 +227,7 @@ export default function BlogListPage() {
                       {c.published_count > 0 && <span className="text-[10px] px-1.5 py-0.5 rounded-full" style={{ background: '#dcfce7', color: '#16a34a' }}>{c.published_count} live</span>}
                     </div>
                   </div>
-                  <svg className="w-4 h-4 mt-1 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: '#94a3b8' }} strokeWidth="2">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-                  </svg>
+                  <ChevronRightIcon className="w-4 h-4 mt-1 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />
                 </div>
               </Link>
             ))}
@@ -228,9 +237,7 @@ export default function BlogListPage() {
                 className="group block rounded-xl border bg-white p-5 hover:shadow-sm transition-all hover:border-slate-300" style={{ borderColor: '#e2e8f0' }}>
                 <div className="flex items-start gap-3">
                   <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: '#f1f5f9' }}>
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: '#94a3b8' }} strokeWidth="1.5">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
-                    </svg>
+                    <FolderIcon className="w-5 h-5" />
                   </div>
                   <div className="min-w-0 flex-1">
                     <p className="text-sm font-semibold truncate group-hover:text-[var(--primary)] transition-colors" style={{ color: '#94a3b8' }}>{site.domain}</p>
@@ -238,9 +245,7 @@ export default function BlogListPage() {
                       <span className="text-[10px]" style={{ color: '#94a3b8' }}>{site.blog_count} posts · Unassigned</span>
                     </div>
                   </div>
-                  <svg className="w-4 h-4 mt-1 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: '#94a3b8' }} strokeWidth="2">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-                  </svg>
+                  <ChevronRightIcon className="w-4 h-4 mt-1 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />
                 </div>
               </Link>
             ))}
@@ -253,17 +258,13 @@ export default function BlogListPage() {
                 className="group flex items-center gap-3 px-4 py-3.5 hover:bg-[#f8fafc] transition-colors"
                 style={{ borderBottom: i < filtered.length - 1 || unassignedSites.length > 0 ? '1px solid #f1f5f9' : 'none' }}>
                 <div className="w-8 h-8 rounded-md flex items-center justify-center flex-shrink-0" style={{ background: '#f1f5f9' }}>
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: 'var(--primary)' }} strokeWidth="1.5">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                  </svg>
+                  <BuildingOfficeIcon className="w-4 h-4" />
                 </div>
                 <p className="text-sm font-semibold truncate flex-1 group-hover:text-[var(--primary)] transition-colors" style={{ color: 'var(--foreground)' }}>{c.name}</p>
                 <div className="flex items-center gap-3 flex-shrink-0">
                   <span className="text-xs" style={{ color: '#64748b' }}>{c.blog_count} {c.blog_count === 1 ? 'post' : 'posts'}</span>
                   {c.published_count > 0 && <span className="text-[10px] px-1.5 py-0.5 rounded-full" style={{ background: '#dcfce7', color: '#16a34a' }}>{c.published_count} live</span>}
-                  <svg className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: '#94a3b8' }} strokeWidth="2">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-                  </svg>
+                  <ChevronRightIcon className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity" />
                 </div>
               </Link>
             ))}
@@ -272,9 +273,7 @@ export default function BlogListPage() {
                 className="group flex items-center gap-3 px-4 py-3.5 hover:bg-[#f8fafc] transition-colors"
                 style={{ borderBottom: i < unassignedSites.length - 1 ? '1px solid #f1f5f9' : 'none' }}>
                 <div className="w-8 h-8 rounded-md flex items-center justify-center flex-shrink-0" style={{ background: '#f1f5f9' }}>
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: '#94a3b8' }} strokeWidth="1.5">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
-                  </svg>
+                  <FolderIcon className="w-4 h-4" />
                 </div>
                 <p className="text-sm font-semibold truncate flex-1 group-hover:text-[var(--primary)] transition-colors" style={{ color: '#94a3b8' }}>{site.domain}</p>
                 <span className="text-xs flex-shrink-0" style={{ color: '#94a3b8' }}>{site.blog_count} posts · Unassigned</span>
@@ -303,7 +302,7 @@ export default function BlogListPage() {
                 variant="primary"
                 size="lg"
                 href="/blog/new"
-                iconLeft={<svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>}
+                iconLeft={<PlusIcon className="w-4 h-4" />}
               >
                 {t('button.newPost')}
               </Button>
@@ -321,17 +320,13 @@ export default function BlogListPage() {
                 className="group flex items-center gap-3 px-4 py-3.5 hover:bg-[#f8fafc] transition-colors"
                 style={{ borderBottom: i < companySites.length - 1 ? '1px solid #f1f5f9' : 'none' }}>
                 <div className="w-8 h-8 rounded-md flex items-center justify-center flex-shrink-0" style={{ background: '#f1f5f9' }}>
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: 'var(--primary)' }} strokeWidth="1.5">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
-                  </svg>
+                  <FolderIcon className="w-4 h-4" />
                 </div>
                 <p className="text-sm font-semibold truncate flex-1 group-hover:text-[var(--primary)] transition-colors" style={{ color: 'var(--foreground)' }}>{site.domain}</p>
                 <div className="flex items-center gap-3 flex-shrink-0">
                   <span className="text-xs" style={{ color: '#64748b' }}>{site.blog_count} {site.blog_count === 1 ? 'post' : 'posts'}</span>
                   {site.published_blog_count > 0 && <span className="text-[10px] px-1.5 py-0.5 rounded-full" style={{ background: '#dcfce7', color: '#16a34a' }}>{site.published_blog_count} live</span>}
-                  <svg className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: '#94a3b8' }} strokeWidth="2">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-                  </svg>
+                  <ChevronRightIcon className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity" />
                 </div>
               </Link>
             ))}
@@ -343,9 +338,7 @@ export default function BlogListPage() {
                 className="group block rounded-xl border bg-white p-5 hover:shadow-sm transition-all hover:border-slate-300" style={{ borderColor: '#e2e8f0' }}>
                 <div className="flex items-start gap-3">
                   <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: '#f1f5f9' }}>
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: 'var(--primary)' }} strokeWidth="1.5">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
-                    </svg>
+                    <FolderIcon className="w-5 h-5" />
                   </div>
                   <div className="min-w-0 flex-1">
                     <p className="text-sm font-semibold truncate group-hover:text-[var(--primary)] transition-colors" style={{ color: 'var(--foreground)' }}>{site.domain}</p>
@@ -354,9 +347,7 @@ export default function BlogListPage() {
                       {site.published_blog_count > 0 && <span className="text-[10px] px-1.5 py-0.5 rounded-full" style={{ background: '#dcfce7', color: '#16a34a' }}>{site.published_blog_count} live</span>}
                     </div>
                   </div>
-                  <svg className="w-4 h-4 mt-1 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: '#94a3b8' }} strokeWidth="2">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-                  </svg>
+                  <ChevronRightIcon className="w-4 h-4 mt-1 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />
                 </div>
               </Link>
             ))}
@@ -380,7 +371,7 @@ export default function BlogListPage() {
           <div className="rounded-xl border border-slate-200 bg-white p-4">
             <div className="flex items-center gap-2 mb-2">
               <div className="w-7 h-7 rounded-md flex items-center justify-center" style={{ background: '#eff6ff' }}>
-                <svg className="w-3.5 h-3.5" fill="none" stroke="#2979d6" viewBox="0 0 24 24" strokeWidth="1.8"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                <DocumentTextIcon className="w-3.5 h-3.5" />
               </div>
               <span className="text-[10px] font-medium" style={{ color: '#64748b' }}>Total Posts</span>
             </div>
@@ -390,7 +381,7 @@ export default function BlogListPage() {
           <div className="rounded-xl border border-slate-200 bg-white p-4">
             <div className="flex items-center gap-2 mb-2">
               <div className="w-7 h-7 rounded-md flex items-center justify-center" style={{ background: '#f0fdf4' }}>
-                <svg className="w-3.5 h-3.5" fill="none" stroke="#16a34a" viewBox="0 0 24 24" strokeWidth="1.8"><path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                <EyeIcon className="w-3.5 h-3.5" />
               </div>
               <span className="text-[10px] font-medium" style={{ color: '#64748b' }}>Total Views</span>
               {blogStats.summary.trend !== 'flat' && (
@@ -405,7 +396,7 @@ export default function BlogListPage() {
           <div className="rounded-xl border border-slate-200 bg-white p-4">
             <div className="flex items-center gap-2 mb-2">
               <div className="w-7 h-7 rounded-md flex items-center justify-center" style={{ background: '#f0fdf4' }}>
-                <svg className="w-3.5 h-3.5" fill="none" stroke="#16a34a" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>
+                <ArrowTrendingUpIcon className="w-3.5 h-3.5" />
               </div>
               <span className="text-[10px] font-medium" style={{ color: '#64748b' }}>Growing</span>
             </div>
@@ -415,7 +406,7 @@ export default function BlogListPage() {
           <div className="rounded-xl border border-slate-200 bg-white p-4">
             <div className="flex items-center gap-2 mb-2">
               <div className="w-7 h-7 rounded-md flex items-center justify-center" style={{ background: '#fef2f2' }}>
-                <svg className="w-3.5 h-3.5" fill="none" stroke="#dc2626" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6" /></svg>
+                <ArrowTrendingDownIcon className="w-3.5 h-3.5" />
               </div>
               <span className="text-[10px] font-medium" style={{ color: '#64748b' }}>Declining</span>
             </div>
@@ -461,9 +452,7 @@ export default function BlogListPage() {
           <div className="flex-1 min-w-0">
             <label className="block text-xs font-medium mb-1.5" style={{ color: '#475569' }}>Search</label>
             <div className="relative">
-              <svg className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: '#475569' }}>
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
+              <MagnifyingGlassIcon className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
               <input
                 type="text"
                 value={search}
@@ -474,7 +463,7 @@ export default function BlogListPage() {
               />
               {search && (
                 <button onClick={() => setSearch('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 flex items-center justify-center rounded-full hover:bg-slate-200 transition-colors" style={{ background: '#e2e8f0', color: '#64748b' }}>
-                  <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                  <XMarkIcon className="w-2.5 h-2.5" />
                 </button>
               )}
             </div>
@@ -508,9 +497,7 @@ export default function BlogListPage() {
             className="inline-flex items-center justify-center gap-2 text-white text-sm font-medium px-4 h-9 rounded-lg transition-opacity hover:opacity-90 flex-shrink-0"
             style={{ background: 'var(--primary)' }}
           >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-            </svg>
+            <PlusIcon className="w-4 h-4" />
             {t('button.newPost')}
           </Link>
         </div>
@@ -521,9 +508,7 @@ export default function BlogListPage() {
         <div className="p-12 text-center text-sm rounded-xl border" style={{ borderColor: '#cbd5e1', color: '#475569' }}>Loading…</div>
       ) : filtered.length === 0 && !search ? (
         <div className="p-12 text-center rounded-xl border" style={{ borderColor: '#cbd5e1' }}>
-          <svg className="w-10 h-10 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: '#cbd5e1' }}>
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-          </svg>
+          <DocumentTextIcon className="w-10 h-10 mx-auto mb-3" />
           <p className="text-sm font-medium" style={{ color: '#475569' }}>No posts yet</p>
           <p className="text-xs mt-1 mb-4" style={{ color: '#94a3b8' }}>Create the first blog post for {openFolder}</p>
           <Link
@@ -531,9 +516,7 @@ export default function BlogListPage() {
             className="inline-flex items-center gap-1.5 text-xs font-medium px-4 py-2 rounded-lg text-white transition-opacity hover:opacity-90"
             style={{ background: 'var(--primary)' }}
           >
-            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-            </svg>
+            <PlusIcon className="w-3.5 h-3.5" />
             New Post
           </Link>
         </div>
@@ -600,9 +583,7 @@ export default function BlogListPage() {
             className="flex flex-col items-center justify-center rounded-xl border-2 border-dashed p-8 transition-colors hover:border-slate-300 hover:bg-slate-50"
             style={{ borderColor: '#e2e8f0', color: '#94a3b8' }}
           >
-            <svg className="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.5">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
-            </svg>
+            <PlusIcon className="w-6 h-6 mb-1" />
             <span className="text-xs font-medium">New Post</span>
           </Link>
         </div>
@@ -657,8 +638,8 @@ export default function BlogListPage() {
                       <div className="flex items-center gap-1.5">
                         {(() => {
                           const stat = blogStats?.posts.find(p => p.id === post.id)
-                          if (stat && stat.trend === 'up') return <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="#16a34a" viewBox="0 0 24 24" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>
-                          if (stat && stat.trend === 'down') return <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="#dc2626" viewBox="0 0 24 24" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6" /></svg>
+                          if (stat && stat.trend === 'up') return <ArrowTrendingUpIcon className="w-3.5 h-3.5 flex-shrink-0" />
+                          if (stat && stat.trend === 'down') return <ArrowTrendingDownIcon className="w-3.5 h-3.5 flex-shrink-0" />
                           return <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="#cbd5e1" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M5 12h14" /></svg>
                         })()}
                         <Link href={`/blog/${post.id}/edit?website=${encodeURIComponent(openFolder)}`} className="text-xs sm:text-sm font-medium hover:underline truncate" style={{ color: 'var(--foreground)' }}>{post.title}</Link>
@@ -715,7 +696,7 @@ export default function BlogListPage() {
                   <td className="px-2 sm:px-4 py-3 align-middle">
                     <div className="flex items-center gap-1 justify-center">
                       <button onClick={() => router.push(`/blog/${post.id}/edit?website=${encodeURIComponent(openFolder)}`)} className="w-8 h-8 flex items-center justify-center rounded-lg border transition-colors hover:text-[var(--primary)] hover:border-[var(--primary)]" style={{ borderColor: '#cbd5e1', color: '#475569' }} title="Edit">
-                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                        <PencilSquareIcon className="w-3.5 h-3.5" />
                       </button>
                       <button
                         onClick={() => deletePost(post.id, post.title)}

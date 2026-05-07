@@ -6,6 +6,13 @@ import PageHeader from '@/components/PageHeader'
 import { useLanguage } from '@/contexts/LanguageContext'
 import { useToast } from '@/contexts/ToastContext'
 
+import {
+  BoltIcon,
+  ChevronDownIcon,
+  MagnifyingGlassIcon,
+  PlusIcon,
+  XMarkIcon,
+} from '@heroicons/react/24/solid'
 type UserRole = 'admin' | 'designer' | 'external_designer' | 'writer' | 'indoor_sales' | 'manager'
 
 interface CompanyRef { id: string; name: string }
@@ -170,9 +177,7 @@ export default function UsersPage() {
               className="inline-flex items-center gap-2 text-sm font-medium px-4 h-9 rounded-lg border transition-colors hover:bg-slate-50"
               style={{ borderColor: '#cbd5e1', color: '#475569' }}
             >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
-              </svg>
+              <BoltIcon className="w-4 h-4" />
               Onboard Designer
             </Link>
             <button
@@ -180,9 +185,7 @@ export default function UsersPage() {
               className="inline-flex items-center gap-2 text-white text-sm font-medium px-4 h-9 rounded-lg transition-opacity"
               style={{ background: 'var(--primary)' }}
             >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-              </svg>
+              <PlusIcon className="w-4 h-4" />
               {t('button.addUser')}
             </button>
           </div>
@@ -250,7 +253,7 @@ export default function UsersPage() {
                       <option key={r} value={r}>{ROLE_META[r].label}. {ROLE_META[r].desc}</option>
                     ))}
                   </select>
-                  <svg className="w-3.5 h-3.5 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: '#94a3b8' }}><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+                  <ChevronDownIcon className="w-3.5 h-3.5 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                 </div>
               </div>
             </div>
@@ -324,15 +327,13 @@ export default function UsersPage() {
       {/* Search */}
       <div className="mb-5">
         <div className="relative max-w-md">
-          <svg className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: '#cbd5e1' }}>
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-          </svg>
+          <MagnifyingGlassIcon className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
           <input type="text" value={search} onChange={e => setSearch(e.target.value)} placeholder="Search users or companies…"
             className="w-full pl-9 pr-9 py-2 text-sm rounded-lg border focus:outline-none"
             style={{ borderColor: '#cbd5e1', background: 'white' }} />
           {search && (
             <button onClick={() => setSearch('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 flex items-center justify-center rounded-full hover:bg-slate-200 transition-colors" style={{ background: '#e2e8f0', color: '#64748b' }}>
-              <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+              <XMarkIcon className="w-2.5 h-2.5" />
             </button>
           )}
         </div>
@@ -417,7 +418,7 @@ export default function UsersPage() {
                               <option key={r} value={r}>{ROLE_META[r].label}. {ROLE_META[r].desc}</option>
                             ))}
                           </select>
-                          <svg className="w-3.5 h-3.5 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: '#94a3b8' }}><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+                          <ChevronDownIcon className="w-3.5 h-3.5 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                         </div>
                       </div>
                     </div>

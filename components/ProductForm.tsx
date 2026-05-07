@@ -8,6 +8,11 @@ import { useLanguage } from '@/contexts/LanguageContext'
 import { useToast } from '@/contexts/ToastContext'
 import { useConfirm } from '@/contexts/ConfirmContext'
 
+import {
+  ChevronDownIcon,
+  PhotoIcon,
+  XMarkIcon,
+} from '@heroicons/react/24/solid'
 interface ProductFormProps {
   mode: 'new' | 'edit'
   productId?: string
@@ -256,7 +261,7 @@ export default function ProductForm({ mode, productId, initialData = {} }: Produ
                       <img src={photo.url} alt={photo.alt_text ?? ''} className="w-full h-28 object-cover" />
                       <button type="button" onClick={() => removePhoto(photo.id)}
                         className="absolute top-1.5 right-1.5 w-6 h-6 flex items-center justify-center rounded-full bg-black/50 text-white opacity-0 group-hover:opacity-100 transition-opacity">
-                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                        <XMarkIcon className="w-3 h-3" />
                       </button>
                     </div>
                   ))}
@@ -300,16 +305,14 @@ export default function ProductForm({ mode, productId, initialData = {} }: Produ
                         <img src={sub.photos[0].url} alt="" className="w-10 h-10 rounded object-cover flex-shrink-0" />
                       ) : (
                         <div className="w-10 h-10 rounded flex items-center justify-center flex-shrink-0" style={{ background: '#f8fafc' }}>
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: '#e2e8f0' }} strokeWidth="1.5">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                          </svg>
+                          <PhotoIcon className="w-4 h-4" />
                         </div>
                       )}
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium truncate" style={{ color: 'var(--foreground)' }}>{sub.name}</p>
                         <div className="flex gap-2 mt-0.5">
                           {sub.sale_price != null && <span className="text-[10px]" style={{ color: '#0369a1' }}>RM {Number(sub.sale_price).toFixed(2)}</span>}
-                          {sub.rental_price != null && <span className="text-[10px]" style={{ color: '#7c3aed' }}>Rental: RM {Number(sub.rental_price).toFixed(2)}</span>}
+                          {sub.rental_price != null && <span className="text-[10px]" style={{ color: '#1E5BFF' }}>Rental: RM {Number(sub.rental_price).toFixed(2)}</span>}
                         </div>
                       </div>
                       <Link href={`/products/${sub.id}/edit`}
@@ -344,7 +347,7 @@ export default function ProductForm({ mode, productId, initialData = {} }: Produ
                     <option value="">Select company…</option>
                     {companies.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                   </select>
-                  <svg className="w-3.5 h-3.5 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: '#94a3b8' }}><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+                  <ChevronDownIcon className="w-3.5 h-3.5 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                 </div>
               </div>
               <div>
@@ -358,7 +361,7 @@ export default function ProductForm({ mode, productId, initialData = {} }: Produ
                     <option value="">{selectedCompany ? 'Select website…' : 'Select a company first'}</option>
                     {companyWebsites.map(w => <option key={w.domain} value={w.domain}>{w.domain}</option>)}
                   </select>
-                  <svg className="w-3.5 h-3.5 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: '#94a3b8' }}><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+                  <ChevronDownIcon className="w-3.5 h-3.5 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                 </div>
                 {errors.website && <p className="mt-1 text-xs text-red-500">{errors.website}</p>}
               </div>
@@ -375,7 +378,7 @@ export default function ProductForm({ mode, productId, initialData = {} }: Produ
                     <option value="">Main Product (top-level)</option>
                     {mainProducts.map(p => <option key={p.id} value={p.id}>↳ Sub-product of &quot;{p.name}&quot;</option>)}
                   </select>
-                  <svg className="w-3.5 h-3.5 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: '#94a3b8' }}><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+                  <ChevronDownIcon className="w-3.5 h-3.5 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                 </div>
                 <p className="mt-1 text-[10px]" style={{ color: '#94a3b8' }}>
                   {parentId ? 'This will be a sub-product under the selected main product' : 'This will be a standalone main product'}

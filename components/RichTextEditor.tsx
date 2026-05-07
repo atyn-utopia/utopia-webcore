@@ -11,6 +11,7 @@ import Heading from '@tiptap/extension-heading'
 import Image from '@tiptap/extension-image'
 import { useEffect, useCallback, useState, useRef } from 'react'
 
+import { LinkIcon } from '@heroicons/react/24/solid'
 interface RichTextEditorProps {
   value: string
   onChange: (html: string) => void
@@ -269,11 +270,11 @@ export default function RichTextEditor({ value, onChange, placeholder = 'Start w
 
         {/* Link */}
         <ToolbarButton active={editor.isActive('link')} onClick={setLink} title="Insert Link">
-          <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71" /><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71" /></svg>
+          <LinkIcon className="w-4 h-4" />
         </ToolbarButton>
         {editor.isActive('link') && (
           <ToolbarButton onClick={() => editor.chain().focus().unsetLink().run()} title="Remove Link">
-            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71" /><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71" /><line x1="4" y1="4" x2="20" y2="20" /></svg>
+            <LinkIcon className="w-4 h-4" />
           </ToolbarButton>
         )}
 
@@ -348,7 +349,7 @@ export default function RichTextEditor({ value, onChange, placeholder = 'Start w
             style={{ color: '#475569' }}
             onClick={linkToUrl}
           >
-            <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71" /><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71" /></svg>
+            <LinkIcon className="w-3.5 h-3.5" />
             Link to URL...
           </button>
 
@@ -418,7 +419,7 @@ export default function RichTextEditor({ value, onChange, placeholder = 'Start w
                 style={{ color: '#dc2626' }}
                 onClick={() => { editor.chain().focus().unsetLink().run(); setContextMenu(null) }}
               >
-                <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71" /><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71" /><line x1="4" y1="4" x2="20" y2="20" /></svg>
+                <LinkIcon className="w-3.5 h-3.5" />
                 Remove link
               </button>
             </>

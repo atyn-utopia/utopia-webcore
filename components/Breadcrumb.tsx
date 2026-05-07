@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { usePathname, useSearchParams } from 'next/navigation'
 import { useEffect, useState } from 'react'
 
+import { ChevronRightIcon } from '@heroicons/react/24/solid'
 interface CrumbItem {
   label: string
   href?: string
@@ -167,9 +168,7 @@ export default function Breadcrumb() {
         const isLast = i === crumbs.length - 1
         return (
           <span key={i} className="flex items-center gap-2 min-w-0">
-            <svg className="w-3 h-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: '#cbd5e1' }}>
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-            </svg>
+            <ChevronRightIcon className="w-3 h-3 flex-shrink-0" />
             {crumb.href && !isLast ? (
               <Link
                 href={crumb.href}

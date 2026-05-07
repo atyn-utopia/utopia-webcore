@@ -3,6 +3,10 @@
 import { useEffect, useState } from 'react'
 import SimpleChart from '@/components/analytics/SimpleChart'
 
+import {
+  ArrowTopRightOnSquareIcon,
+  XMarkIcon,
+} from '@heroicons/react/24/solid'
 interface DailyStat { date: string; pageviews: number; clicks: number; impressions: number }
 
 interface AnalyticsData {
@@ -45,7 +49,7 @@ const STAT_META = [
   { key: 'pageviews', label: 'Pageviews', color: '#2979d6' },
   { key: 'sessions', label: 'Sessions', color: '#16a34a' },
   { key: 'clicks', label: 'Clicks', color: '#f59e0b' },
-  { key: 'impressions', label: 'Impressions', color: '#7c3aed' },
+  { key: 'impressions', label: 'Impressions', color: '#1E5BFF' },
 ] as const
 
 export default function ComparisonColumn({ domain, period, onRemove, canRemove }: ComparisonColumnProps) {
@@ -77,14 +81,14 @@ export default function ComparisonColumn({ domain, period, onRemove, canRemove }
             className="inline-flex items-center gap-1 text-[11px] font-light underline underline-offset-2 transition-colors hover:text-[var(--primary)]"
             style={{ color: '#94a3b8' }}>
             Visit
-            <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8"><path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
+            <ArrowTopRightOnSquareIcon className="w-2.5 h-2.5" />
           </a>
         </div>
         {canRemove && (
           <button type="button" onClick={onRemove} aria-label={`Remove ${domain} from comparison`}
             className="flex-shrink-0 w-7 h-7 flex items-center justify-center rounded-md transition-colors hover:bg-red-50 hover:text-red-600"
             style={{ color: '#94a3b8' }}>
-            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+            <XMarkIcon className="w-3.5 h-3.5" />
           </button>
         )}
       </div>

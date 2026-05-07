@@ -6,6 +6,14 @@ import { useUser } from '@/contexts/UserContext'
 import PageHeader from '@/components/PageHeader'
 import { useLanguage } from '@/contexts/LanguageContext'
 
+import {
+  ArrowTopRightOnSquareIcon,
+  ChevronDownIcon,
+  DocumentTextIcon,
+  MagnifyingGlassIcon,
+  PhoneIcon,
+  XMarkIcon,
+} from '@heroicons/react/24/solid'
 interface Site {
   domain: string
   company_name: string | null
@@ -19,7 +27,7 @@ interface Site {
 const LEADS_MODE: Record<string, { label: string; color: string; bg: string }> = {
   single: { label: 'Single', color: '#475569', bg: '#f1f5f9' },
   rotation: { label: 'Rotation', color: '#0369a1', bg: '#e0f2fe' },
-  location: { label: 'Location', color: '#7c3aed', bg: '#ede9fe' },
+  location: { label: 'Location', color: '#1E5BFF', bg: '#eff6ff' },
   hybrid: { label: 'Hybrid', color: '#b45309', bg: '#fef3c7' },
 }
 
@@ -36,7 +44,7 @@ function SortIcon({ active, dir }: { active: boolean; dir: 'asc' | 'desc' }) {
 }
 
 function SelectArrow() {
-  return <svg className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: '#94a3b8' }} strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
+  return <ChevronDownIcon className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
 }
 
 export default function AllWebsitesPage() {
@@ -105,13 +113,13 @@ export default function AllWebsitesPage() {
       <div className="flex flex-wrap items-center gap-2 mb-4">
         {/* Search */}
         <div className="relative flex-1 min-w-[220px] max-w-sm">
-          <svg className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: '#94a3b8' }}><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+          <MagnifyingGlassIcon className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
           <input type="text" value={search} onChange={e => setSearch(e.target.value)} placeholder="Search by domain or company…"
             className="w-full pl-9 pr-8 h-9 text-sm rounded-md border focus:outline-none focus:border-[var(--primary)] transition-colors"
             style={{ borderColor: '#e2e8f0', background: 'white' }} />
           {search && (
             <button onClick={() => setSearch('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 flex items-center justify-center rounded-full hover:bg-slate-200 transition-colors" style={{ background: '#e2e8f0', color: '#64748b' }}>
-              <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+              <XMarkIcon className="w-2.5 h-2.5" />
             </button>
           )}
         </div>
@@ -252,17 +260,17 @@ export default function AllWebsitesPage() {
                         <div className="flex items-center gap-1.5 justify-end">
                           <a href={`https://${site.domain}`} target="_blank" rel="noopener noreferrer" title="Open website"
                             className="w-7 h-7 flex items-center justify-center rounded-md border transition-colors hover:border-[var(--primary)] hover:text-[var(--primary)]" style={{ borderColor: '#e2e8f0', color: '#94a3b8' }}>
-                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8"><path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
+                            <ArrowTopRightOnSquareIcon className="w-3.5 h-3.5" />
                           </a>
                           {!isWriter && (
                             <Link href={`/phone-numbers?website=${encodeURIComponent(site.domain)}`} title="Phone numbers"
                               className="w-7 h-7 flex items-center justify-center rounded-md border transition-colors hover:border-[var(--primary)] hover:text-[var(--primary)]" style={{ borderColor: '#e2e8f0', color: '#94a3b8' }}>
-                              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8"><path strokeLinecap="round" strokeLinejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>
+                              <PhoneIcon className="w-3.5 h-3.5" />
                             </Link>
                           )}
                           <Link href={`/blog?website=${encodeURIComponent(site.domain)}`} title="Blog posts"
                             className="w-7 h-7 flex items-center justify-center rounded-md border transition-colors hover:border-[var(--primary)] hover:text-[var(--primary)]" style={{ borderColor: '#e2e8f0', color: '#94a3b8' }}>
-                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                            <DocumentTextIcon className="w-3.5 h-3.5" />
                           </Link>
                         </div>
                       </td>

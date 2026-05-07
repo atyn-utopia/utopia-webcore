@@ -6,6 +6,7 @@ import { useChat } from '@ai-sdk/react'
 import { DefaultChatTransport } from 'ai'
 import { useCoxy } from '@/contexts/CoxyContext'
 
+import { XMarkIcon } from '@heroicons/react/24/solid'
 const SUGGESTIONS = [
   'How do I onboard a new external designer?',
   'How does phone number rotation work?',
@@ -192,7 +193,7 @@ export default function CoxyWidget() {
               className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-slate-100 transition-colors flex-shrink-0"
               style={{ color: '#64748b' }}
             >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+              <XMarkIcon className="w-4 h-4" />
             </button>
           </div>
 

@@ -3,6 +3,14 @@
 import { useEffect, useState } from 'react'
 import PageHeader from '@/components/PageHeader'
 
+import {
+  ChevronDownIcon,
+  ChevronRightIcon,
+  DocumentTextIcon,
+  MagnifyingGlassIcon,
+  PhoneIcon,
+  XMarkIcon,
+} from '@heroicons/react/24/solid'
 interface FieldChange { before: unknown; after: unknown }
 interface AuditLog {
   id: string
@@ -35,18 +43,14 @@ const ENTITY_META: Record<string, { label: string; icon: React.ReactNode; color:
     label: 'Phone',
     ...ENTITY_NEUTRAL,
     icon: (
-      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-      </svg>
+      <PhoneIcon className="w-3.5 h-3.5" />
     ),
   },
   blog_post: {
     label: 'Blog',
     ...ENTITY_NEUTRAL,
     icon: (
-      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-      </svg>
+      <DocumentTextIcon className="w-3.5 h-3.5" />
     ),
   },
   product: {
@@ -164,12 +168,12 @@ export default function AuditTrailPage() {
         <div className="flex-1 min-w-48 max-w-sm">
           <label className="block text-[10px] font-medium mb-1" style={{ color: '#94a3b8' }}>Search</label>
           <div className="relative">
-            <svg className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: '#cbd5e1' }}><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+            <MagnifyingGlassIcon className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
             <input type="text" value={search} onChange={e => setSearch(e.target.value)} placeholder="Search user, website, or label…"
               className="w-full pl-9 pr-9 py-2 text-sm rounded-lg border focus:outline-none" style={{ borderColor: '#e2e8f0', background: 'white' }} />
             {search && (
               <button onClick={() => setSearch('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 flex items-center justify-center rounded-full hover:bg-slate-200 transition-colors" style={{ background: '#e2e8f0', color: '#64748b' }}>
-                <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                <XMarkIcon className="w-2.5 h-2.5" />
               </button>
             )}
           </div>
@@ -186,7 +190,7 @@ export default function AuditTrailPage() {
               <option value="website">Websites</option>
               <option value="api_key">API keys</option>
             </select>
-            <svg className="w-3.5 h-3.5 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: '#94a3b8' }} strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
+            <ChevronDownIcon className="w-3.5 h-3.5 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
           </div>
         </div>
         <div>
@@ -199,7 +203,7 @@ export default function AuditTrailPage() {
               <option value="update">Updated</option>
               <option value="delete">Deleted</option>
             </select>
-            <svg className="w-3.5 h-3.5 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: '#94a3b8' }} strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
+            <ChevronDownIcon className="w-3.5 h-3.5 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
           </div>
         </div>
       </div>
@@ -229,9 +233,7 @@ export default function AuditTrailPage() {
                   {/* Expand caret */}
                   <div className="w-4 flex-shrink-0 flex justify-center">
                     {canExpand && (
-                      <svg className={`w-3.5 h-3.5 transition-transform ${isExpanded ? 'rotate-90' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" style={{ color: '#94a3b8' }}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-                      </svg>
+                      <ChevronRightIcon className="w-3.5 h-3.5 transition-transform ${isExpanded ? 'rotate-90' : ''}" />
                     )}
                   </div>
 

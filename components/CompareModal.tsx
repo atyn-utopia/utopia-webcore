@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 
+import { MagnifyingGlassIcon, XMarkIcon } from '@heroicons/react/24/solid'
 interface Site { domain: string; company_name: string | null }
 
 interface CompareModalProps {
@@ -84,14 +85,14 @@ export default function CompareModal({ open, onClose, preselect }: CompareModalP
           <button onClick={onClose} aria-label="Close"
             className="flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-lg hover:bg-slate-100 transition-colors"
             style={{ color: '#64748b' }}>
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+            <XMarkIcon className="w-4 h-4" />
           </button>
         </div>
 
         {/* Search */}
         <div className="px-6 pb-3 flex-shrink-0">
           <div className="relative">
-            <svg className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: '#cbd5e1' }}><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+            <MagnifyingGlassIcon className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
             <input
               type="text"
               value={search}
@@ -115,7 +116,7 @@ export default function CompareModal({ open, onClose, preselect }: CompareModalP
               {d}
               <button onClick={() => toggle(d)} aria-label={`Remove ${d}`}
                 className="hover:opacity-70" type="button">
-                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                <XMarkIcon className="w-3 h-3" />
               </button>
             </span>
           ))}

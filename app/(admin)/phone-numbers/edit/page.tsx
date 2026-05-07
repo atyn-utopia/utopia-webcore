@@ -9,12 +9,18 @@ import { useToast } from '@/contexts/ToastContext'
 import { validatePhoneNumber } from '@/lib/validatePhone'
 import { MY_STATES, LOCATION_LABEL } from '@/lib/myStates'
 
+import {
+  ArrowTopRightOnSquareIcon,
+  ChevronDownIcon,
+  ExclamationTriangleIcon,
+  PlusIcon,
+} from '@heroicons/react/24/solid'
 type Mode = 'single' | 'rotation' | 'location' | 'hybrid'
 
 const LEADS_MODE: Record<Mode, { label: string; color: string; bg: string; desc: string }> = {
   single:   { label: 'Single',   color: '#475569', bg: '#f1f5f9', desc: 'Only the default number handles all leads.' },
   rotation: { label: 'Rotation', color: '#0369a1', bg: '#e0f2fe', desc: 'Multiple numbers rotate for all locations.' },
-  location: { label: 'Location', color: '#7c3aed', bg: '#ede9fe', desc: 'Each number targets a specific location.' },
+  location: { label: 'Location', color: '#1E5BFF', bg: '#eff6ff', desc: 'Each number targets a specific location.' },
   hybrid:   { label: 'Hybrid',   color: '#b45309', bg: '#fef3c7', desc: 'Mix of all-location and specific numbers.' },
 }
 
@@ -617,7 +623,7 @@ export default function ManagePhoneNumbersPage() {
                           <span className="inline-flex items-center gap-0.5 text-[9px] font-bold px-1 py-0.5 rounded normal-case tracking-normal"
                             style={{ background: '#fef2f2', color: '#b91c1c', border: '1px solid #fecaca' }}
                             title={`Over by ${pctTotal - 100}%`}>
-                            <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" /></svg>
+                            <ExclamationTriangleIcon className="w-2.5 h-2.5" />
                             +{pctTotal - 100}%
                           </span>
                         )}
@@ -696,7 +702,7 @@ export default function ManagePhoneNumbersPage() {
                       <div className="text-[11px] font-medium mb-1 flex items-center gap-1.5 flex-wrap" style={{ color: '#64748b' }}>
                         <span className="font-mono">{r.phone_number || '(no number)'}</span>
                         {r.location_slug !== 'all' && (
-                          <span className="px-1.5 py-0.5 rounded" style={{ background: '#ede9fe', color: '#7c3aed' }}>
+                          <span className="px-1.5 py-0.5 rounded" style={{ background: '#eff6ff', color: '#1E5BFF' }}>
                             {LOCATION_LABEL[r.location_slug] ?? r.location_slug}
                           </span>
                         )}
@@ -708,7 +714,7 @@ export default function ManagePhoneNumbersPage() {
                         className="inline-flex items-center gap-1 text-[11px] font-medium px-2.5 py-1.5 rounded-md border transition-colors hover:border-green-500 hover:text-green-700 flex-shrink-0"
                         style={{ borderColor: '#e2e8f0', color: '#16a34a' }}>
                         Test
-                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8"><path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
+                        <ArrowTopRightOnSquareIcon className="w-3 h-3" />
                       </a>
                     )}
                   </div>
@@ -798,7 +804,7 @@ function Select({ value, onChange, options, disabled }: {
         style={{ borderColor: '#e2e8f0', background: 'white', appearance: 'none', WebkitAppearance: 'none', paddingRight: '2.25rem' }}>
         {options.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
       </select>
-      <svg className="w-3.5 h-3.5 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: '#94a3b8' }}><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+      <ChevronDownIcon className="w-3.5 h-3.5 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
     </div>
   )
 }
@@ -1067,7 +1073,7 @@ function DraftRowEditor({ d, existingTexts, waOpenKey, setWaOpenKey, showLocatio
             <button type="button" onClick={onAdd} title="Add another row"
               className="w-7 h-7 inline-flex items-center justify-center rounded-md border transition-colors hover:border-[var(--primary)] hover:text-[var(--primary)]"
               style={{ borderColor: '#e2e8f0', color: '#64748b', background: 'white' }}>
-              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" /></svg>
+              <PlusIcon className="w-3.5 h-3.5" />
             </button>
           )}
         </div>

@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useToast } from '@/contexts/ToastContext'
 import { LoadingOverlay } from '@/components/ui/Spinner'
 
+import { XMarkIcon } from '@heroicons/react/24/solid'
 interface Props {
   open: boolean
   company: { id: string; name: string; logo_url: string | null } | null
@@ -120,7 +121,7 @@ export default function EditCompanyModal({ open, company, onClose, onSaved }: Pr
             className="w-8 h-8 flex items-center justify-center rounded-md transition-colors hover:bg-slate-100"
             style={{ color: '#94a3b8' }}
           >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+            <XMarkIcon className="w-4 h-4" />
           </button>
         </div>
 

@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/Input'
 import { Card } from '@/components/ui/Card'
 import { Logo } from '@/components/ui/Logo'
 
+import { CheckIcon } from '@heroicons/react/24/solid'
 function LoginPageInner() {
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -81,9 +82,7 @@ function LoginPageInner() {
       <div className="min-h-screen flex items-center justify-center bg-slate-50">
         <div className="flex flex-col items-center">
           <div className="w-14 h-14 rounded-2xl flex items-center justify-center mb-4 bg-[var(--primary)]" style={{ animation: 'scaleIn 0.4s ease' }}>
-            <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5" style={{ animation: 'checkDraw 0.5s ease 0.3s both' }}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-            </svg>
+            <CheckIcon className="w-7 h-7 text-white" />
           </div>
           <p className="text-sm font-semibold text-slate-900" style={{ animation: 'fadeUp 0.4s ease 0.4s both' }}>{t('login.welcomeBack')}</p>
           <p className="text-xs mt-1 text-slate-500" style={{ animation: 'fadeUp 0.4s ease 0.5s both' }}>{t('login.redirecting')}</p>

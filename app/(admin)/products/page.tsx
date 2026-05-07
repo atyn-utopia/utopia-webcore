@@ -12,6 +12,13 @@ import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { PageSpinner } from '@/components/ui/Spinner'
 
+import {
+  ChevronRightIcon,
+  MagnifyingGlassIcon,
+  PhotoIcon,
+  PlusIcon,
+  XMarkIcon,
+} from '@heroicons/react/24/solid'
 interface Company { id: string; name: string; company_websites: { domain: string }[] }
 interface WebsiteSummary { domain: string; company_name: string | null }
 interface Product {
@@ -109,12 +116,12 @@ export default function ProductsPage() {
         />
         <div className="mb-5">
           <div className="relative max-w-sm">
-            <svg className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: '#cbd5e1' }}><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+            <MagnifyingGlassIcon className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
             <input type="text" value={search} onChange={e => setSearch(e.target.value)} placeholder="Search companies…"
               className="w-full pl-9 pr-9 py-2 text-sm rounded-lg border focus:outline-none" style={{ borderColor: '#cbd5e1', background: 'white' }} />
             {search && (
               <button onClick={() => setSearch('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 flex items-center justify-center rounded-full hover:bg-slate-200 transition-colors" style={{ background: '#e2e8f0', color: '#64748b' }}>
-                <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                <XMarkIcon className="w-2.5 h-2.5" />
               </button>
             )}
           </div>
@@ -136,9 +143,7 @@ export default function ProductsPage() {
                     <p className="text-sm font-semibold truncate group-hover:text-[var(--primary)] transition-colors" style={{ color: 'var(--foreground)' }}>{c.name}</p>
                     <span className="text-[10px]" style={{ color: '#475569' }}>{c.site_count} {c.site_count === 1 ? 'website' : 'websites'}</span>
                   </div>
-                  <svg className="w-4 h-4 mt-1 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: '#94a3b8' }} strokeWidth="2">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-                  </svg>
+                  <ChevronRightIcon className="w-4 h-4 mt-1 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />
                 </div>
               </Link>
             ))}
@@ -156,9 +161,7 @@ export default function ProductsPage() {
                 </div>
                 <p className="text-sm font-semibold truncate flex-1 group-hover:text-[var(--primary)] transition-colors" style={{ color: 'var(--foreground)' }}>{c.name}</p>
                 <span className="text-xs flex-shrink-0" style={{ color: '#64748b' }}>{c.site_count} websites</span>
-                <svg className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: '#94a3b8' }} strokeWidth="2">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-                </svg>
+                <ChevronRightIcon className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" />
               </Link>
             ))}
           </div>
@@ -197,9 +200,7 @@ export default function ProductsPage() {
                   <div className="min-w-0 flex-1">
                     <p className="text-sm font-semibold truncate group-hover:text-[var(--primary)] transition-colors" style={{ color: 'var(--foreground)' }}>{site.domain}</p>
                   </div>
-                  <svg className="w-4 h-4 mt-1 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: '#94a3b8' }} strokeWidth="2">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-                  </svg>
+                  <ChevronRightIcon className="w-4 h-4 mt-1 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />
                 </div>
               </Link>
             ))}
@@ -216,9 +217,7 @@ export default function ProductsPage() {
                   </svg>
                 </div>
                 <p className="text-sm font-semibold truncate flex-1 group-hover:text-[var(--primary)] transition-colors" style={{ color: 'var(--foreground)' }}>{site.domain}</p>
-                <svg className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: '#94a3b8' }} strokeWidth="2">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-                </svg>
+                <ChevronRightIcon className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" />
               </Link>
             ))}
           </div>
@@ -247,9 +246,7 @@ export default function ProductsPage() {
           <div className="flex-1 min-w-0">
             <label className="block text-xs font-medium mb-1.5" style={{ color: '#475569' }}>Search</label>
             <div className="relative">
-              <svg className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: '#475569' }}>
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
+              <MagnifyingGlassIcon className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
               <input
                 type="text"
                 value={search}
@@ -260,7 +257,7 @@ export default function ProductsPage() {
               />
               {search && (
                 <button onClick={() => setSearch('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 flex items-center justify-center rounded-full hover:bg-slate-200 transition-colors" style={{ background: '#e2e8f0', color: '#64748b' }}>
-                  <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                  <XMarkIcon className="w-2.5 h-2.5" />
                 </button>
               )}
             </div>
@@ -289,7 +286,7 @@ export default function ProductsPage() {
             variant="primary"
             size="lg"
             href={`/products/new?website=${encodeURIComponent(openWebsite)}${openCompany ? `&company=${encodeURIComponent(openCompany)}` : ''}`}
-            iconLeft={<svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>}
+            iconLeft={<PlusIcon className="w-4 h-4" />}
           >
             {t('button.addProduct')}
           </Button>
@@ -327,9 +324,7 @@ export default function ProductsPage() {
                           <img src={product.photos[0].url} alt={product.photos[0].alt_text ?? product.name} className="w-10 h-10 rounded-md object-cover flex-shrink-0" style={{ background: '#f1f5f9' }} />
                         ) : (
                           <div className="w-10 h-10 rounded-md flex items-center justify-center flex-shrink-0" style={{ background: '#f8fafc' }}>
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: '#cbd5e1' }} strokeWidth="1.5">
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                            </svg>
+                            <PhotoIcon className="w-4 h-4" />
                           </div>
                         )}
                         <p className="text-sm font-medium truncate" style={{ color: 'var(--foreground)' }}>{product.name}</p>
@@ -395,9 +390,7 @@ export default function ProductsPage() {
                 </div>
               ) : (
                 <div className="h-32 flex items-center justify-center" style={{ background: '#f8fafc' }}>
-                  <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: '#e2e8f0' }} strokeWidth="1.5">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                  </svg>
+                  <PhotoIcon className="w-10 h-10" />
                 </div>
               )}
 
@@ -422,7 +415,7 @@ export default function ProductsPage() {
                     </span>
                   )}
                   {product.rental_price !== null && (
-                    <span className="text-xs font-semibold px-2 py-0.5 rounded" style={{ background: '#ede9fe', color: '#7c3aed' }}>
+                    <span className="text-xs font-semibold px-2 py-0.5 rounded" style={{ background: '#eff6ff', color: '#1E5BFF' }}>
                       Rental: {formatPrice(product.rental_price)}
                     </span>
                   )}

@@ -9,7 +9,7 @@ type SeriesKey = 'pageviews' | 'clicks' | 'impressions'
 const SERIES: { key: SeriesKey; label: string; color: string }[] = [
   { key: 'pageviews', label: 'Pageviews', color: '#2979d6' },
   { key: 'clicks', label: 'Clicks', color: '#f59e0b' },
-  { key: 'impressions', label: 'Impressions', color: '#7c3aed' },
+  { key: 'impressions', label: 'Impressions', color: '#1E5BFF' },
 ]
 
 const WIDTH = 600

@@ -5,6 +5,10 @@ import Link from 'next/link'
 import PageHeader from '@/components/PageHeader'
 import { useToast } from '@/contexts/ToastContext'
 
+import {
+  ChevronDownIcon,
+  ExclamationTriangleIcon,
+} from '@heroicons/react/24/solid'
 interface Company { id: string; name: string }
 
 interface OnboardResult {
@@ -122,7 +126,7 @@ export default function OnboardPage() {
                   <option value="">Select company…</option>
                   {companies.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                 </select>
-                <svg className="w-3.5 h-3.5 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: '#94a3b8' }}><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+                <ChevronDownIcon className="w-3.5 h-3.5 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
               </div>
             ) : (
               <input type="text" value={form.company_name} onChange={e => setForm(f => ({ ...f, company_name: e.target.value }))}
@@ -240,9 +244,7 @@ function ResultView({ result, onReset }: { result: OnboardResult; onReset: () =>
 
       <div className="rounded-xl border p-5 mb-5" style={{ background: '#fff7ed', borderColor: '#fed7aa' }}>
         <div className="flex items-center gap-2 mb-2">
-          <svg className="w-5 h-5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
-          </svg>
+          <ExclamationTriangleIcon className="w-5 h-5 text-amber-500" />
           <h3 className="text-sm font-bold text-amber-800">Hand this over to the designer now</h3>
         </div>
         <p className="text-xs" style={{ color: '#92400e' }}>Send via your usual secure channel (not public chat). They can change the password after first login.</p>

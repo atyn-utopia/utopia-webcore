@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import WebsiteCard from './WebsiteCard'
 
+import { CheckIcon, ChevronDownIcon, ChevronRightIcon, MagnifyingGlassIcon, XMarkIcon } from '@heroicons/react/24/solid'
 interface SiteRow {
   domain: string
   leads_mode: string | null
@@ -99,7 +100,7 @@ export default function CompanyWebsitesGrid({ domains, initialSites }: { domains
           >
             <span>{ACTIVITY_LABEL[activity]}</span>
             <span className="text-xs" style={{ color: '#cbd5e1' }}>({scoped.length})</span>
-            <svg className={`w-3.5 h-3.5 transition-transform ${scopeOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
+            <ChevronDownIcon className="w-3.5 h-3.5 transition-transform ${scopeOpen ? 'rotate-180' : ''}" />
           </button>
           {scopeOpen && (
             <div className="absolute top-11 left-0 w-44 rounded-md shadow-lg z-30 py-1" style={{ background: 'white', border: '1px solid #e2e8f0' }}>
@@ -111,7 +112,7 @@ export default function CompanyWebsitesGrid({ domains, initialSites }: { domains
                   style={{ color: activity === opt ? 'var(--primary)' : '#475569', fontWeight: activity === opt ? 600 : 500 }}
                 >
                   {ACTIVITY_LABEL[opt]}
-                  {activity === opt && <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>}
+                  {activity === opt && <CheckIcon className="w-3.5 h-3.5" />}
                 </button>
               ))}
             </div>
@@ -158,7 +159,7 @@ export default function CompanyWebsitesGrid({ domains, initialSites }: { domains
                     style={{ color: !leadsMode ? 'var(--primary)' : '#475569', fontWeight: !leadsMode ? 600 : 500 }}
                   >
                     All
-                    {!leadsMode && <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>}
+                    {!leadsMode && <CheckIcon className="w-3.5 h-3.5" />}
                   </button>
                   {Object.entries(LEADS_MODE).map(([k, label]) => (
                     <button
@@ -168,7 +169,7 @@ export default function CompanyWebsitesGrid({ domains, initialSites }: { domains
                       style={{ color: leadsMode === k ? 'var(--primary)' : '#475569', fontWeight: leadsMode === k ? 600 : 500 }}
                     >
                       {label}
-                      {leadsMode === k && <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>}
+                      {leadsMode === k && <CheckIcon className="w-3.5 h-3.5" />}
                     </button>
                   ))}
                 </div>
@@ -189,7 +190,7 @@ export default function CompanyWebsitesGrid({ domains, initialSites }: { domains
 
           {/* Search */}
           <div className="relative">
-            <svg className="w-3.5 h-3.5 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: '#94a3b8' }}><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+            <MagnifyingGlassIcon className="w-3.5 h-3.5 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
             <input
               type="text"
               value={search}
@@ -200,7 +201,7 @@ export default function CompanyWebsitesGrid({ domains, initialSites }: { domains
             />
             {search && (
               <button onClick={() => setSearch('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 flex items-center justify-center rounded-full hover:bg-slate-200 transition-colors" style={{ background: '#e2e8f0', color: '#64748b' }}>
-                <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                <XMarkIcon className="w-2.5 h-2.5" />
               </button>
             )}
           </div>
@@ -286,9 +287,7 @@ function SiteListRow({ site, isLast }: { site: SiteRow; isLast: boolean }) {
         {site.active_phone_count > 0 && <span className="text-[10px] font-medium px-1.5 py-0.5 rounded-full" style={{ background: '#dcfce7', color: '#16a34a' }}>{site.active_phone_count} phones</span>}
         {site.published_blog_count > 0 && <span className="text-[10px] font-medium px-1.5 py-0.5 rounded-full" style={{ background: '#e0f2fe', color: '#0369a1' }}>{site.published_blog_count} posts</span>}
       </div>
-      <svg className="w-4 h-4 flex-shrink-0 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" style={{ color: '#94a3b8' }}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-      </svg>
+      <ChevronRightIcon className="w-4 h-4 flex-shrink-0 opacity-50" />
     </Link>
   )
 }

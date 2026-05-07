@@ -1,5 +1,7 @@
 'use client'
 
+import { ChevronDownIcon } from '@heroicons/react/24/solid'
+
 interface SelectFilterProps {
   label: string
   value: string
@@ -36,13 +38,7 @@ export default function SelectFilter({ label, value, onChange, options }: Select
             <option key={o.value} value={o.value}>{o.label}</option>
           ))}
         </select>
-        <svg
-          className="w-3.5 h-3.5 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none"
-          fill="none" stroke="currentColor" viewBox="0 0 24 24"
-          style={{ color: '#475569' }}
-        >
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-        </svg>
+        <ChevronDownIcon className="w-3.5 h-3.5 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
       </div>
     </div>
   )

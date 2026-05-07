@@ -17,6 +17,21 @@ import InsightsPanel from '@/components/analytics/InsightsPanel'
 import MiniBar from '@/components/analytics/MiniBar'
 import Tooltip from '@/components/analytics/Tooltip'
 
+import {
+  ArrowTopRightOnSquareIcon,
+  BuildingOfficeIcon,
+  CalendarIcon,
+  ChevronRightIcon,
+  ComputerDesktopIcon,
+  DocumentTextIcon,
+  EyeIcon,
+  InformationCircleIcon,
+  MagnifyingGlassIcon,
+  PhoneIcon,
+  PhotoIcon,
+  PlusIcon,
+  XMarkIcon,
+} from '@heroicons/react/24/solid'
 interface WebsiteSummary { domain: string; company_id: string | null; company_name: string | null; leads_mode: string | null; phone_count: number; active_phone_count: number; blog_count: number; published_blog_count: number }
 interface CompanyInfo { id: string; name: string; company_websites: { domain: string }[] }
 interface WebsiteStat { website: string; pageviews: number; clicks: number; impressions: number; sessions: number; trend: 'up' | 'down' | 'flat'; trend_pct: number }
@@ -27,13 +42,13 @@ interface AnalyticsData { summary: { pageviews: number; clicks: number; impressi
 interface RecentPost { id: string; website: string; title: string; status: string; updated_at: string; slug: string }
 interface RecentPhone { id: string; website: string; phone_number: string; label: string | null; type: string }
 
-const LEADS_MODE: Record<string, { label: string; color: string; bg: string }> = { single: { label: 'Single', color: '#475569', bg: '#f1f5f9' }, rotation: { label: 'Rotation', color: '#0369a1', bg: '#e0f2fe' }, location: { label: 'Location', color: '#7c3aed', bg: '#ede9fe' }, hybrid: { label: 'Hybrid', color: '#b45309', bg: '#fef3c7' } }
+const LEADS_MODE: Record<string, { label: string; color: string; bg: string }> = { single: { label: 'Single', color: '#475569', bg: '#f1f5f9' }, rotation: { label: 'Rotation', color: '#0369a1', bg: '#e0f2fe' }, location: { label: 'Location', color: '#1E5BFF', bg: '#eff6ff' }, hybrid: { label: 'Hybrid', color: '#b45309', bg: '#fef3c7' } }
 const MEDAL = ['🥇', '🥈', '🥉']
 const ICON = {
-  eye: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8"><path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>,
+  eye: <EyeIcon className="w-4 h-4" />,
   users: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8"><path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" /></svg>,
   click: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8"><path strokeLinecap="round" strokeLinejoin="round" d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122" /></svg>,
-  image: <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8"><path strokeLinecap="round" strokeLinejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>,
+  image: <PhotoIcon className="w-4 h-4" />,
 }
 
 function tr(today: number, yesterday: number): 'up' | 'down' | 'flat' { return today > yesterday ? 'up' : today < yesterday ? 'down' : 'flat' }
@@ -195,7 +210,7 @@ export default function WebsitesPage() {
       <StatCard label="Pageviews" value={s.pageviews} color="#2979d6" hint="Total pages viewed" icon={ICON.eye} today={t.pageviews} yesterday={y.pageviews} trend={tr(t.pageviews, y.pageviews)} series={pvSeries} />
       <StatCard label="Sessions" value={s.sessions} color="#16a34a" hint="Unique visitor sessions" icon={ICON.users} today={t.sessions} yesterday={y.sessions} trend={tr(t.sessions, y.sessions)} series={pvSeries} />
       <StatCard label="Clicks" value={s.clicks} color="#f59e0b" hint="Button clicks (WhatsApp, Call)" icon={ICON.click} today={t.clicks} yesterday={y.clicks} trend={tr(t.clicks, y.clicks)} series={clickSeries} />
-      <StatCard label="Impressions" value={s.impressions} color="#7c3aed" hint="Product/content views" icon={ICON.image} today={t.impressions} yesterday={y.impressions} trend={tr(t.impressions, y.impressions)} series={impSeries} />
+      <StatCard label="Impressions" value={s.impressions} color="#1E5BFF" hint="Product/content views" icon={ICON.image} today={t.impressions} yesterday={y.impressions} trend={tr(t.impressions, y.impressions)} series={impSeries} />
     </div>)
   }
 
@@ -209,9 +224,9 @@ export default function WebsitesPage() {
 
   function SearchBar({ placeholder }: { placeholder?: string }) {
     return (<div className="mb-5"><div className="relative max-w-sm">
-      <svg className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: '#cbd5e1' }}><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+      <MagnifyingGlassIcon className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
       <input type="text" value={search} onChange={e => setSearch(e.target.value)} placeholder={placeholder ?? 'Search…'} className="w-full pl-9 pr-9 py-2 text-sm rounded-lg border focus:outline-none" style={{ borderColor: '#cbd5e1', background: 'white' }} />
-      {search && (<button onClick={() => setSearch('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 flex items-center justify-center rounded-full hover:bg-slate-200 transition-colors" style={{ background: '#e2e8f0', color: '#64748b' }}><svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="3"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg></button>)}
+      {search && (<button onClick={() => setSearch('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 flex items-center justify-center rounded-full hover:bg-slate-200 transition-colors" style={{ background: '#e2e8f0', color: '#64748b' }}><XMarkIcon className="w-2.5 h-2.5" /></button>)}
     </div></div>)
   }
 
@@ -274,7 +289,7 @@ export default function WebsitesPage() {
           <button onClick={() => setCompareOpen(true)}
             className="inline-flex items-center gap-2 text-sm font-medium px-4 h-9 rounded-lg border transition-colors hover:bg-slate-50"
             style={{ borderColor: '#cbd5e1', color: '#475569' }}>
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8"><path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+            <CalendarIcon className="w-4 h-4" />
             Change sites
           </button>
           <button onClick={() => router.push('/websites')}
@@ -316,14 +331,14 @@ export default function WebsitesPage() {
         <button onClick={() => setCompareOpen(true)}
           className="inline-flex items-center gap-2 text-sm font-medium px-4 h-9 rounded-lg border transition-colors hover:bg-slate-50"
           style={{ borderColor: '#cbd5e1', color: '#475569' }}>
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8"><path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+          <CalendarIcon className="w-4 h-4" />
           Compare
         </button>
         {canAddWebsite && (
           <button onClick={() => setAddOpen(true)}
             className="inline-flex items-center gap-2 text-white text-sm font-medium px-4 h-9 rounded-lg transition-opacity"
             style={{ background: 'var(--primary)' }}>
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
+            <PlusIcon className="w-4 h-4" />
             Add Website
           </button>
         )}
@@ -340,7 +355,7 @@ export default function WebsitesPage() {
               <div className="w-10 text-center flex-shrink-0">{isTop3 ? <span className="text-xl">{MEDAL[i]}</span> : <span className="text-sm font-bold" style={{ color: '#94a3b8' }}>#{i + 1}</span>}</div>
               <div className="flex-1 min-w-0"><p className="text-sm font-semibold truncate group-hover:text-[var(--primary)] transition-colors" style={{ color: 'var(--foreground)' }}>{c.name}</p><div className="flex gap-3 mt-1 text-xs" style={{ color: '#64748b' }}><span>{c.site_count} sites</span><span>{c.sessions.toLocaleString()} sessions</span><span>{c.clicks.toLocaleString()} clicks</span></div></div>
               <div className="w-40 flex-shrink-0"><MiniBar value={c.pageviews} max={maxPv} color={isTop3 ? (i === 0 ? '#f59e0b' : i === 1 ? '#94a3b8' : '#ea580c') : 'var(--primary)'} /></div>
-              <svg className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: '#94a3b8' }} strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></svg>
+              <ChevronRightIcon className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" />
             </Link>) })}
         </div>
       ) : (
@@ -348,7 +363,7 @@ export default function WebsitesPage() {
           {filtered.map((c, i) => { const isTop3 = i < 3 && c.pageviews > 0; return (
             <Link key={c.id} href={`/websites?company=${encodeURIComponent(c.name)}`} className="group block rounded-xl border bg-white p-5 hover:shadow-sm transition-all hover:border-slate-300" style={{ borderColor: '#e2e8f0', background: isTop3 ? (i === 0 ? '#fffbeb' : i === 1 ? '#f8fafc' : '#fdf4ef') : undefined }}>
               <div className="flex items-start gap-3">
-                <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: '#f1f5f9' }}>{isTop3 ? <span className="text-lg">{MEDAL[i]}</span> : <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: 'var(--primary)' }} strokeWidth="1.5"><path strokeLinecap="round" strokeLinejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>}</div>
+                <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: '#f1f5f9' }}>{isTop3 ? <span className="text-lg">{MEDAL[i]}</span> : <BuildingOfficeIcon className="w-5 h-5" />}</div>
                 <div className="min-w-0 flex-1"><p className="text-sm font-semibold truncate group-hover:text-[var(--primary)] transition-colors" style={{ color: 'var(--foreground)' }}>{c.name}</p><div className="flex items-center gap-2 mt-1.5 flex-wrap text-[10px]" style={{ color: '#64748b' }}><span>{c.site_count} sites</span><span>{c.pageviews.toLocaleString()} views</span>{c.clicks > 0 && <span>{c.clicks} clicks</span>}</div></div>
               </div>
             </Link>) })}
@@ -407,14 +422,14 @@ export default function WebsitesPage() {
         <button onClick={() => setCompareOpen(true)}
           className="inline-flex items-center gap-2 text-sm font-medium px-4 h-9 rounded-lg border transition-colors hover:bg-slate-50"
           style={{ borderColor: '#cbd5e1', color: '#475569' }}>
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8"><path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+          <CalendarIcon className="w-4 h-4" />
           Compare
         </button>
         {canAddWebsite && currentCompany && (
           <button onClick={() => setAddOpen(true)}
             className="inline-flex items-center gap-2 text-white text-sm font-medium px-4 h-9 rounded-lg transition-opacity"
             style={{ background: 'var(--primary)' }}>
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
+            <PlusIcon className="w-4 h-4" />
             Add Website
           </button>
         )}
@@ -479,13 +494,13 @@ export default function WebsitesPage() {
                       Dashboard
                     </Link>
                     <a href={`https://${site.domain}`} target="_blank" rel="noopener noreferrer" className="group/tip relative w-7 h-7 flex items-center justify-center rounded-md border border-[#e2e8f0] text-[#94a3b8] transition-colors hover:border-[var(--primary)] hover:text-[var(--primary)]" title="Open website">
-                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8"><path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
+                      <ArrowTopRightOnSquareIcon className="w-3.5 h-3.5" />
                     </a>
                     {!isWriter && <Link href={`/phone-numbers?website=${encodeURIComponent(site.domain)}`} className="w-7 h-7 flex items-center justify-center rounded-md border border-[#e2e8f0] text-[#94a3b8] transition-colors hover:border-[var(--primary)] hover:text-[var(--primary)]" title="Phone numbers">
-                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8"><path strokeLinecap="round" strokeLinejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>
+                      <PhoneIcon className="w-3.5 h-3.5" />
                     </Link>}
                     <Link href={`/blog?website=${encodeURIComponent(site.domain)}`} className="w-7 h-7 flex items-center justify-center rounded-md border border-[#e2e8f0] text-[#94a3b8] transition-colors hover:border-[var(--primary)] hover:text-[var(--primary)]" title="Blog posts">
-                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                      <DocumentTextIcon className="w-3.5 h-3.5" />
                     </Link>
                   </div>
                 </td>
@@ -538,7 +553,7 @@ export default function WebsitesPage() {
                   className="inline-flex items-center gap-1 transition-colors hover:text-[var(--primary)] truncate"
                   style={{ color: '#64748b' }}>
                   <span className="truncate">{siteUrl}</span>
-                  <svg className="w-3 h-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8"><path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
+                  <ArrowTopRightOnSquareIcon className="w-3 h-3 flex-shrink-0" />
                 </a>
                 {siteInfo?.company_name && (
                   <>
@@ -559,7 +574,7 @@ export default function WebsitesPage() {
               <button onClick={() => setCompareOpen(true)}
                 className="inline-flex items-center gap-1.5 text-xs font-medium px-3 h-9 rounded-md border transition-colors hover:bg-slate-50"
                 style={{ borderColor: '#e2e8f0', color: '#475569', background: 'white' }}>
-                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8"><path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                <CalendarIcon className="w-3.5 h-3.5" />
                 Compare
               </button>
               <PeriodSelector value={period} onChange={setPeriod} />
@@ -639,10 +654,10 @@ export default function WebsitesPage() {
       {/* Devices & Browsers. Purple */}
       <div className="rounded-xl border bg-white overflow-hidden" style={{ borderColor: '#e2e8f0' }}>
         <div className="px-5 py-3 flex items-center gap-2" style={{ background: '#faf5ff', borderBottom: '1px solid #e2e8f0' }}>
-          <div className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: 'white', color: '#7c3aed' }}>
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8"><path strokeLinecap="round" strokeLinejoin="round" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+          <div className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: 'white', color: '#1E5BFF' }}>
+            <ComputerDesktopIcon className="w-4 h-4" />
           </div>
-          <h3 className="text-sm font-semibold" style={{ color: '#7c3aed' }}>Visitor Mix</h3>
+          <h3 className="text-sm font-semibold" style={{ color: '#1E5BFF' }}>Visitor Mix</h3>
         </div>
         <div className="p-5 grid grid-cols-2 gap-5">
           <div>
@@ -657,7 +672,7 @@ export default function WebsitesPage() {
                 : <path strokeLinecap="round" strokeLinejoin="round" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
               return (
                 <div key={d} className="flex items-center gap-2 py-1.5">
-                  <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8" style={{ color: '#7c3aed' }}>{icon}</svg>
+                  <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8" style={{ color: '#1E5BFF' }}>{icon}</svg>
                   <span className="text-xs capitalize flex-1" style={{ color: '#475569' }}>{d}</span>
                   <span className="text-xs font-semibold" style={{ color: 'var(--foreground)' }}>{c}</span>
                   <span className="text-[10px] font-medium" style={{ color: '#94a3b8' }}>({pct}%)</span>
@@ -674,7 +689,7 @@ export default function WebsitesPage() {
               const pct = Math.round((c / total) * 100)
               return (
                 <div key={b} className="flex items-center gap-2 py-1.5">
-                  <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8" style={{ color: '#7c3aed' }}><circle cx="12" cy="12" r="9" /><path strokeLinecap="round" d="M3 12h18M12 3a15 15 0 010 18M12 3a15 15 0 000 18" /></svg>
+                  <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8" style={{ color: '#1E5BFF' }}><circle cx="12" cy="12" r="9" /><path strokeLinecap="round" d="M3 12h18M12 3a15 15 0 010 18M12 3a15 15 0 000 18" /></svg>
                   <span className="text-xs flex-1" style={{ color: '#475569' }}>{b}</span>
                   <span className="text-xs font-semibold" style={{ color: 'var(--foreground)' }}>{c}</span>
                   <span className="text-[10px] font-medium" style={{ color: '#94a3b8' }}>({pct}%)</span>
@@ -753,7 +768,7 @@ function SearchConsoleCard({ domain, period }: { domain: string; period: string 
       <Container>
         <Header />
         <div className="p-5 flex items-center gap-3">
-          <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8" style={{ color: '#94a3b8' }}><path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+          <InformationCircleIcon className="w-4 h-4 flex-shrink-0" />
           <p className="text-xs" style={{ color: '#64748b' }}>
             See how people find this site from Google search. <span style={{ color: '#475569', fontWeight: 500 }}>Connect in the Integrations section below</span>.
           </p>
@@ -827,7 +842,7 @@ function SearchConsoleCard({ domain, period }: { domain: string; period: string 
       <Header rightSlot={<span className="text-[10px] font-medium px-1.5 py-0.5 rounded" style={{ background: '#dcfce7', color: '#15803d' }}>Connected</span>} />
       <div className="p-5 grid grid-cols-2 sm:grid-cols-4 gap-3 border-b" style={{ borderColor: '#f1f5f9' }}>
         <GscStat label="Clicks" value={totalClicks.toLocaleString()} color="#2979d6" />
-        <GscStat label="Impressions" value={totalImpressions.toLocaleString()} color="#7c3aed" />
+        <GscStat label="Impressions" value={totalImpressions.toLocaleString()} color="#1E5BFF" />
         <GscStat label="CTR" value={`${overallCtr.toFixed(1)}%`} color="#16a34a" />
         <GscStat label="Avg position" value={avgPosition.toFixed(1)} color="#f59e0b" />
       </div>

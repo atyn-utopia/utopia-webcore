@@ -13,6 +13,10 @@ import Breadcrumb from './Breadcrumb'
 import HeaderBar from './HeaderBar'
 import CoxyWidget from './CoxyWidget'
 
+import {
+  InformationCircleIcon,
+  XMarkIcon,
+} from '@heroicons/react/24/solid'
 interface AdminShellProps {
   userEmail: string
   userName: string
@@ -56,16 +60,14 @@ export default function AdminShell({ userEmail, userName, userRole, children }: 
         {showBeta && (
           <div className="flex-shrink-0 px-4 py-2 flex items-center justify-between gap-3" style={{ background: '#fef3c7', borderBottom: '1px solid #fcd34d' }}>
             <div className="flex items-center gap-2">
-              <svg className="w-4 h-4 flex-shrink-0 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
+              <InformationCircleIcon className="w-4 h-4 flex-shrink-0 text-amber-500" />
               <p className="text-xs text-amber-800">
                 <strong>Beta Testing</strong>. This system is in beta. Found a bug?{' '}
                 <Link href="/help" className="underline font-medium">Submit a ticket</Link>
               </p>
             </div>
             <button onClick={() => setShowBeta(false)} className="text-amber-400 hover:text-amber-600 flex-shrink-0">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+              <XMarkIcon className="w-4 h-4" />
             </button>
           </div>
         )}

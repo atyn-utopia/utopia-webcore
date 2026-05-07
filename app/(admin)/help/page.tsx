@@ -5,6 +5,7 @@ import PageHeader from '@/components/PageHeader'
 import { useLanguage } from '@/contexts/LanguageContext'
 import { useToast } from '@/contexts/ToastContext'
 
+import { PlusIcon } from '@heroicons/react/24/solid'
 interface Ticket {
   id: string
   subject: string
@@ -74,7 +75,7 @@ export default function HelpPage() {
           <button onClick={() => { setShowForm(!showForm); setSuccess(''); setError('') }}
             className="inline-flex items-center gap-2 text-white text-sm font-medium px-4 h-9 rounded-lg transition-opacity"
             style={{ background: 'var(--primary)' }}>
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
+            <PlusIcon className="w-4 h-4" />
             {t('button.newTicket')}
           </button>
         }

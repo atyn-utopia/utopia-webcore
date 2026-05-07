@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useUser } from '@/contexts/UserContext'
 import EditCompanyModal from './EditCompanyModal'
 
+import { PencilSquareIcon } from '@heroicons/react/24/solid'
 interface Props {
   id: string
   name: string
@@ -47,9 +48,7 @@ export default function CompanyHeader({ id, name, logoUrl }: Props) {
           className="inline-flex items-center gap-1.5 text-xs font-medium px-3 h-9 rounded-md border transition-colors hover:bg-slate-50 flex-shrink-0"
           style={{ borderColor: '#e2e8f0', color: '#475569', background: 'white' }}
         >
-          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-          </svg>
+          <PencilSquareIcon className="w-3.5 h-3.5" />
           Edit company
         </button>
       )}
