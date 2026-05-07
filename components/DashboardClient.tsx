@@ -7,6 +7,8 @@ import { useCoxy } from '@/contexts/CoxyContext'
 import type { UserRole } from '@/contexts/UserContext'
 import type { TranslationKey } from '@/lib/i18n/en'
 import AddWebsiteModal from '@/components/AddWebsiteModal'
+import { Button } from '@/components/ui/Button'
+import { Card } from '@/components/ui/Card'
 
 type CompanyFolder = { id: string; name: string; logoUrl: string | null; domains: string[] }
 
@@ -49,7 +51,7 @@ export default function DashboardClient({ role, isScoped, websiteCount, phoneCou
 
       {/* Stats. Info only, not links */}
       <div className={`grid grid-cols-1 ${isWriter || isScoped ? 'sm:grid-cols-2' : 'sm:grid-cols-2 lg:grid-cols-4'} gap-4 mb-8`}>
-        <div className="rounded-xl border border-slate-200 bg-white p-5">
+        <Card variant="default">
           <div className="flex items-center gap-3 mb-3">
             <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: '#f1f5f9' }}>
               <svg className="w-4.5 h-4.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8">
@@ -60,10 +62,10 @@ export default function DashboardClient({ role, isScoped, websiteCount, phoneCou
           </div>
           <p className="text-3xl font-bold text-slate-900 mb-0.5">{websiteCount}</p>
           <p className="text-xs text-slate-400">{t('dashboard.stats.websites.desc')}</p>
-        </div>
+        </Card>
 
         {!isWriter && (
-          <div className="rounded-xl border border-slate-200 bg-white p-5">
+          <Card variant="default">
             <div className="flex items-center gap-3 mb-3">
               <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: '#eff6ff' }}>
                 <svg className="w-4.5 h-4.5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8">
@@ -74,11 +76,11 @@ export default function DashboardClient({ role, isScoped, websiteCount, phoneCou
             </div>
             <p className="text-3xl font-bold text-slate-900 mb-0.5">{phoneCount ?? 0}</p>
             <p className="text-xs text-slate-400">{t('dashboard.stats.phoneNumbers.desc')}</p>
-          </div>
+          </Card>
         )}
 
         {!isWriter && (
-          <div className="rounded-xl border border-slate-200 bg-white p-5">
+          <Card variant="default">
             <div className="flex items-center gap-3 mb-3">
               <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: '#fef3c7' }}>
                 <svg className="w-4.5 h-4.5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8">
@@ -89,11 +91,11 @@ export default function DashboardClient({ role, isScoped, websiteCount, phoneCou
             </div>
             <p className="text-3xl font-bold text-slate-900 mb-0.5">{productCount ?? 0}</p>
             <p className="text-xs text-slate-400">Catalog items across websites</p>
-          </div>
+          </Card>
         )}
 
         {!isScoped && (
-          <div className="rounded-xl border border-slate-200 bg-white p-5">
+          <Card variant="default">
             <div className="flex items-center gap-3 mb-3">
               <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: '#f0fdf4' }}>
                 <svg className="w-4.5 h-4.5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8">
@@ -104,7 +106,7 @@ export default function DashboardClient({ role, isScoped, websiteCount, phoneCou
             </div>
             <p className="text-3xl font-bold text-slate-900 mb-0.5">{postCount ?? 0}</p>
             <p className="text-xs text-slate-400">{t('dashboard.stats.blogPosts.desc')}</p>
-          </div>
+          </Card>
         )}
       </div>
 
@@ -119,14 +121,14 @@ export default function DashboardClient({ role, isScoped, websiteCount, phoneCou
               )}
             </div>
             {canAddWebsite && (
-              <button
+              <Button
+                variant="primary"
+                size="md"
                 onClick={() => setAddOpen(true)}
-                className="inline-flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-md text-white transition-opacity hover:opacity-90"
-                style={{ background: 'var(--primary)' }}
+                iconLeft={<svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" /></svg>}
               >
-                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" /></svg>
                 Add Website
-              </button>
+              </Button>
             )}
           </div>
           {companies.length > 0 ? (
@@ -161,9 +163,9 @@ export default function DashboardClient({ role, isScoped, websiteCount, phoneCou
               ))}
             </div>
           ) : (
-            <div className="rounded-xl border bg-white p-8 text-center" style={{ borderColor: '#e2e8f0' }}>
-              <p className="text-sm" style={{ color: '#64748b' }}>No companies yet. Click <strong>Add Website</strong> to create one.</p>
-            </div>
+            <Card className="text-center !py-10">
+              <p className="text-sm text-slate-500">No companies yet. Click <strong>Add Website</strong> to create one.</p>
+            </Card>
           )}
         </>
       )}
