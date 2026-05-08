@@ -62,7 +62,7 @@ export default function RemoveFromWebcoreCard({ domain }: { domain: string }) {
           <h3 className="text-sm font-semibold" style={{ color: '#b91c1c' }}>Danger Zone</h3>
         </div>
       </div>
-      <div className="px-5 py-4 flex items-center justify-between gap-4 flex-wrap">
+      <div className="px-5 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div className="min-w-0 flex-1">
           <p className="text-sm font-medium" style={{ color: 'var(--foreground)' }}>Remove this site from Webcore</p>
           <p className="text-xs mt-1 leading-relaxed" style={{ color: '#64748b' }}>

@@ -102,13 +102,13 @@ export default function SiteSelector() {
         aria-expanded={open}
         title={websiteParam || 'All Sites'}
       >
-        <span className="truncate max-w-[200px]">{triggerLabel}</span>
+        <span className="truncate max-w-[110px] sm:max-w-[200px]">{triggerLabel}</span>
         <ChevronDownIcon className={`w-3.5 h-3.5 opacity-70 transition-transform ${open ? 'rotate-180' : ''}`} />
       </button>
 
       {open && (
         <div
-          className="absolute top-11 left-0 w-[min(26rem,calc(100vw-1.5rem))] rounded-xl shadow-2xl z-50 overflow-hidden"
+          className="fixed sm:absolute top-16 sm:top-11 left-3 right-3 sm:left-0 sm:right-auto sm:w-[26rem] rounded-xl shadow-2xl z-50 overflow-hidden"
           style={{ background: 'white', border: '1px solid #e2e8f0' }}
         >
           {/* Header: search pill + (admin) Add Website link */}

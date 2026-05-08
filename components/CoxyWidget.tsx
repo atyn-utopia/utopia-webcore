@@ -158,7 +158,7 @@ export default function CoxyWidget() {
           <img
             src="/coxy-floating.gif"
             alt="Coxy. Click to chat"
-            className="h-28 w-auto pointer-events-none select-none"
+            className="h-20 sm:h-28 w-auto pointer-events-none select-none"
             draggable={false}
           />
           {/* Tooltip bubble on hover */}

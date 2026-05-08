@@ -165,7 +165,7 @@ export default function SiteApiKeysCard({ domain }: Props) {
 
   return (
     <div className="rounded-xl border bg-white" style={{ borderColor: '#e2e8f0' }}>
-      <div className="px-5 py-4 flex items-center justify-between gap-3" style={{ borderBottom: '1px solid #f1f5f9' }}>
+      <div className="px-5 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3" style={{ borderBottom: '1px solid #f1f5f9' }}>
         <div>
           <h3 className="text-sm font-semibold" style={{ color: 'var(--foreground)' }}>API Keys</h3>
           <p className="text-xs mt-0.5" style={{ color: '#94a3b8' }}>
@@ -333,7 +333,7 @@ export default function SiteApiKeysCard({ domain }: Props) {
         const isCopied = copied === claudeToken
         return (
           <div
-            className="px-5 py-4 flex items-center justify-between gap-3 flex-wrap"
+            className="px-5 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3"
             style={{ background: '#f8fafc', borderTop: '1px solid #f1f5f9', borderBottomLeftRadius: 11, borderBottomRightRadius: 11 }}
           >
             <div className="flex items-start gap-3 min-w-0 flex-1">
