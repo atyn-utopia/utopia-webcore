@@ -37,6 +37,15 @@ export async function proxy(request: NextRequest) {
     return supabaseResponse
   }
 
+  // OAuth callback. Must run BEFORE the !user redirect — at this point the
+  // user IS unauthenticated (the code hasn't been exchanged yet). Letting
+  // the middleware redirect /auth/callback to /login eats the OAuth code
+  // and the user lands on blank login. The route handler at
+  // app/auth/callback/route.ts does the exchange itself.
+  if (pathname.startsWith('/auth/')) {
+    return supabaseResponse
+  }
+
   // Skip API routes — they handle auth internally
   if (pathname.startsWith('/api/')) {
     return supabaseResponse
