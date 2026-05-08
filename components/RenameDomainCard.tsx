@@ -1,37 +1,130 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import { useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useToast } from '@/contexts/ToastContext'
 import { useConfirm } from '@/contexts/ConfirmContext'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
-import { ArrowRightIcon, ExclamationTriangleIcon } from '@heroicons/react/24/solid'
+import { ArrowRightIcon, CheckCircleIcon, ExclamationTriangleIcon, XCircleIcon } from '@heroicons/react/24/solid'
 
 interface Props { domain: string }
 
 const DOMAIN_RE = /^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?(\.[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?)+$/
+const SUBDOMAIN_RE = /^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?$/
+
+type Mode = 'zone' | 'custom'
+type Availability =
+  | { state: 'idle' }
+  | { state: 'checking' }
+  | { state: 'available' }
+  | { state: 'taken'; reason: string }
+  | { state: 'invalid'; reason: string }
+
+function normalize(d: string) {
+  return d.trim().toLowerCase().replace(/^https?:\/\//, '').replace(/\/$/, '')
+}
+
+function suggestSubdomainFrom(domain: string): string {
+  // cat-rumah-malaysia.vercel.app → cat-rumah-malaysia
+  const head = domain.split('.')[0] ?? ''
+  return head.replace(/[^a-z0-9-]/g, '')
+}
 
 /**
- * Per-site Settings card. Lets admin/designer rename the canonical domain
- * recorded in webcore — useful when a site moves from a temporary
- * *.vercel.app URL onto a real domain. The rename cascades across every
- * table that keys off `website` (phone_numbers, products, blog_posts,
- * page_events, audit_logs, etc.) so analytics history and existing rows
- * follow the new name instead of orphaning under the old one.
+ * Per-site Settings card. Builds the new domain via either:
+ *   - Zone picker (subdomain input + dropdown of team-owned apex domains)
+ *   - Custom mode (free-form full hostname)
+ *
+ * Live availability check fires while typing — green pill when free, red
+ * with a reason when already taken (in webcore or on Vercel). On submit,
+ * the rename cascades through every webcore table that keys off `website`
+ * and (if VERCEL_API_TOKEN is configured) attaches the new domain to the
+ * matching Vercel project + triggers a redeploy.
  */
 export default function RenameDomainCard({ domain }: Props) {
   const router = useRouter()
   const toast = useToast()
   const confirm = useConfirm()
-  const [next, setNext] = useState('')
-  const [saving, setSaving] = useState(false)
 
-  const cleaned = next.trim().toLowerCase().replace(/^https?:\/\//, '').replace(/\/$/, '')
-  const valid = cleaned.length > 0 && cleaned !== domain && DOMAIN_RE.test(cleaned)
+  const [mode, setMode] = useState<Mode>('zone')
+  const [zones, setZones] = useState<string[]>([])
+  const [zonesReady, setZonesReady] = useState(false)
+  const [vercelEnabled, setVercelEnabled] = useState(false)
+  const [subdomain, setSubdomain] = useState(suggestSubdomainFrom(domain))
+  const [zone, setZone] = useState('')
+  const [custom, setCustom] = useState('')
+  const [saving, setSaving] = useState(false)
+  const [avail, setAvail] = useState<Availability>({ state: 'idle' })
+  const checkRef = useRef<AbortController | null>(null)
+
+  // Pull team-owned zones once.
+  useEffect(() => {
+    fetch('/api/company-websites/zones')
+      .then(r => r.ok ? r.json() : { zones: [], vercelEnabled: false })
+      .then((data: { zones: string[]; vercelEnabled: boolean }) => {
+        setZones(data.zones)
+        setVercelEnabled(data.vercelEnabled)
+        if (data.zones.length > 0) {
+          // Default to .utopiaai.my when present, else first zone.
+          const preferred = data.zones.find(z => z === 'utopiaai.my') ?? data.zones[0]
+          setZone(preferred)
+        } else {
+          setMode('custom')
+        }
+      })
+      .catch(() => { setMode('custom') })
+      .finally(() => setZonesReady(true))
+  }, [])
+
+  // Compute candidate hostname based on current mode.
+  const candidate = useMemo(() => {
+    if (mode === 'zone') {
+      const sub = subdomain.trim().toLowerCase()
+      if (!sub || !zone) return ''
+      return `${sub}.${zone}`
+    }
+    return normalize(custom)
+  }, [mode, subdomain, zone, custom])
+
+  // Local validation (cheap) — rejects obviously bad strings before hitting
+  // the server so the availability check doesn't fire on every keystroke.
+  const localValid = useMemo(() => {
+    if (!candidate) return null
+    if (candidate === domain) return 'New hostname matches the current one'
+    if (mode === 'zone' && subdomain && !SUBDOMAIN_RE.test(subdomain)) return 'Subdomain must be lowercase letters, digits, or dashes'
+    if (!DOMAIN_RE.test(candidate)) return 'Not a valid hostname'
+    return null
+  }, [candidate, domain, mode, subdomain])
+
+  // Debounced server-side availability check.
+  useEffect(() => {
+    checkRef.current?.abort()
+    if (!candidate) { setAvail({ state: 'idle' }); return }
+    if (localValid) { setAvail({ state: 'invalid', reason: localValid }); return }
+
+    const ctrl = new AbortController()
+    checkRef.current = ctrl
+    setAvail({ state: 'checking' })
+    const t = setTimeout(() => {
+      fetch(`/api/company-websites/check-domain?name=${encodeURIComponent(candidate)}`, { signal: ctrl.signal })
+        .then(r => r.json())
+        .then((data: { available: boolean; reason?: string }) => {
+          if (ctrl.signal.aborted) return
+          setAvail(data.available ? { state: 'available' } : { state: 'taken', reason: data.reason ?? 'Already in use' })
+        })
+        .catch(e => {
+          if ((e as Error).name === 'AbortError') return
+          setAvail({ state: 'idle' })
+        })
+    }, 350)
+    return () => { clearTimeout(t); ctrl.abort() }
+  }, [candidate, localValid])
+
+  const submittable = avail.state === 'available' && !saving
 
   async function handleRename() {
-    if (!valid || saving) return
+    if (!submittable) return
     const ok = await confirm({
       title: 'Rename this site?',
       message: (
@@ -39,9 +132,9 @@ export default function RenameDomainCard({ domain }: Props) {
           <p>The recorded domain will change from</p>
           <p className="font-mono text-xs px-2 py-1 rounded bg-slate-100">{domain}</p>
           <p>to</p>
-          <p className="font-mono text-xs px-2 py-1 rounded bg-blue-50 text-blue-700">{cleaned}</p>
+          <p className="font-mono text-xs px-2 py-1 rounded bg-blue-50 text-blue-700">{candidate}</p>
           <p className="text-xs text-slate-500 mt-2">
-            All phone numbers, products, blog posts, analytics events, and audit history attached to this site will move with it. The change is irreversible — to undo, rename it back manually.
+            All phone numbers, products, blog posts, analytics events, and audit history attached to this site will move with it.{vercelEnabled ? ' The new hostname will also be attached to the matching Vercel project and a fresh production deploy will be triggered.' : ''}
           </p>
         </div>
       ),
@@ -55,25 +148,18 @@ export default function RenameDomainCard({ domain }: Props) {
       const res = await fetch('/api/company-websites/rename', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ from: domain, to: cleaned }),
+        body: JSON.stringify({ from: domain, to: candidate }),
       })
       const data = (await res.json().catch(() => ({}))) as {
         error?: string
-        vercel?: {
-          enabled: boolean
-          projectId: string | null
-          addedNewDomain: boolean
-          redeployedDeploymentId: string | null
-          warnings: string[]
-        }
+        vercel?: { enabled: boolean; projectId: string | null; addedNewDomain: boolean; redeployedDeploymentId: string | null; warnings: string[] }
       }
       if (!res.ok) {
         toast.error(data.error || `Rename failed (${res.status})`, 'Rename failed')
         return
       }
-      // Compose a result message that reflects what Vercel actually did.
       const v = data.vercel
-      let detail = `${domain} → ${cleaned}`
+      let detail = `${domain} → ${candidate}`
       if (v?.enabled && v.projectId) {
         const parts: string[] = []
         if (v.addedNewDomain) parts.push('Vercel domain attached')
@@ -84,9 +170,7 @@ export default function RenameDomainCard({ domain }: Props) {
         detail += ' · Vercel project not found (manual attach needed)'
       }
       toast.success(detail, 'Domain renamed')
-      // Re-route the URL to the new domain so the page keeps loading data
-      // for the right site.
-      router.replace(`/site-settings?website=${encodeURIComponent(cleaned)}`)
+      router.replace(`/site-settings?website=${encodeURIComponent(candidate)}`)
       router.refresh()
     } catch (e) {
       toast.error((e as Error).message, 'Rename failed')
@@ -100,9 +184,10 @@ export default function RenameDomainCard({ domain }: Props) {
       <div className="px-5 py-4" style={{ borderBottom: '1px solid #f1f5f9' }}>
         <h3 className="text-sm font-semibold" style={{ color: 'var(--foreground)' }}>Domain</h3>
         <p className="text-xs mt-0.5" style={{ color: '#94a3b8' }}>
-          Change the recorded domain. All linked rows (phones, products, posts, analytics, audit) move with it.
+          Change the recorded domain. All linked rows (phones, products, posts, analytics, audit) move with it{vercelEnabled ? '. Vercel will also attach the new hostname and trigger a redeploy.' : '.'}
         </p>
       </div>
+
       <div className="px-5 py-4 space-y-3">
         <div>
           <label className="block text-xs font-medium mb-1.5" style={{ color: '#475569' }}>Current</label>
@@ -110,32 +195,125 @@ export default function RenameDomainCard({ domain }: Props) {
             {domain}
           </p>
         </div>
+
         <div className="flex items-center justify-center text-slate-300">
           <ArrowRightIcon className="w-4 h-4 rotate-90" />
         </div>
-        <div>
-          <label className="block text-xs font-medium mb-1.5" style={{ color: '#475569' }}>New domain</label>
-          <Input
-            type="text"
-            value={next}
-            onChange={e => setNext(e.target.value)}
-            placeholder="e.g. cat-rumah-malaysia.com"
-            autoComplete="off"
-            spellCheck={false}
-          />
-          {next && !valid && (
-            <p className="text-[11px] mt-1.5 flex items-center gap-1" style={{ color: '#b91c1c' }}>
-              <ExclamationTriangleIcon className="w-3 h-3" />
-              {cleaned === domain ? 'New domain matches current' : 'Not a valid hostname'}
-            </p>
-          )}
-        </div>
+
+        {/* Mode toggle */}
+        {zonesReady && zones.length > 0 && (
+          <div className="inline-flex items-center rounded-full border p-0.5 text-xs" style={{ borderColor: '#e2e8f0', background: '#f8fafc' }}>
+            {(['zone', 'custom'] as const).map(m => (
+              <button
+                key={m}
+                type="button"
+                onClick={() => setMode(m)}
+                className="px-3 py-1 rounded-full transition-colors"
+                style={{
+                  background: mode === m ? 'white' : 'transparent',
+                  color: mode === m ? 'var(--foreground)' : '#94a3b8',
+                  fontWeight: mode === m ? 600 : 500,
+                  boxShadow: mode === m ? '0 1px 2px rgba(15,23,42,0.06)' : 'none',
+                }}
+              >
+                {m === 'zone' ? 'Subdomain of team zone' : 'Custom domain'}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {/* Zone mode */}
+        {mode === 'zone' && (
+          <div>
+            <label className="block text-xs font-medium mb-1.5" style={{ color: '#475569' }}>New domain</label>
+            <div className="flex items-stretch gap-1.5">
+              <Input
+                type="text"
+                value={subdomain}
+                onChange={e => setSubdomain(e.target.value.toLowerCase())}
+                placeholder="subdomain"
+                autoComplete="off"
+                spellCheck={false}
+                className="flex-1"
+              />
+              <span className="flex items-center text-sm" style={{ color: '#94a3b8' }}>.</span>
+              <select
+                value={zone}
+                onChange={e => setZone(e.target.value)}
+                className="h-9 px-2 text-sm rounded-md border outline-none transition-colors"
+                style={{ borderColor: '#e2e8f0', background: 'white', color: 'var(--foreground)' }}
+              >
+                {zones.map(z => <option key={z} value={z}>{z}</option>)}
+              </select>
+            </div>
+          </div>
+        )}
+
+        {/* Custom mode */}
+        {mode === 'custom' && (
+          <div>
+            <label className="block text-xs font-medium mb-1.5" style={{ color: '#475569' }}>New domain</label>
+            <Input
+              type="text"
+              value={custom}
+              onChange={e => setCustom(e.target.value)}
+              placeholder="e.g. cat-rumah-malaysia.com"
+              autoComplete="off"
+              spellCheck={false}
+            />
+          </div>
+        )}
+
+        {/* Live availability indicator */}
+        {candidate && (
+          <AvailabilityPill state={avail} hostname={candidate} />
+        )}
       </div>
+
       <div className="px-5 py-3 flex items-center justify-end gap-2" style={{ background: '#f8fafc', borderTop: '1px solid #f1f5f9' }}>
-        <Button variant="primary" size="md" disabled={!valid} loading={saving} onClick={handleRename}>
+        <Button variant="primary" size="md" disabled={!submittable} loading={saving} onClick={handleRename}>
           {saving ? 'Renaming…' : 'Rename'}
         </Button>
       </div>
     </div>
+  )
+}
+
+function AvailabilityPill({ state, hostname }: { state: Availability; hostname: string }) {
+  if (state.state === 'idle') return null
+
+  if (state.state === 'checking') {
+    return (
+      <p className="text-[11px] inline-flex items-center gap-1.5" style={{ color: '#94a3b8' }}>
+        <span className="w-2 h-2 rounded-full animate-pulse" style={{ background: '#cbd5e1' }} />
+        Checking <span className="font-mono">{hostname}</span>…
+      </p>
+    )
+  }
+
+  if (state.state === 'available') {
+    return (
+      <p className="text-[11px] inline-flex items-center gap-1.5" style={{ color: '#15803d' }}>
+        <CheckCircleIcon className="w-3.5 h-3.5" />
+        <span><span className="font-mono">{hostname}</span> is available</span>
+      </p>
+    )
+  }
+
+  if (state.state === 'invalid') {
+    return (
+      <p className="text-[11px] inline-flex items-center gap-1.5" style={{ color: '#b91c1c' }}>
+        <ExclamationTriangleIcon className="w-3.5 h-3.5" />
+        {state.reason}
+      </p>
+    )
+  }
+
+  // taken
+  return (
+    <p className="text-[11px] inline-flex items-center gap-1.5" style={{ color: '#b91c1c' }}>
+      <XCircleIcon className="w-3.5 h-3.5" />
+      <span><span className="font-mono">{hostname}</span> · {state.reason}</span>
+    </p>
   )
 }

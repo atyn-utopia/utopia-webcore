@@ -116,6 +116,51 @@ export async function addDomainToProject(projectId: string, domain: string) {
 }
 
 /**
+ * Return the apex domains owned by the team (utopiaai.my, stickerlori.com.my,
+ * etc). Used by the rename UI to populate the zone dropdown so the user can
+ * pick a subdomain instead of typing a full hostname.
+ */
+export async function listTeamDomains(): Promise<string[]> {
+  const res = await vercelFetch('/v9/domains?limit=100')
+  if (!res.ok) return []
+  const data = (await res.json()) as { domains?: { name: string }[] }
+  return (data.domains ?? []).map(d => d.name).filter(Boolean).sort()
+}
+
+/**
+ * Check whether a hostname is already attached to a project on this team.
+ * Returns the project name (or id) when in use; null when available.
+ */
+export async function findProjectNameByDomain(domain: string): Promise<string | null> {
+  if (domain.endsWith('.vercel.app')) {
+    const name = domain.slice(0, -'.vercel.app'.length)
+    const res = await vercelFetch(`/v9/projects/${encodeURIComponent(name)}`)
+    if (res.ok) {
+      const data = (await res.json()) as { name?: string }
+      return data.name ?? name
+    }
+  }
+  let until: string | undefined
+  for (let safety = 0; safety < 50; safety++) {
+    const qs = until ? `?limit=100&until=${until}` : '?limit=100'
+    const res = await vercelFetch(`/v9/projects${qs}`)
+    if (!res.ok) return null
+    const data = (await res.json()) as {
+      projects?: { id: string; name: string; alias?: { domain: string }[]; targets?: { production?: { alias?: string[] } } }[]
+      pagination?: { next?: string | null }
+    }
+    for (const p of data.projects ?? []) {
+      if (p.alias?.some(a => a.domain === domain)) return p.name
+      const aliases = p.targets?.production?.alias ?? []
+      if (aliases.includes(domain)) return p.name
+    }
+    if (!data.pagination?.next) break
+    until = data.pagination.next
+  }
+  return null
+}
+
+/**
  * Trigger a redeploy of the latest production deployment so the new domain
  * gets served by a fresh build (some builds bake the canonical hostname into
  * the bundle — easier to redeploy than to audit every site).
