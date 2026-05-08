@@ -281,8 +281,14 @@ export default function PhoneNumbersPage() {
       {loading ? (
         <div className="p-12 text-center text-sm rounded-xl border" style={{ borderColor: '#cbd5e1', color: '#475569' }}>Loading…</div>
       ) : visibleEntries.length === 0 ? (
-        <div className="p-12 text-center text-sm rounded-xl border" style={{ borderColor: '#cbd5e1', color: '#475569' }}>
-          No phone numbers found. Open a website and use <span className="font-medium">Manage</span> to add numbers.
+        <div className="p-12 text-center rounded-xl border max-w-2xl mx-auto" style={{ borderColor: '#cbd5e1' }}>
+          <p className="text-sm font-semibold" style={{ color: 'var(--foreground)' }}>No phone numbers yet</p>
+          <p className="text-xs mt-2 leading-relaxed" style={{ color: '#64748b' }}>
+            You&apos;ll need to add a phone number here for each website. Once added, the number is automatically inserted into the live site via the website builder — no copy-paste needed. WhatsApp links, click-to-call buttons, and rotation rules update on the next page load.
+          </p>
+          <p className="text-xs mt-3" style={{ color: '#94a3b8' }}>
+            Open a website from the dashboard and click <span className="font-semibold" style={{ color: '#475569' }}>Manage</span> on the Phone Numbers tab to start.
+          </p>
         </div>
       ) : (
         <div className="space-y-8">
