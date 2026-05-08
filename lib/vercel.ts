@@ -160,6 +160,58 @@ export async function findProjectNameByDomain(domain: string): Promise<string | 
   return null
 }
 
+export interface DeploymentSummary {
+  id: string
+  url: string
+  state: string
+  target: string | null
+  createdAt: number
+  creator: { uid: string; username: string | null; name: string | null } | null
+  commit: { message: string | null; ref: string | null; sha: string | null; repo: string | null } | null
+}
+
+/**
+ * List recent deployments for a project, normalized for UI rendering.
+ * Used by the per-site Settings page to show who shipped what.
+ */
+export async function listDeployments(projectId: string, limit = 20): Promise<DeploymentSummary[]> {
+  const res = await vercelFetch(`/v6/deployments?projectId=${projectId}&limit=${limit}`)
+  if (!res.ok) return []
+  const data = (await res.json()) as {
+    deployments?: Array<{
+      uid: string
+      url: string
+      state: string
+      target: string | null
+      created: number
+      creator?: { uid?: string; username?: string; githubLogin?: string; name?: string }
+      meta?: Record<string, string | undefined>
+    }>
+  }
+  return (data.deployments ?? []).map(d => ({
+    id: d.uid,
+    url: d.url,
+    state: d.state,
+    target: d.target ?? null,
+    createdAt: d.created,
+    creator: d.creator
+      ? {
+          uid: d.creator.uid ?? '',
+          username: d.creator.username ?? d.creator.githubLogin ?? null,
+          name: d.creator.name ?? null,
+        }
+      : null,
+    commit: d.meta
+      ? {
+          message: d.meta.githubCommitMessage ?? d.meta.gitlabCommitMessage ?? d.meta.bitbucketCommitMessage ?? null,
+          ref: d.meta.githubCommitRef ?? d.meta.gitlabCommitRef ?? d.meta.bitbucketCommitRef ?? null,
+          sha: d.meta.githubCommitSha ?? d.meta.gitlabCommitSha ?? d.meta.bitbucketCommitSha ?? null,
+          repo: d.meta.githubRepo ?? d.meta.gitlabProjectPath ?? d.meta.bitbucketRepoSlug ?? null,
+        }
+      : null,
+  }))
+}
+
 /**
  * List every domain alias attached to a Vercel project. Includes the
  * default *.vercel.app, any team-zone aliases (e.g. *.utopiaai.my), and
