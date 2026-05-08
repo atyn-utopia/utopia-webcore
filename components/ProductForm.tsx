@@ -244,7 +244,7 @@ export default function ProductForm({ mode, productId, initialData = {} }: Produ
               <label className="block text-xs font-medium mb-1.5" style={{ color: '#475569' }}>Description</label>
               <textarea value={description} onChange={e => setDescription(e.target.value)} placeholder="Product description…"
                 rows={4}
-                className="w-full px-3 py-2.5 text-sm rounded-full border focus:outline-none transition-colors resize-y"
+                className="w-full px-3 py-2.5 text-sm rounded-lg border focus:outline-none transition-colors resize-y"
                 style={{ borderColor: '#cbd5e1' }} />
             </div>
           </div>

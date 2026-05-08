@@ -102,7 +102,7 @@ export default function HelpPage() {
               <label className="block text-xs font-medium mb-1" style={{ color: '#475569' }}>Description</label>
               <textarea value={description} onChange={e => setDescription(e.target.value)} rows={4}
                 placeholder="Steps to reproduce, expected behavior, screenshots, etc."
-                className="w-full px-3 py-2 border rounded-full text-sm outline-none focus:border-[var(--primary)] transition-colors resize-y" style={{ borderColor: '#e2e8f0' }} />
+                className="w-full px-3 py-2 border rounded-lg text-sm outline-none focus:border-[var(--primary)] transition-colors resize-y" style={{ borderColor: '#e2e8f0' }} />
             </div>
             <div className="flex justify-end gap-2">
               <button type="button" onClick={() => setShowForm(false)}

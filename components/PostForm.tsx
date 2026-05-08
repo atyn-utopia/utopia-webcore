@@ -334,7 +334,7 @@ export default function PostForm({ mode, initialData = {}, postId }: PostFormPro
             </div>
             <div>
               <textarea value={t?.meta_description ?? ''} onChange={e => updateTranslation(activeLang, { meta_description: e.target.value })}
-                rows={2} className="w-full px-3 py-2 border border-slate-200 rounded-full text-xs focus:outline-none transition-colors resize-none" placeholder="Meta description (150–160 chars)" />
+                rows={2} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs focus:outline-none transition-colors resize-none" placeholder="Meta description (150–160 chars)" />
               <p className="mt-1 text-[10px] text-right" style={{ color: (t?.meta_description ?? '').length > 160 ? '#ef4444' : '#cbd5e1' }}>{(t?.meta_description ?? '').length}/160</p>
             </div>
           </div>
