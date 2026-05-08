@@ -7,6 +7,7 @@ import { useWebsite } from '@/contexts/WebsiteContext'
 import type { UserRole } from '@/contexts/UserContext'
 import { useLanguage } from '@/contexts/LanguageContext'
 import type { TranslationKey } from '@/lib/i18n/en'
+import { Logo } from './ui/Logo'
 import {
   AcademicCapIcon,
   BoltIcon,
@@ -132,6 +133,27 @@ export default function Sidebar({ userRole, open, onClose, collapsed = false, on
         </button>
       )}
 
+      {/* Mobile-only brand strip. The dark global header isn't visible from
+          inside the drawer, so the brand wordmark goes here as a navigation
+          anchor (tap to go home) plus a close button. Hidden at md and up
+          since the desktop layout already shows the brand in the header. */}
+      <div className="md:hidden flex items-center justify-between px-3 pt-3 pb-2 gap-2" style={{ borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
+        <Link href="/" onClick={onClose} className="flex items-center gap-2.5 min-w-0">
+          <Logo size={32} rounded="md" />
+          <div className="leading-tight min-w-0">
+            <span className="block text-sm font-bold tracking-tight text-white truncate">Utopia Webcore</span>
+            <span className="block text-[10px] text-white/60 truncate">Web &amp; Content Ops</span>
+          </div>
+        </Link>
+        <button
+          onClick={onClose}
+          aria-label="Close menu"
+          className="w-8 h-8 flex items-center justify-center rounded-full text-white/70 hover:text-white hover:bg-white/10 transition-colors flex-shrink-0"
+        >
+          <XMarkIcon className="w-4 h-4" />
+        </button>
+      </div>
+
       {/* Top row. Quick Actions pill (full width when expanded, icon-only when collapsed) */}
       <div className="px-3 pt-4 pb-2 flex items-center gap-2">
         {!collapsed ? (
@@ -155,13 +177,6 @@ export default function Sidebar({ userRole, open, onClose, collapsed = false, on
             <BoltIcon className="w-4 h-4" />
           </button>
         )}
-        {/* Mobile close */}
-        <button
-          onClick={onClose}
-          className="md:hidden w-7 h-7 flex items-center justify-center rounded-full text-white/70 hover:text-white hover:bg-white/10 transition-colors flex-shrink-0"
-        >
-          <XMarkIcon className="w-4 h-4" />
-        </button>
       </div>
 
       {/* Quick Actions popover. Only visible when sidebar expanded */}
