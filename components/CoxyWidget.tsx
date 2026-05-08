@@ -20,20 +20,21 @@ const BUBBLE_SIZE = 120 // approx width/height so we can clamp to the viewport
 type Anchor = 'top' | 'bottom'
 type Pos = { anchor: Anchor; right: number; y: number }
 
-// Default position: bottom-right (everywhere except the home dashboard).
-// Desktop sits 20px further inset on both axes than mobile so the bubble
-// doesn't crowd the page edge / sit under sticky page chrome.
-const MOBILE_DEFAULT_POS: Pos = { anchor: 'bottom', right: 20, y: 26 }
-const DESKTOP_DEFAULT_POS: Pos = { anchor: 'bottom', right: 70, y: 80 }
-function getDefaultPos(): Pos {
-  if (typeof window === 'undefined') return MOBILE_DEFAULT_POS
-  return window.innerWidth >= 640 ? DESKTOP_DEFAULT_POS : MOBILE_DEFAULT_POS
+// Default position: bottom-right on every non-dashboard page. Same value
+// for mobile and desktop — we tried desktop-specific tuning here earlier
+// but reverted at the user's request; only the dashboard varies by
+// viewport now.
+const DEFAULT_POS: Pos = { anchor: 'bottom', right: 20, y: 26 }
+
+// Dashboard default: sits inside the welcome banner on the right.
+// Mobile tucks into the narrow iPhone-width banner. Desktop sits further
+// inset so it lands inside the wider banner without crowding the layout.
+const MOBILE_DASHBOARD_POS: Pos = { anchor: 'top', right: 30, y: 160 }
+const DESKTOP_DASHBOARD_POS: Pos = { anchor: 'top', right: 100, y: 180 }
+function getDashboardPos(): Pos {
+  if (typeof window === 'undefined') return MOBILE_DASHBOARD_POS
+  return window.innerWidth >= 640 ? DESKTOP_DASHBOARD_POS : MOBILE_DASHBOARD_POS
 }
-// Dashboard default: sits inside the welcome banner on the right. Tuned to
-// match the position the user dragged Coxy to on iPhone — the previous
-// values placed Coxy too high and too far from the edge after the mascot
-// shrank to h-20 on mobile.
-const DASHBOARD_POS: Pos = { anchor: 'top', right: 30, y: 160 }
 
 // DASHBOARD_POS only applies on the global home (/). The per-company
 // folder page used to count too, but it has its own header strip + grid
@@ -78,7 +79,7 @@ export default function CoxyWidget() {
     }
   }, [open])
 
-  const [pos, setPos] = useState<Pos>(MOBILE_DEFAULT_POS)
+  const [pos, setPos] = useState<Pos>(DEFAULT_POS)
   const dragRef = useRef<{ startX: number; startY: number; startRight: number; startPosY: number; anchor: Anchor; moved: boolean } | null>(null)
   const [isDragging, setIsDragging] = useState(false)
 
@@ -89,7 +90,7 @@ export default function CoxyWidget() {
   // navigating between two non-dashboard pages doesn't trigger the reset
   // and a drag offset can leak across.
   useEffect(() => {
-    setPos(isDashboard ? DASHBOARD_POS : getDefaultPos())
+    setPos(isDashboard ? getDashboardPos() : DEFAULT_POS)
   }, [pathname, isDashboard])
 
   function onBubblePointerDown(e: React.PointerEvent<HTMLButtonElement>) {
