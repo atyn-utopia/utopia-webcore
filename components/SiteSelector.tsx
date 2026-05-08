@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter, useSearchParams, usePathname } from 'next/navigation'
 import { useUser } from '@/contexts/UserContext'
-import { MagnifyingGlassIcon, PlusIcon, CheckIcon, ChevronDownIcon } from '@heroicons/react/24/solid'
+import { MagnifyingGlassIcon, PlusIcon, CheckCircleIcon, ChevronDownIcon } from '@heroicons/react/24/solid'
 
 type Site = { domain: string }
 
@@ -183,7 +183,7 @@ export default function SiteSelector() {
                       Active
                     </span>
                     {active && (
-                      <CheckIcon className="w-4 h-4 flex-shrink-0" style={{ color: 'var(--primary)' }} />
+                      <CheckCircleIcon className="w-5 h-5 flex-shrink-0" style={{ color: 'var(--primary)' }} />
                     )}
                   </button>
                 )
