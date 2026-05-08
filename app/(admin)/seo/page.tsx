@@ -735,7 +735,7 @@ function Step1Card({
               </p>
               <a
                 href={`/integrations?website=${encodeURIComponent(domain)}`}
-                className="inline-flex items-center gap-1.5 text-xs font-medium px-3 h-8 rounded-md border transition-colors hover:bg-slate-50"
+                className="inline-flex items-center gap-1.5 text-xs font-medium px-3 h-8 rounded-full border transition-colors hover:bg-slate-50"
                 style={{ borderColor: '#e2e8f0', color: '#475569', background: 'white' }}
               >
                 Manage in Integrations
@@ -747,7 +747,7 @@ function Step1Card({
               <p className="text-xs" style={{ color: '#a16207' }}>Authorised, but no property selected yet. Pick the right Search Console property to finish the connection.</p>
               <a
                 href={`/integrations?website=${encodeURIComponent(domain)}`}
-                className="inline-flex items-center gap-1.5 text-xs font-medium px-3 h-8 rounded-md text-white transition-opacity hover:opacity-90"
+                className="inline-flex items-center gap-1.5 text-xs font-medium px-3 h-8 rounded-full text-white transition-opacity hover:opacity-90"
                 style={{ background: 'var(--primary)' }}
               >
                 Pick property
@@ -759,7 +759,7 @@ function Step1Card({
               <p className="text-xs" style={{ color: '#475569' }}>Search Console reports indexing errors, search performance, and lets you submit sitemaps.</p>
               <a
                 href={`/integrations?website=${encodeURIComponent(domain)}`}
-                className="inline-flex items-center gap-1.5 text-xs font-medium px-3 h-8 rounded-md text-white transition-opacity hover:opacity-90"
+                className="inline-flex items-center gap-1.5 text-xs font-medium px-3 h-8 rounded-full text-white transition-opacity hover:opacity-90"
                 style={{ background: 'var(--primary)' }}
               >
                 Open Integrations

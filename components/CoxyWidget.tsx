@@ -22,8 +22,11 @@ type Pos = { anchor: Anchor; right: number; y: number }
 
 // Default position: bottom-right (everywhere except the home dashboard).
 const DEFAULT_POS: Pos = { anchor: 'bottom', right: 20, y: 26 }
-// Dashboard default: sits roughly where the old character.gif lived in the welcome banner.
-const DASHBOARD_POS: Pos = { anchor: 'top', right: 80, y: 150 }
+// Dashboard default: sits inside the welcome banner on the right. Tuned to
+// match the position the user dragged Coxy to on iPhone — the previous
+// values placed Coxy too high and too far from the edge after the mascot
+// shrank to h-20 on mobile.
+const DASHBOARD_POS: Pos = { anchor: 'top', right: 30, y: 180 }
 
 // Pages where DASHBOARD_POS makes sense: the global home and any per-company
 // dashboard. Scoped users (manager / indoor_sales) typically click straight

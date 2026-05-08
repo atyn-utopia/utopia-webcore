@@ -66,7 +66,7 @@ export default function BlogViewPage() {
             <div className="relative group">
               {post.status === 'published' ? (
                 <a href={`https://${post.website}/blog/${post.slug}`} target="_blank" rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 px-4 h-9 text-sm font-medium rounded-lg border border-slate-200 hover:bg-slate-50 transition-colors" style={{ color: '#475569' }}>
+                  className="inline-flex items-center gap-1.5 px-4 h-9 text-sm font-medium rounded-full border border-slate-200 hover:bg-slate-50 transition-colors" style={{ color: '#475569' }}>
                   Open
                   <ArrowTopRightOnSquareIcon className="w-3.5 h-3.5" />
                 </a>
@@ -189,7 +189,7 @@ export default function BlogViewPage() {
             <div className="relative group">
               {post.status === 'published' ? (
                 <a href={`https://${post.website}/blog/${post.slug}`} target="_blank" rel="noopener noreferrer"
-                  className="flex items-center justify-center gap-2 w-full px-4 py-2.5 rounded-lg border border-slate-200 text-xs font-medium hover:bg-slate-50 transition-colors" style={{ color: '#475569' }}>
+                  className="flex items-center justify-center gap-2 w-full px-4 py-2.5 rounded-full border border-slate-200 text-xs font-medium hover:bg-slate-50 transition-colors" style={{ color: '#475569' }}>
                   Open in Browser
                   <ArrowTopRightOnSquareIcon className="w-3 h-3" />
                 </a>
