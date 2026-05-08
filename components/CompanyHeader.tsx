@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useUser } from '@/contexts/UserContext'
 import EditCompanyModal from './EditCompanyModal'
 
-import { PencilSquareIcon } from '@heroicons/react/24/solid'
+import { FolderIcon, PencilSquareIcon } from '@heroicons/react/24/solid'
 interface Props {
   id: string
   name: string
@@ -31,21 +31,25 @@ export default function CompanyHeader({ id, name, logoUrl }: Props) {
 
   return (
     <div className="mb-5 flex items-center gap-3 flex-wrap">
-      <div className="w-12 h-12 rounded-lg flex items-center justify-center flex-shrink-0 overflow-hidden" style={{ background: '#fef3c7', border: '1px solid #f1f5f9' }}>
+      <div
+        className="w-12 h-12 rounded-lg flex items-center justify-center flex-shrink-0 overflow-hidden"
+        style={{
+          background: displayLogo ? '#f8fafc' : '#dbeafe',
+          border: displayLogo ? '1px solid #f1f5f9' : 'none',
+        }}
+      >
         {displayLogo ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img src={displayLogo} alt="" className="w-full h-full object-contain" />
         ) : (
-          <svg className="w-6 h-6" fill="none" stroke="#d97706" viewBox="0 0 24 24" strokeWidth="1.8">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V7z" />
-          </svg>
+          <FolderIcon className="w-6 h-6" style={{ color: '#1E5BFF' }} />
         )}
       </div>
       <h1 className="text-xl font-semibold tracking-tight truncate min-w-0 flex-1" style={{ color: 'var(--foreground)' }}>{displayName}</h1>
       {canEdit && (
         <button
           onClick={() => setEditing(true)}
-          className="inline-flex items-center gap-1.5 text-xs font-medium px-3 h-9 rounded-md border transition-colors hover:bg-slate-50 flex-shrink-0"
+          className="inline-flex items-center gap-1.5 text-xs font-medium px-3 h-9 rounded-full border transition-colors hover:bg-slate-50 flex-shrink-0"
           style={{ borderColor: '#e2e8f0', color: '#475569', background: 'white' }}
         >
           <PencilSquareIcon className="w-3.5 h-3.5" />
