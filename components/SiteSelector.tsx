@@ -92,7 +92,7 @@ export default function SiteSelector() {
     <div className="relative" ref={containerRef}>
       <button
         onClick={() => setOpen(v => !v)}
-        className="flex items-center gap-2 h-9 px-3 rounded-md text-sm font-medium transition-colors"
+        className="flex items-center gap-1.5 sm:gap-2 h-9 px-2 sm:px-3 rounded-md text-sm font-medium transition-colors"
         style={{
           background: open ? 'var(--header-hover)' : 'transparent',
           color: 'var(--header-text-strong)',
@@ -102,7 +102,7 @@ export default function SiteSelector() {
         aria-expanded={open}
         title={websiteParam || 'All Sites'}
       >
-        <span className="truncate max-w-[110px] sm:max-w-[200px]">{triggerLabel}</span>
+        <span className="truncate max-w-[80px] sm:max-w-[200px]">{triggerLabel}</span>
         <ChevronDownIcon className={`w-3.5 h-3.5 opacity-70 transition-transform ${open ? 'rotate-180' : ''}`} />
       </button>
 

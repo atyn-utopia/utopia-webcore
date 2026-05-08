@@ -23,7 +23,7 @@ interface Props {
 export default function HeaderBar({ onMobileMenuOpen }: Props) {
   return (
     <div
-      className="flex-shrink-0 flex items-center h-14 px-3 sm:px-5 gap-3"
+      className="flex-shrink-0 flex items-center h-14 px-2 sm:px-5 gap-1.5 sm:gap-3"
       style={{ background: 'var(--header-bg)', color: 'var(--header-text-strong)', borderBottom: '1px solid var(--header-divider)' }}
     >
       {/* Mobile hamburger. Only visible on mobile to open the sidebar drawer */}

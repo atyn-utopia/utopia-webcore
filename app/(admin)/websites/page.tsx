@@ -532,10 +532,13 @@ export default function WebsitesPage() {
     {/* Site hero. Wix-style large card with thumbnail, name, status pills, actions */}
     <div className="mb-5 rounded-xl border bg-white overflow-hidden" style={{ borderColor: '#e2e8f0' }}>
       <div className="flex items-stretch flex-col md:flex-row">
-        {/* Thumbnail */}
+        {/* Thumbnail. Full-width on mobile (the card is the only thing the
+            user can see), capped at 240px next to the identity column on
+            desktop. Slightly taller on mobile so the preview is more
+            readable when it's the hero element. */}
         <a href={siteUrl} target="_blank" rel="noopener noreferrer"
-          className="flex-shrink-0 block relative md:border-r overflow-hidden"
-          style={{ borderColor: '#e2e8f0', width: '100%', maxWidth: 240, height: 150, background: '#f8fafc' }}
+          className="flex-shrink-0 block relative md:border-r overflow-hidden w-full md:w-60 h-44 md:h-[150px]"
+          style={{ borderColor: '#e2e8f0', background: '#f8fafc' }}
           title={`Open ${openWebsite}`}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={thumbUrl} alt={openWebsite} loading="lazy"
