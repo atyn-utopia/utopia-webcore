@@ -6,7 +6,7 @@ import { useChat } from '@ai-sdk/react'
 import { DefaultChatTransport } from 'ai'
 import { useCoxy } from '@/contexts/CoxyContext'
 
-import { ChevronDownIcon, ChevronUpIcon, XMarkIcon } from '@heroicons/react/24/solid'
+import { XMarkIcon } from '@heroicons/react/24/solid'
 const SUGGESTIONS = [
   'How do I onboard a new external designer?',
   'How does phone number rotation work?',
@@ -42,9 +42,34 @@ export default function CoxyWidget() {
   const pathname = usePathname()
   const isDashboard = isDashboardPath(pathname)
   const [input, setInput] = useState('')
-  const [minimized, setMinimized] = useState(false)
   const scrollRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
+  // Available height inside the panel — shrunk live when the on-screen
+  // keyboard pops up on mobile (visualViewport gets shorter than
+  // window.innerHeight). Without this the panel stays its full height and
+  // the input row sits behind the keyboard.
+  const [panelMaxH, setPanelMaxH] = useState<number | null>(null)
+  useEffect(() => {
+    if (!open) return
+    function recompute() {
+      const vv = (typeof window !== 'undefined' ? window.visualViewport : null) ?? null
+      const h = vv ? vv.height : window.innerHeight
+      // Reserve 80px for the header (56px) + gap (16px) + a bit of breathing
+      // room. Floor at 280px so the panel doesn't collapse to nothing on
+      // very short keyboards.
+      setPanelMaxH(Math.max(280, Math.floor(h - 80)))
+    }
+    recompute()
+    const vv = window.visualViewport
+    vv?.addEventListener('resize', recompute)
+    vv?.addEventListener('scroll', recompute)
+    window.addEventListener('resize', recompute)
+    return () => {
+      vv?.removeEventListener('resize', recompute)
+      vv?.removeEventListener('scroll', recompute)
+      window.removeEventListener('resize', recompute)
+    }
+  }, [open])
 
   const [pos, setPos] = useState<Pos>(DEFAULT_POS)
   const dragRef = useRef<{ startX: number; startY: number; startRight: number; startPosY: number; anchor: Anchor; moved: boolean } | null>(null)
@@ -174,23 +199,24 @@ export default function CoxyWidget() {
       )}
 
       {/* Chat panel. Anchored below the 56px header with a small gap so it
-          never covers the top nav (the keyboard pushing the bottom-anchored
-          version up was eating into the header on small phones). The panel
-          is full-width minus 16px gutters on mobile, fixed 400px wide on
-          desktop. Minimize collapses to just the header strip. */}
+          never covers the top nav. Width tightens on mobile (max 18rem
+          minus a 1.5rem gutter from the right edge); desktop stays at
+          400px. Height tracks visualViewport so the panel shrinks live
+          when the on-screen keyboard pops up — without that the input
+          row sits hidden behind the keyboard. */}
       {open && (
         <div
-          className={`fixed top-16 right-2 sm:right-5 left-2 sm:left-auto z-50 w-auto sm:w-[400px] rounded-2xl bg-white shadow-2xl flex flex-col overflow-hidden transition-[height] duration-200 ${minimized ? 'h-14' : 'h-[calc(100vh-5rem)] sm:h-[600px] sm:max-h-[calc(100vh-5rem)]'}`}
-          style={{ border: '1px solid #e2e8f0' }}
+          className="fixed top-16 right-3 sm:right-5 z-50 w-[min(20rem,calc(100vw-1.5rem))] sm:w-[400px] rounded-2xl bg-white shadow-2xl flex flex-col overflow-hidden transition-[max-height] duration-200"
+          style={{
+            border: '1px solid #e2e8f0',
+            maxHeight: panelMaxH ? `${panelMaxH}px` : 'calc(100vh - 5rem)',
+            height: panelMaxH ? `${panelMaxH}px` : 'calc(100vh - 5rem)',
+          }}
         >
-          {/* Header. Click anywhere on the strip toggles minimize so the user
-              doesn't need to hit the small chevron exactly. */}
-          <button
-            type="button"
-            onClick={() => setMinimized(m => !m)}
-            className="px-4 py-3 flex items-center gap-3 flex-shrink-0 text-left transition-colors hover:bg-slate-50"
-            style={{ borderBottom: minimized ? 'none' : '1px solid #e2e8f0', background: 'linear-gradient(to right, #f0f4f8, #ffffff)' }}
-            aria-label={minimized ? 'Expand Coxy chat' : 'Minimize Coxy chat'}
+          {/* Header. */}
+          <div
+            className="px-4 py-3 flex items-center gap-3 flex-shrink-0"
+            style={{ borderBottom: '1px solid #e2e8f0', background: 'linear-gradient(to right, #f0f4f8, #ffffff)' }}
           >
             <div className="w-10 h-10 flex-shrink-0 flex items-center justify-center">
               {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -203,29 +229,18 @@ export default function CoxyWidget() {
               </h3>
               <p className="text-[11px]" style={{ color: '#64748b' }}>Your Webcore assistant</p>
             </div>
-            <span
-              className="w-8 h-8 flex items-center justify-center rounded-full transition-colors flex-shrink-0 hover:bg-slate-100"
-              style={{ color: '#64748b' }}
-              aria-hidden
-            >
-              {minimized ? <ChevronUpIcon className="w-4 h-4" /> : <ChevronDownIcon className="w-4 h-4" />}
-            </span>
-            <span
-              role="button"
-              tabIndex={0}
-              onClick={e => { e.stopPropagation(); setOpen(false); setMinimized(false) }}
-              onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.stopPropagation(); setOpen(false); setMinimized(false) } }}
+            <button
+              type="button"
+              onClick={() => setOpen(false)}
               aria-label="Close Coxy chat"
               className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-slate-100 transition-colors flex-shrink-0"
               style={{ color: '#64748b' }}
             >
               <XMarkIcon className="w-4 h-4" />
-            </span>
-          </button>
+            </button>
+          </div>
 
-          {/* Messages — hidden when minimized so the panel collapses to its
-              header strip. The form below also hides via the same flag. */}
-          {!minimized && (
+          {/* Messages */}
           <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-4 space-y-3" style={{ background: '#fafbfc' }}>
             {messages.length === 0 ? (
               <div className="text-center pt-6">
@@ -271,10 +286,8 @@ export default function CoxyWidget() {
               </div>
             )}
           </div>
-          )}
 
           {/* Input */}
-          {!minimized && (
           <form onSubmit={handleSubmit} className="px-3 py-3 flex items-end gap-2 flex-shrink-0" style={{ borderTop: '1px solid #e2e8f0', background: 'white' }}>
             <textarea
               ref={inputRef}
@@ -297,7 +310,6 @@ export default function CoxyWidget() {
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M12 19V5m-7 7l7-7 7 7" /></svg>
             </button>
           </form>
-          )}
         </div>
       )}
     </>
