@@ -651,13 +651,14 @@ export default function WebsitesPage() {
         items={(analytics?.topClicks ?? []).map(c => ({ key: c.label, label: c.label, value: c.count }))}
         emptyText="No clicks yet. Add window.uwc() calls to CTA buttons"
       />
-      {/* Devices & Browsers. Brand-blue tint to match the title/icon. */}
+      {/* Devices & Browsers. Cyan accent (the logo's secondary brand color
+          + the Ask Coxy pill share this). */}
       <div className="rounded-xl border bg-white overflow-hidden" style={{ borderColor: '#e2e8f0' }}>
-        <div className="px-5 py-3 flex items-center gap-2" style={{ background: '#eff6ff', borderBottom: '1px solid #e2e8f0' }}>
-          <div className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: 'white', color: '#1E5BFF' }}>
+        <div className="px-5 py-3 flex items-center gap-2" style={{ background: '#ecfeff', borderBottom: '1px solid #e2e8f0' }}>
+          <div className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: 'white', color: '#0891b2' }}>
             <ComputerDesktopIcon className="w-4 h-4" />
           </div>
-          <h3 className="text-sm font-semibold" style={{ color: '#1E5BFF' }}>Visitor Mix</h3>
+          <h3 className="text-sm font-semibold" style={{ color: '#0891b2' }}>Visitor Mix</h3>
         </div>
         <div className="p-5 grid grid-cols-2 gap-5">
           <div>
@@ -672,7 +673,7 @@ export default function WebsitesPage() {
                 : <path strokeLinecap="round" strokeLinejoin="round" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
               return (
                 <div key={d} className="flex items-center gap-2 py-1.5">
-                  <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8" style={{ color: '#1E5BFF' }}>{icon}</svg>
+                  <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8" style={{ color: '#0891b2' }}>{icon}</svg>
                   <span className="text-xs capitalize flex-1" style={{ color: '#475569' }}>{d}</span>
                   <span className="text-xs font-semibold" style={{ color: 'var(--foreground)' }}>{c}</span>
                   <span className="text-[10px] font-medium" style={{ color: '#94a3b8' }}>({pct}%)</span>
@@ -689,7 +690,7 @@ export default function WebsitesPage() {
               const pct = Math.round((c / total) * 100)
               return (
                 <div key={b} className="flex items-center gap-2 py-1.5">
-                  <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8" style={{ color: '#1E5BFF' }}><circle cx="12" cy="12" r="9" /><path strokeLinecap="round" d="M3 12h18M12 3a15 15 0 010 18M12 3a15 15 0 000 18" /></svg>
+                  <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8" style={{ color: '#0891b2' }}><circle cx="12" cy="12" r="9" /><path strokeLinecap="round" d="M3 12h18M12 3a15 15 0 010 18M12 3a15 15 0 000 18" /></svg>
                   <span className="text-xs flex-1" style={{ color: '#475569' }}>{b}</span>
                   <span className="text-xs font-semibold" style={{ color: 'var(--foreground)' }}>{c}</span>
                   <span className="text-[10px] font-medium" style={{ color: '#94a3b8' }}>({pct}%)</span>
