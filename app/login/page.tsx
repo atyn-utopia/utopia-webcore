@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/Input'
 import { Card } from '@/components/ui/Card'
 import { Logo } from '@/components/ui/Logo'
 
-import { CheckIcon } from '@heroicons/react/24/solid'
+import { CheckCircleIcon } from '@heroicons/react/24/solid'
 function LoginPageInner() {
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -81,9 +81,10 @@ function LoginPageInner() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50">
         <div className="flex flex-col items-center">
-          <div className="w-14 h-14 rounded-2xl flex items-center justify-center mb-4 bg-[var(--primary)]" style={{ animation: 'scaleIn 0.4s ease' }}>
-            <CheckIcon className="w-7 h-7 text-white" />
-          </div>
+          <CheckCircleIcon
+            className="w-14 h-14 mb-4"
+            style={{ color: 'var(--primary)', animation: 'scaleIn 0.4s ease' }}
+          />
           <p className="text-sm font-semibold text-slate-900" style={{ animation: 'fadeUp 0.4s ease 0.4s both' }}>{t('login.welcomeBack')}</p>
           <p className="text-xs mt-1 text-slate-500" style={{ animation: 'fadeUp 0.4s ease 0.5s both' }}>{t('login.redirecting')}</p>
         </div>
