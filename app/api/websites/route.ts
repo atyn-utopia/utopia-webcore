@@ -25,12 +25,12 @@ export async function GET() {
   const blogRows = blogData ?? []
   const cwRows = companyWebsites ?? []
 
-  const allDomains = [
-    ...phoneRows.map((r: { website: string }) => r.website),
-    ...blogRows.map((r: { website: string }) => r.website),
-    ...cwRows.map((r: { domain: string }) => r.domain),
-  ]
-  let unique = [...new Set(allDomains)].sort()
+  // Source the list from company_websites — that's the canonical link
+  // table. Phone/blog rows for a removed site stay in the DB by design
+  // (re-adding the site re-surfaces them), but those domains shouldn't
+  // appear in dropdowns or breadcrumbs. Earlier we unioned all three
+  // sources, which leaked orphan domains into every site picker.
+  let unique = [...new Set(cwRows.map((r: { domain: string }) => r.domain))].sort()
 
   // Scope by user's assigned domains when applicable
   if (scope.isScoped) {
