@@ -24,7 +24,7 @@ type Pos = { anchor: Anchor; right: number; y: number }
 // Desktop sits 20px further inset on both axes than mobile so the bubble
 // doesn't crowd the page edge / sit under sticky page chrome.
 const MOBILE_DEFAULT_POS: Pos = { anchor: 'bottom', right: 20, y: 26 }
-const DESKTOP_DEFAULT_POS: Pos = { anchor: 'bottom', right: 40, y: 46 }
+const DESKTOP_DEFAULT_POS: Pos = { anchor: 'bottom', right: 70, y: 80 }
 function getDefaultPos(): Pos {
   if (typeof window === 'undefined') return MOBILE_DEFAULT_POS
   return window.innerWidth >= 640 ? DESKTOP_DEFAULT_POS : MOBILE_DEFAULT_POS
