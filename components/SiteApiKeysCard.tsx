@@ -288,22 +288,6 @@ export default function SiteApiKeysCard({ domain }: Props) {
                         {copied === k.id ? 'Copied' : 'Copy'}
                       </button>
                     )}
-                    {showFull && k.full_key && (
-                      <button
-                        type="button"
-                        onClick={() => copy(
-                          fullSetupMarkdown({ domain, apiKey: k.full_key!, permissions: k.permissions, revalidateSecret }),
-                          `${k.id}-claude`,
-                          'Setup pasted. Drop it into Claude Code and it will integrate the customer site.',
-                        )}
-                        className="inline-flex items-center gap-1 text-[11px] font-medium transition-colors hover:text-[var(--primary)]"
-                        style={{ color: '#64748b' }}
-                        title="Generates a setup bundle (Webcore client + API key + revalidate secret) for the designer to paste into Claude Code"
-                      >
-                        <BoltIcon className="w-3 h-3" />
-                        {copied === `${k.id}-claude` ? 'Copied for Claude' : 'Copy for Claude'}
-                      </button>
-                    )}
                     {!showFull && (
                       <button
                         type="button"
@@ -336,6 +320,57 @@ export default function SiteApiKeysCard({ domain }: Props) {
           })
         )}
       </div>
+
+      {/* Claude handoff. Picks the most recent grace-window key (only those
+          carry the full secret) so the designer can paste a complete setup
+          bundle — Webcore client + API key + revalidate secret — into
+          Claude Code without bouncing to the global /api-keys page. */}
+      {(() => {
+        const handoffKey = keys.find(k => k.status === 'grace' && k.full_key) ?? null
+        const claudeToken = `claude-${domain}`
+        const isCopied = copied === claudeToken
+        return (
+          <div
+            className="px-5 py-4 flex items-center justify-between gap-3 flex-wrap"
+            style={{ background: '#f8fafc', borderTop: '1px solid #f1f5f9', borderBottomLeftRadius: 11, borderBottomRightRadius: 11 }}
+          >
+            <div className="flex items-start gap-3 min-w-0 flex-1">
+              <div className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: 'white', border: '1px solid #e2e8f0', color: '#1E5BFF' }}>
+                <BoltIcon className="w-4 h-4" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-sm font-semibold" style={{ color: 'var(--foreground)' }}>Paste to Claude</p>
+                <p className="text-[11px] mt-0.5" style={{ color: '#64748b' }}>
+                  {handoffKey
+                    ? <>Hands the full setup bundle (<code className="font-mono">lib/webcore.ts</code>, API key, revalidate secret) to Claude Code so the designer doesn&apos;t copy-paste fields one by one. Uses key <span className="font-semibold" style={{ color: '#475569' }}>{handoffKey.name}</span>.</>
+                    : <>Available only while a key is in its 5-hour grace window (the only time the full secret can be read back). Create a new key above to enable this handoff.</>}
+                </p>
+              </div>
+            </div>
+            <button
+              type="button"
+              disabled={!handoffKey}
+              onClick={() => handoffKey && copy(
+                fullSetupMarkdown({ domain, apiKey: handoffKey.full_key!, permissions: handoffKey.permissions, revalidateSecret }),
+                claudeToken,
+                'Setup copied. Paste it into Claude Code.',
+              )}
+              className="inline-flex items-center gap-1.5 text-xs font-medium px-3 h-8 rounded-full border transition-all flex-shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
+              style={{
+                background: isCopied ? '#dcfce7' : 'white',
+                borderColor: isCopied ? '#86efac' : '#e2e8f0',
+                color: isCopied ? '#15803d' : (handoffKey ? '#1E5BFF' : '#94a3b8'),
+              }}
+            >
+              {isCopied ? (
+                <><CheckIcon className="w-3.5 h-3.5" />Copied — paste into Claude</>
+              ) : (
+                <><ClipboardDocumentListIcon className="w-3.5 h-3.5" />Copy setup for Claude</>
+              )}
+            </button>
+          </div>
+        )
+      })()}
     </div>
   )
 }
