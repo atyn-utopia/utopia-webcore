@@ -26,7 +26,7 @@ const DEFAULT_POS: Pos = { anchor: 'bottom', right: 20, y: 26 }
 // match the position the user dragged Coxy to on iPhone — the previous
 // values placed Coxy too high and too far from the edge after the mascot
 // shrank to h-20 on mobile.
-const DASHBOARD_POS: Pos = { anchor: 'top', right: 30, y: 180 }
+const DASHBOARD_POS: Pos = { anchor: 'top', right: 30, y: 160 }
 
 // Pages where DASHBOARD_POS makes sense: the global home and any per-company
 // dashboard. Scoped users (manager / indoor_sales) typically click straight
