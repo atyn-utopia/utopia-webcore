@@ -26,7 +26,7 @@ const SECTIONS: Section[] = [
     ],
   },
   {
-    title: 'Getting started',
+    title: 'Getting Started',
     intro: 'Three things to set up the first time you use Webcore.',
     steps: [
       { number: 1, title: 'Pick a site', body: 'Open the home dashboard and click a company folder. Pick the website you want to manage.' },
@@ -35,7 +35,7 @@ const SECTIONS: Section[] = [
     ],
   },
   {
-    title: 'Phone numbers',
+    title: 'Phone Numbers',
     intro:
       'Phone numbers power the WhatsApp and call buttons on designer sites. Each site has a rotation pool with location targeting and percentage weighting.',
     steps: [
@@ -76,7 +76,7 @@ const SECTIONS: Section[] = [
     ],
   },
   {
-    title: 'When to involve a designer',
+    title: 'When to Involve a Designer',
     intro: 'Most operational changes are self-serve in Webcore. Designers come in when:',
     bullets: [
       'A new page layout or visual treatment is needed.',

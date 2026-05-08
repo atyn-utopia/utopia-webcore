@@ -149,7 +149,7 @@ export default function OnboardPage() {
 
           {/* Section 3: Designer */}
           <section>
-            <h3 className="text-sm font-semibold mb-3" style={{ color: 'var(--foreground)' }}>3. Designer account</h3>
+            <h3 className="text-sm font-semibold mb-3" style={{ color: 'var(--foreground)' }}>3. Designer Account</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-xs font-medium mb-1.5" style={{ color: '#475569' }}>Full Name</label>
@@ -171,7 +171,7 @@ export default function OnboardPage() {
 
           {/* Section 4: API Key */}
           <section>
-            <h3 className="text-sm font-semibold mb-3" style={{ color: 'var(--foreground)' }}>4. API key permissions</h3>
+            <h3 className="text-sm font-semibold mb-3" style={{ color: 'var(--foreground)' }}>4. API Key Permissions</h3>
             <div className="flex gap-2">
               {['read', 'write'].map(perm => {
                 const active = form.permissions.includes(perm)

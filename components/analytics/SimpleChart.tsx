@@ -31,7 +31,7 @@ export default function SimpleChart({ data }: { data: DailyStat[] }) {
       <div className="rounded-xl border border-slate-200 bg-white p-5 h-full">
         <div className="flex items-center gap-2 mb-4">
           <ChartIcon />
-          <h3 className="text-sm font-semibold" style={{ color: 'var(--foreground)' }}>Activity over time</h3>
+          <h3 className="text-sm font-semibold" style={{ color: 'var(--foreground)' }}>Activity Over Time</h3>
         </div>
         <div className="h-40 flex items-center justify-center text-xs" style={{ color: '#94a3b8' }}>
           No activity in this period yet.
@@ -87,7 +87,7 @@ export default function SimpleChart({ data }: { data: DailyStat[] }) {
         <div className="flex items-start gap-2.5">
           <ChartIcon />
           <div>
-            <h3 className="text-sm font-semibold" style={{ color: 'var(--foreground)' }}>Activity over time</h3>
+            <h3 className="text-sm font-semibold" style={{ color: 'var(--foreground)' }}>Activity Over Time</h3>
             <p className="text-[11px] mt-0.5" style={{ color: '#94a3b8' }}>{data.length} day{data.length === 1 ? '' : 's'} of tracking events</p>
           </div>
         </div>

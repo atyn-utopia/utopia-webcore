@@ -485,7 +485,7 @@ function CreateForm({ form, websites, saving, onChange, onCancel, onSubmit, onTo
   return (
     <form onSubmit={onSubmit} className="mb-5 rounded-2xl bg-white overflow-hidden" style={{ border: '1px solid #e2e8f0' }}>
       <div className="px-5 py-4" style={{ borderBottom: '1px solid #f1f5f9' }}>
-        <h3 className="text-sm font-semibold" style={{ color: 'var(--foreground)' }}>New API key</h3>
+        <h3 className="text-sm font-semibold" style={{ color: 'var(--foreground)' }}>New API Key</h3>
         <p className="text-xs mt-0.5" style={{ color: '#94a3b8' }}>Visible for 5 hours after creation, then only shown once it&apos;s been used.</p>
       </div>
 

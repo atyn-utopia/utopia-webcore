@@ -321,12 +321,14 @@ export default function SiteApiKeysCard({ domain }: Props) {
         )}
       </div>
 
-      {/* Claude handoff. Picks the most recent grace-window key (only those
-          carry the full secret) so the designer can paste a complete setup
-          bundle — Webcore client + API key + revalidate secret — into
-          Claude Code without bouncing to the global /api-keys page. */}
+      {/* Claude handoff. Only renders when there's a grace-window key —
+          those are the only ones whose full secret can still be read back,
+          so they're the only ones that can be combined into a complete
+          setup bundle. When no usable key exists, the section is hidden
+          entirely (cleaner than rendering a disabled button). */}
       {(() => {
         const handoffKey = keys.find(k => k.status === 'grace' && k.full_key) ?? null
+        if (!handoffKey) return null
         const claudeToken = `claude-${domain}`
         const isCopied = copied === claudeToken
         return (
@@ -341,25 +343,22 @@ export default function SiteApiKeysCard({ domain }: Props) {
               <div className="min-w-0">
                 <p className="text-sm font-semibold" style={{ color: 'var(--foreground)' }}>Paste to Claude</p>
                 <p className="text-[11px] mt-0.5" style={{ color: '#64748b' }}>
-                  {handoffKey
-                    ? <>Hands the full setup bundle (<code className="font-mono">lib/webcore.ts</code>, API key, revalidate secret) to Claude Code so the designer doesn&apos;t copy-paste fields one by one. Uses key <span className="font-semibold" style={{ color: '#475569' }}>{handoffKey.name}</span>.</>
-                    : <>Available only while a key is in its 5-hour grace window (the only time the full secret can be read back). Create a new key above to enable this handoff.</>}
+                  Hands the full setup bundle (<code className="font-mono">lib/webcore.ts</code>, API key, revalidate secret) to Claude Code so the designer doesn&apos;t copy-paste fields one by one. Uses key <span className="font-semibold" style={{ color: '#475569' }}>{handoffKey.name}</span>.
                 </p>
               </div>
             </div>
             <button
               type="button"
-              disabled={!handoffKey}
-              onClick={() => handoffKey && copy(
+              onClick={() => copy(
                 fullSetupMarkdown({ domain, apiKey: handoffKey.full_key!, permissions: handoffKey.permissions, revalidateSecret }),
                 claudeToken,
                 'Setup copied. Paste it into Claude Code.',
               )}
-              className="inline-flex items-center gap-1.5 text-xs font-medium px-3 h-8 rounded-full border transition-all flex-shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="inline-flex items-center gap-1.5 text-xs font-medium px-3 h-8 rounded-full border transition-all flex-shrink-0"
               style={{
                 background: isCopied ? '#dcfce7' : 'white',
                 borderColor: isCopied ? '#86efac' : '#e2e8f0',
-                color: isCopied ? '#15803d' : (handoffKey ? '#1E5BFF' : '#94a3b8'),
+                color: isCopied ? '#15803d' : '#1E5BFF',
               }}
             >
               {isCopied ? (

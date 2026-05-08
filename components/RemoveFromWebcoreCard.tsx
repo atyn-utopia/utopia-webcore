@@ -59,7 +59,7 @@ export default function RemoveFromWebcoreCard({ domain }: { domain: string }) {
           </svg>
         </div>
         <div className="flex-1">
-          <h3 className="text-sm font-semibold" style={{ color: '#b91c1c' }}>Danger zone</h3>
+          <h3 className="text-sm font-semibold" style={{ color: '#b91c1c' }}>Danger Zone</h3>
         </div>
       </div>
       <div className="px-5 py-4 flex items-center justify-between gap-4 flex-wrap">

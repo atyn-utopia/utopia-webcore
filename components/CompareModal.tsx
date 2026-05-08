@@ -77,7 +77,7 @@ export default function CompareModal({ open, onClose, preselect }: CompareModalP
         {/* Header */}
         <div className="px-6 pt-6 pb-4 flex items-start justify-between gap-4 flex-shrink-0">
           <div>
-            <h2 className="text-lg font-semibold tracking-tight" style={{ color: 'var(--foreground)' }}>Compare websites</h2>
+            <h2 className="text-lg font-semibold tracking-tight" style={{ color: 'var(--foreground)' }}>Compare Websites</h2>
             <p className="text-sm mt-0.5" style={{ color: '#64748b' }}>
               Pick 2 or 3 sites to see their dashboards side-by-side.
             </p>
