@@ -6,7 +6,7 @@ import { useToast } from '@/contexts/ToastContext'
 import { useConfirm } from '@/contexts/ConfirmContext'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
-import { ArrowRightIcon, CheckCircleIcon, ExclamationTriangleIcon, XCircleIcon } from '@heroicons/react/24/solid'
+import { ArrowRightIcon, CheckCircleIcon, ChevronDownIcon, ExclamationTriangleIcon, XCircleIcon } from '@heroicons/react/24/solid'
 
 interface Props { domain: string }
 
@@ -222,29 +222,35 @@ export default function RenameDomainCard({ domain }: Props) {
           </div>
         )}
 
-        {/* Zone mode */}
+        {/* Zone mode — subdomain input and zone dropdown share one border so
+            they read as a single compound field (like an email input). */}
         {mode === 'zone' && (
           <div>
             <label className="block text-xs font-medium mb-1.5" style={{ color: '#475569' }}>New domain</label>
-            <div className="flex items-stretch gap-1.5">
-              <Input
+            <div
+              className="flex items-stretch rounded-md border bg-white transition-colors focus-within:border-[var(--primary)] focus-within:ring-2 focus-within:ring-[var(--primary)]/15"
+              style={{ borderColor: '#e2e8f0' }}
+            >
+              <input
                 type="text"
                 value={subdomain}
                 onChange={e => setSubdomain(e.target.value.toLowerCase())}
                 placeholder="subdomain"
                 autoComplete="off"
                 spellCheck={false}
-                className="flex-1"
+                className="flex-1 min-w-0 h-8 pl-3 pr-1 text-xs bg-transparent outline-none placeholder:text-slate-400 text-slate-900"
               />
-              <span className="flex items-center text-sm" style={{ color: '#94a3b8' }}>.</span>
-              <select
-                value={zone}
-                onChange={e => setZone(e.target.value)}
-                className="h-9 px-2 text-sm rounded-md border outline-none transition-colors"
-                style={{ borderColor: '#e2e8f0', background: 'white', color: 'var(--foreground)' }}
-              >
-                {zones.map(z => <option key={z} value={z}>{z}</option>)}
-              </select>
+              <span className="self-center text-xs px-0.5 select-none" style={{ color: '#cbd5e1' }}>.</span>
+              <div className="relative flex-shrink-0" style={{ borderLeft: '1px solid #f1f5f9' }}>
+                <select
+                  value={zone}
+                  onChange={e => setZone(e.target.value)}
+                  className="appearance-none h-8 pl-3 pr-8 text-xs bg-transparent outline-none cursor-pointer text-slate-900"
+                >
+                  {zones.map(z => <option key={z} value={z}>{z}</option>)}
+                </select>
+                <ChevronDownIcon className="w-3 h-3 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" style={{ color: '#94a3b8' }} />
+              </div>
             </div>
           </div>
         )}
