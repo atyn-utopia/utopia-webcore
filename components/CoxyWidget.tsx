@@ -21,7 +21,14 @@ type Anchor = 'top' | 'bottom'
 type Pos = { anchor: Anchor; right: number; y: number }
 
 // Default position: bottom-right (everywhere except the home dashboard).
-const DEFAULT_POS: Pos = { anchor: 'bottom', right: 20, y: 26 }
+// Desktop sits 20px further inset on both axes than mobile so the bubble
+// doesn't crowd the page edge / sit under sticky page chrome.
+const MOBILE_DEFAULT_POS: Pos = { anchor: 'bottom', right: 20, y: 26 }
+const DESKTOP_DEFAULT_POS: Pos = { anchor: 'bottom', right: 40, y: 46 }
+function getDefaultPos(): Pos {
+  if (typeof window === 'undefined') return MOBILE_DEFAULT_POS
+  return window.innerWidth >= 640 ? DESKTOP_DEFAULT_POS : MOBILE_DEFAULT_POS
+}
 // Dashboard default: sits inside the welcome banner on the right. Tuned to
 // match the position the user dragged Coxy to on iPhone — the previous
 // values placed Coxy too high and too far from the edge after the mascot
@@ -71,7 +78,7 @@ export default function CoxyWidget() {
     }
   }, [open])
 
-  const [pos, setPos] = useState<Pos>(DEFAULT_POS)
+  const [pos, setPos] = useState<Pos>(MOBILE_DEFAULT_POS)
   const dragRef = useRef<{ startX: number; startY: number; startRight: number; startPosY: number; anchor: Anchor; moved: boolean } | null>(null)
   const [isDragging, setIsDragging] = useState(false)
 
@@ -82,7 +89,7 @@ export default function CoxyWidget() {
   // navigating between two non-dashboard pages doesn't trigger the reset
   // and a drag offset can leak across.
   useEffect(() => {
-    setPos(isDashboard ? DASHBOARD_POS : DEFAULT_POS)
+    setPos(isDashboard ? DASHBOARD_POS : getDefaultPos())
   }, [pathname, isDashboard])
 
   function onBubblePointerDown(e: React.PointerEvent<HTMLButtonElement>) {
