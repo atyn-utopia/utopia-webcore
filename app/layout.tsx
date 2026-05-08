@@ -1,11 +1,9 @@
 import type { Metadata } from 'next'
-import { Noto_Sans, Nunito } from 'next/font/google'
+import { Fira_Sans, Nunito } from 'next/font/google'
 import './globals.css'
 import LoadingBar from '@/components/LoadingBar'
 
-// Body font. Noto_Sans replaced Inter — wider language coverage (we serve EN
-// and BM, Noto's pan-script design avoids fallback flashes for diacritics).
-const noto = Noto_Sans({
+const fira = Fira_Sans({
   subsets: ['latin'],
   weight: ['400', '500', '600', '700'],
   variable: '--font-body',
@@ -41,7 +39,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`h-full ${noto.variable} ${nunito.variable}`}>
+    <html lang="en" className={`h-full ${fira.variable} ${nunito.variable}`}>
       <head>
         <meta name="theme-color" content="#1E5BFF" />
         <link rel="apple-touch-icon" sizes="180x180" href="/utopia-webcore-apple-touch.png" />
