@@ -651,9 +651,9 @@ export default function WebsitesPage() {
         items={(analytics?.topClicks ?? []).map(c => ({ key: c.label, label: c.label, value: c.count }))}
         emptyText="No clicks yet. Add window.uwc() calls to CTA buttons"
       />
-      {/* Devices & Browsers. Purple */}
+      {/* Devices & Browsers. Brand-blue tint to match the title/icon. */}
       <div className="rounded-xl border bg-white overflow-hidden" style={{ borderColor: '#e2e8f0' }}>
-        <div className="px-5 py-3 flex items-center gap-2" style={{ background: '#faf5ff', borderBottom: '1px solid #e2e8f0' }}>
+        <div className="px-5 py-3 flex items-center gap-2" style={{ background: '#eff6ff', borderBottom: '1px solid #e2e8f0' }}>
           <div className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: 'white', color: '#1E5BFF' }}>
             <ComputerDesktopIcon className="w-4 h-4" />
           </div>
