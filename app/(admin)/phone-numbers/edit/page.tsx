@@ -473,23 +473,43 @@ export default function ManagePhoneNumbersPage() {
       <PageHeader title="Manage Phone Numbers"
         description="Edit inline, bulk-delete with checkboxes, and add new numbers. Save commits all changes at once." />
 
-      {/* Selection panel */}
-      <Panel>
-        <PanelHeader title="Website" />
-        <div className="p-5 grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <Field label="Company" required>
-            <Select value={selectedCompany}
-              onChange={v => { setSelectedCompany(v); setWebsite(''); setSelectedMode(null) }}
-              options={[{ value: '', label: 'Select company…' }, ...companies.map(c => ({ value: c.id, label: c.name }))]} />
-          </Field>
-          <Field label="Website" required>
-            <Select value={website}
-              onChange={v => { setWebsite(v); setSelectedMode(null); setAddDrafts([emptyNewRow()]) }}
-              disabled={!selectedCompany}
-              options={[{ value: '', label: selectedCompany ? 'Select website…' : 'Select a company first' }, ...companyWebsites.map(w => ({ value: w.domain, label: w.domain }))]} />
-          </Field>
-        </div>
-      </Panel>
+      {/* Selection panel. When the URL already pins a website (the common
+          case — users land here from breadcrumb / per-site nav), render the
+          domain as a static label instead of dropdowns to remove the
+          redundant pick-it-again step. The dropdowns stay for the rare
+          standalone /phone-numbers/edit visit with no ?website param. */}
+      {prefillWebsite ? (
+        <Panel>
+          <PanelHeader title="Website" />
+          <div className="px-5 py-4 flex items-center gap-3 flex-wrap">
+            {companies.find(c => c.id === selectedCompany)?.name && (
+              <span className="text-xs font-medium" style={{ color: '#94a3b8' }}>
+                {companies.find(c => c.id === selectedCompany)?.name}
+              </span>
+            )}
+            <span className="text-sm font-mono font-semibold" style={{ color: 'var(--foreground)' }}>
+              {website}
+            </span>
+          </div>
+        </Panel>
+      ) : (
+        <Panel>
+          <PanelHeader title="Website" />
+          <div className="p-5 grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <Field label="Company" required>
+              <Select value={selectedCompany}
+                onChange={v => { setSelectedCompany(v); setWebsite(''); setSelectedMode(null) }}
+                options={[{ value: '', label: 'Select company…' }, ...companies.map(c => ({ value: c.id, label: c.name }))]} />
+            </Field>
+            <Field label="Website" required>
+              <Select value={website}
+                onChange={v => { setWebsite(v); setSelectedMode(null); setAddDrafts([emptyNewRow()]) }}
+                disabled={!selectedCompany}
+                options={[{ value: '', label: selectedCompany ? 'Select website…' : 'Select a company first' }, ...companyWebsites.map(w => ({ value: w.domain, label: w.domain }))]} />
+            </Field>
+          </div>
+        </Panel>
+      )}
 
       {!website ? (
         <Panel>

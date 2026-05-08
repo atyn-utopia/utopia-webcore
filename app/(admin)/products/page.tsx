@@ -381,21 +381,22 @@ export default function ProductsPage() {
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
           {filtered.map(product => (
-            <div key={product.id} className="rounded-xl border bg-white overflow-hidden hover:shadow-sm transition-all" style={{ borderColor: '#e2e8f0' }}>
+            <div key={product.id} className="rounded-xl border bg-white overflow-hidden hover:shadow-sm transition-all flex flex-col h-full" style={{ borderColor: '#e2e8f0' }}>
               {/* Thumbnail */}
               {product.photos.length > 0 ? (
-                <div className="h-32 bg-slate-100 overflow-hidden">
+                <div className="h-32 bg-slate-100 overflow-hidden flex-shrink-0">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={product.photos[0].url} alt={product.photos[0].alt_text ?? product.name} className="w-full h-full object-cover" />
                 </div>
               ) : (
-                <div className="h-32 flex items-center justify-center" style={{ background: '#f8fafc' }}>
+                <div className="h-32 flex items-center justify-center flex-shrink-0" style={{ background: '#f8fafc' }}>
                   <PhotoIcon className="w-10 h-10" />
                 </div>
               )}
 
-              {/* Content */}
-              <div className="p-3">
+              {/* Content. flex column so the action row sticks to the bottom and
+                  cards in the same grid row line up regardless of price/meta fill. */}
+              <div className="p-3 flex flex-col flex-1">
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0 flex-1">
                     <h3 className="text-sm font-semibold truncate" style={{ color: 'var(--foreground)' }}>{product.name}</h3>
@@ -410,12 +411,12 @@ export default function ProductsPage() {
                 {/* Pricing */}
                 <div className="flex items-center gap-2 mt-2 flex-wrap">
                   {product.sale_price !== null && (
-                    <span className="text-xs font-semibold px-2 py-0.5 rounded" style={{ background: '#e0f2fe', color: '#0369a1' }}>
+                    <span className="text-xs font-semibold px-2 py-0.5 rounded-full" style={{ background: '#e0f2fe', color: '#0369a1' }}>
                       Sale: {formatPrice(product.sale_price)}
                     </span>
                   )}
                   {product.rental_price !== null && (
-                    <span className="text-xs font-semibold px-2 py-0.5 rounded" style={{ background: '#eff6ff', color: '#1E5BFF' }}>
+                    <span className="text-xs font-semibold px-2 py-0.5 rounded-full" style={{ background: '#eff6ff', color: '#1E5BFF' }}>
                       Rental: {formatPrice(product.rental_price)}
                     </span>
                   )}
@@ -430,8 +431,8 @@ export default function ProductsPage() {
                   {product.sub_product_count > 0 && <span>{product.sub_product_count} sub-product{product.sub_product_count !== 1 ? 's' : ''}</span>}
                 </div>
 
-                {/* Actions */}
-                <div className="flex items-center gap-2 mt-3 pt-3" style={{ borderTop: '1px solid #f1f5f9' }}>
+                {/* Actions. mt-auto pushes them to the bottom so cards align. */}
+                <div className="flex items-center gap-2 mt-auto pt-3" style={{ borderTop: '1px solid #f1f5f9', marginTop: 'auto' }}>
                   <Link
                     href={`/products/${product.id}/edit?website=${encodeURIComponent(openWebsite)}`}
                     className="flex-1 text-center text-xs font-medium py-1.5 rounded-full border border-[#e2e8f0] text-[#475569] transition-colors hover:border-[var(--primary)] hover:text-[var(--primary)]"
@@ -441,7 +442,7 @@ export default function ProductsPage() {
                   <button
                     type="button"
                     onClick={() => deleteProduct(product.id, product.name)}
-                    className="flex-1 text-center text-xs font-medium py-1.5 rounded-md border border-[#e2e8f0] text-[#94a3b8] transition-colors hover:bg-[#ef4444] hover:border-white hover:text-white"
+                    className="flex-1 text-center text-xs font-medium py-1.5 rounded-full border border-[#e2e8f0] text-[#94a3b8] transition-colors hover:bg-[#ef4444] hover:border-white hover:text-white"
                   >
                     Delete
                   </button>
