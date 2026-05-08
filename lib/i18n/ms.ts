@@ -162,6 +162,7 @@ export const ms: Record<TranslationKey, string> = {
   'login.error.empty': 'Emel dan kata laluan diperlukan.',
   'login.footer': 'Utopia Webcore v1.0. Kegunaan Dalaman Sahaja',
   'login.continueWithGoogle': 'Teruskan dengan Google',
+  'login.googleHint': 'Hanya emel yang didaftarkan oleh admin boleh log masuk. Jika akaun anda belum dijemput, minta admin untuk menambahkannya dahulu.',
   'login.or': 'atau',
   'login.error.notInvited': 'Akaun Google ini belum dijemput. Sila hubungi admin untuk dimasukkan.',
   'login.error.callback': 'Log masuk gagal. Sila cuba lagi.',

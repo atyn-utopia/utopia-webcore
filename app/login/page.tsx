@@ -113,7 +113,7 @@ function LoginPageInner() {
                   key={lang}
                   type="button"
                   onClick={() => setLanguage(lang)}
-                  className="text-[11px] font-semibold tracking-wider px-3 h-6 rounded-full transition-colors"
+                  className="inline-flex items-center justify-center text-[11px] font-semibold tracking-wider leading-none px-3 h-6 rounded-full transition-colors"
                   style={{ background: active ? 'var(--primary)' : 'transparent', color: active ? 'white' : '#64748b' }}
                   aria-pressed={active}
                 >
@@ -133,6 +133,10 @@ function LoginPageInner() {
                 {error}
               </div>
             )}
+
+            <p className="text-[11px] leading-relaxed mb-3" style={{ color: '#64748b' }}>
+              {t('login.googleHint')}
+            </p>
 
             <Button
               variant="secondary"
