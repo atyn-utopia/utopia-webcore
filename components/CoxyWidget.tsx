@@ -125,11 +125,41 @@ export default function CoxyWidget() {
     // its default (bottom-right, or dashboard hero on /) on every navigation.
   }
 
-  const { messages, sendMessage, status, error } = useChat({
+  const { messages, sendMessage, status, error, setMessages } = useChat({
     transport: new DefaultChatTransport({ api: '/api/coxy/chat' }),
   })
 
   const isStreaming = status === 'streaming' || status === 'submitted'
+
+  // Persist the conversation in sessionStorage so a page refresh keeps the
+  // current chat alive. sessionStorage clears when the tab/window closes,
+  // so the next session starts fresh — matches 'session ends → rechat'.
+  const COXY_STORAGE_KEY = 'coxy-messages'
+  const hydratedRef = useRef(false)
+  useEffect(() => {
+    if (hydratedRef.current) return
+    if (typeof window === 'undefined') return
+    try {
+      const raw = window.sessionStorage.getItem(COXY_STORAGE_KEY)
+      if (raw) {
+        const parsed = JSON.parse(raw)
+        if (Array.isArray(parsed) && parsed.length > 0) setMessages(parsed)
+      }
+    } catch {}
+    hydratedRef.current = true
+  }, [setMessages])
+  useEffect(() => {
+    if (!hydratedRef.current) return
+    if (typeof window === 'undefined') return
+    if (isStreaming) return
+    try {
+      if (messages.length === 0) {
+        window.sessionStorage.removeItem(COXY_STORAGE_KEY)
+      } else {
+        window.sessionStorage.setItem(COXY_STORAGE_KEY, JSON.stringify(messages))
+      }
+    } catch {}
+  }, [messages, isStreaming])
 
   // Auto-scroll to bottom on new message
   useEffect(() => {
