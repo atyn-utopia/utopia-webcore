@@ -17,7 +17,7 @@ export default async function DashboardPage() {
   const noAccess = scope.isScoped && allowedDomains!.length === 0
 
   type CountQuery = { count: number | null }
-  type WebsitesData = { data: { website: string }[] | null }
+  type WebsitesData = { data: { domain: string }[] | null }
 
   let phoneCountRes: CountQuery = { count: 0 }
   let postCountRes: CountQuery = { count: 0 }
@@ -30,14 +30,17 @@ export default async function DashboardPage() {
     const phoneCountQuery = service.from('phone_numbers').select('*', { count: 'exact', head: true })
     const postCountQuery = service.from('blog_posts').select('*', { count: 'exact', head: true })
     const productCountQuery = service.from('products').select('*', { count: 'exact', head: true })
-    const websitesQuery = service.from('phone_numbers').select('website')
+    // Count from company_websites (the canonical link table) — using
+    // phone_numbers leaks orphan domains that no longer have a company
+    // link (e.g. parallel rows added for a team-domain alias).
+    const websitesQuery = service.from('company_websites').select('domain')
     const companiesQuery = service.from('companies').select('id, name, logo_url, company_websites(domain)').order('name')
 
     if (allowedDomains) {
       phoneCountQuery.in('website', allowedDomains)
       postCountQuery.in('website', allowedDomains)
       productCountQuery.in('website', allowedDomains)
-      websitesQuery.in('website', allowedDomains)
+      websitesQuery.in('domain', allowedDomains)
     }
     if (scope.isScoped) {
       const ids = scope.companyIds ?? []
@@ -56,7 +59,7 @@ export default async function DashboardPage() {
     companiesRes = results[4] as { data: CompanyRow[] | null }
   }
 
-  const websitesSet = new Set((websitesRes.data ?? []).map((r: { website: string }) => r.website))
+  const websitesSet = new Set((websitesRes.data ?? []).map((r: { domain: string }) => r.domain))
   if (allowedDomains) allowedDomains.forEach(d => websitesSet.add(d))
 
   // For scoped users, filter out websites outside their scope from each company folder
