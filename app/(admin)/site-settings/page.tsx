@@ -5,6 +5,7 @@ import { useSearchParams } from 'next/navigation'
 import PageHeader from '@/components/PageHeader'
 import RemoveFromWebcoreCard from '@/components/RemoveFromWebcoreCard'
 import RenameDomainCard from '@/components/RenameDomainCard'
+import SiteApiKeysCard from '@/components/SiteApiKeysCard'
 import { useUser } from '@/contexts/UserContext'
 
 export default function SiteSettingsPage() {
@@ -42,6 +43,7 @@ function SiteSettingsInner() {
       {canRemove ? (
         <div className="space-y-4">
           <RenameDomainCard domain={domain} />
+          <SiteApiKeysCard domain={domain} />
           <RemoveFromWebcoreCard domain={domain} />
         </div>
       ) : (

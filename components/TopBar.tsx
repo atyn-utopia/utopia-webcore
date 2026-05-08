@@ -172,19 +172,19 @@ export default function TopBar() {
       </div>
 
       {/* Back */}
-      <button onClick={() => router.back()} className="w-9 h-9 flex items-center justify-center rounded-md transition-colors" style={{ color: 'var(--header-text)' }} onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = 'var(--header-hover)'} onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'} title="Go back">
+      <button onClick={() => router.back()} className="w-9 h-9 flex items-center justify-center rounded-full transition-colors" style={{ color: 'var(--header-text)' }} onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = 'var(--header-hover)'} onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'} title="Go back">
         <ChevronLeftIcon className="w-4 h-4" />
       </button>
 
       {/* Forward */}
-      <button onClick={() => router.forward()} className="w-9 h-9 flex items-center justify-center rounded-md transition-colors" style={{ color: 'var(--header-text)' }} onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = 'var(--header-hover)'} onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'} title="Go forward">
+      <button onClick={() => router.forward()} className="w-9 h-9 flex items-center justify-center rounded-full transition-colors" style={{ color: 'var(--header-text)' }} onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = 'var(--header-hover)'} onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'} title="Go forward">
         <ChevronRightIcon className="w-4 h-4" />
       </button>
 
       {/* Language switcher. Simple toggle */}
       <button
         onClick={() => setLanguage(language === 'en' ? 'ms' : 'en')}
-        className="w-9 h-9 flex items-center justify-center rounded-md transition-colors text-[11px] font-semibold"
+        className="w-9 h-9 flex items-center justify-center rounded-full transition-colors text-[11px] font-semibold leading-none"
         style={{ color: 'var(--header-text)' }}
         onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = 'var(--header-hover)'}
         onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'}
@@ -195,7 +195,7 @@ export default function TopBar() {
 
       {/* Notification bell */}
       <div className="relative" ref={panelRef}>
-        <button onClick={() => setShowPanel(!showPanel)} className="w-9 h-9 flex items-center justify-center rounded-md transition-colors relative" style={{ color: 'var(--header-text)' }} onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = 'var(--header-hover)'} onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'} title="Notifications">
+        <button onClick={() => setShowPanel(!showPanel)} className="w-9 h-9 flex items-center justify-center rounded-full transition-colors relative" style={{ color: 'var(--header-text)' }} onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = 'var(--header-hover)'} onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'} title="Notifications">
           <BellIcon className="w-4 h-4" />
           {unreadCount > 0 && (
             <span className="absolute top-1 right-1 w-4 h-4 flex items-center justify-center rounded-full text-[9px] font-bold text-white" style={{ background: '#ef4444' }}>{unreadCount > 9 ? '9+' : unreadCount}</span>
