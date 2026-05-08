@@ -61,10 +61,6 @@ export default function UsersPage() {
   const [search, setSearch] = useState('')
   const [roleFilter, setRoleFilter] = useState<UserRole | ''>('')
 
-  useEffect(() => {
-    fetchAll()
-  }, [])
-
   async function fetchAll() {
     setLoading(true)
     try {
@@ -77,6 +73,10 @@ export default function UsersPage() {
     } catch {}
     setLoading(false)
   }
+
+  useEffect(() => {
+    fetchAll()
+  }, [])
 
   async function handleCreate(e: React.FormEvent) {
     e.preventDefault()

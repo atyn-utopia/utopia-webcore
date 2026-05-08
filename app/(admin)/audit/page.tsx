@@ -122,10 +122,6 @@ export default function AuditTrailPage() {
   const [filterEntity, setFilterEntity] = useState<'' | 'phone_number' | 'blog_post' | 'product' | 'website' | 'api_key'>('')
   const [filterAction, setFilterAction] = useState<'' | 'create' | 'update' | 'delete'>('')
 
-  useEffect(() => {
-    fetchLogs()
-  }, [])
-
   async function fetchLogs() {
     setLoading(true)
     try {
@@ -135,6 +131,10 @@ export default function AuditTrailPage() {
     } catch {}
     setLoading(false)
   }
+
+  useEffect(() => {
+    fetchLogs()
+  }, [])
 
   function toggleExpand(id: string) {
     setExpanded(prev => {

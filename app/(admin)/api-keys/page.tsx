@@ -75,6 +75,14 @@ export default function ApiKeysPage() {
   const [historyOpen, setHistoryOpen] = useState(false)
   const [nowMs, setNowMs] = useState(() => Date.now())
 
+  async function fetchKeys() {
+    setLoading(true)
+    const res = await fetch('/api/admin/api-keys')
+    const data = await res.json()
+    if (Array.isArray(data)) setKeys(data)
+    setLoading(false)
+  }
+
   useEffect(() => {
     fetchKeys()
     fetch('/api/websites').then(r => r.json()).then(data => {
@@ -86,14 +94,6 @@ export default function ApiKeysPage() {
     const i = setInterval(() => setNowMs(Date.now()), 30000)
     return () => clearInterval(i)
   }, [])
-
-  async function fetchKeys() {
-    setLoading(true)
-    const res = await fetch('/api/admin/api-keys')
-    const data = await res.json()
-    if (Array.isArray(data)) setKeys(data)
-    setLoading(false)
-  }
 
   function copy(value: string, token: string, label = 'Copied') {
     navigator.clipboard.writeText(value)

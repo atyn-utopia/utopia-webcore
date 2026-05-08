@@ -32,8 +32,6 @@ export default function HelpPage() {
   const [success, setSuccess] = useState('')
   const [error, setError] = useState('')
 
-  useEffect(() => { fetchTickets() }, [])
-
   async function fetchTickets() {
     setLoading(true)
     const res = await fetch('/api/tickets')
@@ -41,6 +39,8 @@ export default function HelpPage() {
     if (Array.isArray(data)) setTickets(data)
     setLoading(false)
   }
+
+  useEffect(() => { fetchTickets() }, [])
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
