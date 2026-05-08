@@ -57,12 +57,33 @@ export default function RenameDomainCard({ domain }: Props) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ from: domain, to: cleaned }),
       })
-      const data = await res.json().catch(() => ({}))
+      const data = (await res.json().catch(() => ({}))) as {
+        error?: string
+        vercel?: {
+          enabled: boolean
+          projectId: string | null
+          addedNewDomain: boolean
+          redeployedDeploymentId: string | null
+          warnings: string[]
+        }
+      }
       if (!res.ok) {
         toast.error(data.error || `Rename failed (${res.status})`, 'Rename failed')
         return
       }
-      toast.success(`${domain} → ${cleaned}`, 'Domain renamed')
+      // Compose a result message that reflects what Vercel actually did.
+      const v = data.vercel
+      let detail = `${domain} → ${cleaned}`
+      if (v?.enabled && v.projectId) {
+        const parts: string[] = []
+        if (v.addedNewDomain) parts.push('Vercel domain attached')
+        if (v.redeployedDeploymentId) parts.push('redeploy triggered')
+        if (parts.length) detail += ` · ${parts.join(' · ')}`
+        if (v.warnings.length) detail += ` · ${v.warnings.length} warning${v.warnings.length === 1 ? '' : 's'}`
+      } else if (v?.enabled && !v.projectId) {
+        detail += ' · Vercel project not found (manual attach needed)'
+      }
+      toast.success(detail, 'Domain renamed')
       // Re-route the URL to the new domain so the page keeps loading data
       // for the right site.
       router.replace(`/site-settings?website=${encodeURIComponent(cleaned)}`)

@@ -3,6 +3,13 @@ import { createClient } from '@/lib/supabase/server'
 import { createServiceClient } from '@/lib/supabase/service'
 import { getUserScope } from '@/lib/getUserScope'
 import { resolveActor, writeAuditLog } from '@/lib/auditLog'
+import {
+  isVercelEnabled,
+  findProjectIdByDomain,
+  addDomainToProject,
+  redeployLatestProduction,
+  VercelError,
+} from '@/lib/vercel'
 
 /**
  * POST /api/company-websites/rename — change the recorded domain for a site.
@@ -73,6 +80,40 @@ export async function POST(request: Request) {
   if (!source) return NextResponse.json({ error: `Source domain ${from} not found` }, { status: 404 })
   if (clash) return NextResponse.json({ error: `${to} is already linked to a company` }, { status: 409 })
 
+  // ─── Vercel: attach new domain BEFORE the DB rename. If this fails,
+  // bail without touching webcore so the operator can retry safely.
+  // Skipped when VERCEL_API_TOKEN isn't configured or the domain isn't
+  // owned by a project this token can see (custom domain on another team).
+  const vercelReport: {
+    enabled: boolean
+    projectId: string | null
+    addedNewDomain: boolean
+    redeployedDeploymentId: string | null
+    warnings: string[]
+  } = { enabled: isVercelEnabled(), projectId: null, addedNewDomain: false, redeployedDeploymentId: null, warnings: [] }
+
+  if (vercelReport.enabled) {
+    try {
+      vercelReport.projectId = await findProjectIdByDomain(from)
+    } catch (e) {
+      vercelReport.warnings.push(`Project lookup: ${(e as Error).message}`)
+    }
+    if (!vercelReport.projectId) {
+      vercelReport.warnings.push(`No Vercel project found for ${from}. Skipping Vercel attach + redeploy — webcore-side rename still ran.`)
+    } else {
+      try {
+        await addDomainToProject(vercelReport.projectId, to)
+        vercelReport.addedNewDomain = true
+      } catch (e) {
+        const status = e instanceof VercelError ? e.status : 500
+        return NextResponse.json(
+          { error: `Vercel: couldn't attach ${to} to project — ${(e as Error).message}`, vercelStage: 'add-domain', vercel: vercelReport },
+          { status },
+        )
+      }
+    }
+  }
+
   // Fan out to every dependent table. Each update returns the count of rows
   // touched so the audit trail records what moved.
   const counts: Record<string, number> = {}
@@ -104,6 +145,18 @@ export async function POST(request: Request) {
     )
   }
 
+  // ─── Vercel: redeploy after the DB cascade so the fresh build picks up
+  // any baked-in canonical-host config. Best-effort — if it fails the rename
+  // is still complete, we just surface a warning.
+  if (vercelReport.projectId) {
+    try {
+      const dep = await redeployLatestProduction(vercelReport.projectId)
+      vercelReport.redeployedDeploymentId = dep.id
+    } catch (e) {
+      vercelReport.warnings.push(`Redeploy: ${(e as Error).message}`)
+    }
+  }
+
   const actor = await resolveActor(user.id)
   await writeAuditLog({
     actor,
@@ -112,8 +165,8 @@ export async function POST(request: Request) {
     action: 'update',
     website: to,
     label: `${from} → ${to}`,
-    metadata: { from, to, cascade: counts },
+    metadata: { from, to, cascade: counts, vercel: vercelReport },
   })
 
-  return NextResponse.json({ ok: true, from, to, cascade: counts })
+  return NextResponse.json({ ok: true, from, to, cascade: counts, vercel: vercelReport })
 }

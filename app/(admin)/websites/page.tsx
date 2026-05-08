@@ -776,9 +776,9 @@ function SearchConsoleCard({ domain, period }: { domain: string; period: string 
       <Container>
         <Header />
         <div className="p-5 flex items-center gap-3">
-          <InformationCircleIcon className="w-4 h-4 flex-shrink-0" style={{ color: '#1E5BFF' }} />
-          <p className="text-xs" style={{ color: '#64748b' }}>
-            See how people find this site from Google search. <span style={{ color: '#475569', fontWeight: 500 }}>Connect in the Integrations section below</span>.
+          <InformationCircleIcon className="w-5 h-5 flex-shrink-0" style={{ color: '#1E5BFF' }} />
+          <p className="text-sm" style={{ color: '#475569' }}>
+            See how people find this site from Google search. <span className="font-semibold" style={{ color: 'var(--foreground)' }}>Connect in the Integrations section below</span>.
           </p>
         </div>
       </Container>
