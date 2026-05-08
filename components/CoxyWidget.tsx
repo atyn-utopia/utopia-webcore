@@ -252,7 +252,7 @@ export default function CoxyWidget() {
                     <button
                       key={s}
                       onClick={() => submit(s)}
-                      className="w-full text-left text-xs px-3 py-2.5 rounded-full border bg-white transition-all hover:border-[var(--primary)] hover:bg-slate-50"
+                      className="w-full text-left text-xs px-3 py-2.5 rounded-lg border bg-white transition-all hover:border-[var(--primary)] hover:bg-slate-50"
                       style={{ borderColor: '#e2e8f0', color: '#475569' }}
                     >
                       {s}
@@ -271,7 +271,7 @@ export default function CoxyWidget() {
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src="/avatar-coxy.png" alt="" className="w-full h-full object-contain" />
                 </div>
-                <div className="px-3 py-2 rounded-full rounded-tl-sm" style={{ background: 'white', border: '1px solid #e2e8f0' }}>
+                <div className="px-3 py-2 rounded-2xl rounded-tl-sm" style={{ background: 'white', border: '1px solid #e2e8f0' }}>
                   <div className="flex gap-1">
                     <span className="w-1.5 h-1.5 rounded-full animate-bounce" style={{ background: '#94a3b8', animationDelay: '0ms' }} />
                     <span className="w-1.5 h-1.5 rounded-full animate-bounce" style={{ background: '#94a3b8', animationDelay: '150ms' }} />
@@ -281,7 +281,7 @@ export default function CoxyWidget() {
               </div>
             )}
             {error && (
-              <div className="px-3 py-2 rounded-full text-xs" style={{ background: '#fef2f2', border: '1px solid #fecaca', color: '#b91c1c' }}>
+              <div className="px-3 py-2 rounded-lg text-xs" style={{ background: '#fef2f2', border: '1px solid #fecaca', color: '#b91c1c' }}>
                 Something went wrong. Try again in a moment.
               </div>
             )}
@@ -296,7 +296,7 @@ export default function CoxyWidget() {
               onKeyDown={handleKeyDown}
               placeholder="Ask Coxy…"
               rows={1}
-              className="flex-1 resize-none rounded-full px-3 py-2 text-sm outline-none transition-colors focus:border-[var(--primary)]"
+              className="flex-1 resize-none rounded-2xl px-3 py-2 text-sm outline-none transition-colors focus:border-[var(--primary)]"
               style={{ border: '1px solid #e2e8f0', maxHeight: '120px' }}
               disabled={isStreaming}
             />
@@ -326,7 +326,7 @@ function MessageBubble({ role, parts }: { role: 'user' | 'assistant' | 'system';
   if (role === 'user') {
     return (
       <div className="flex justify-end">
-        <div className="max-w-[85%] px-3 py-2 rounded-full rounded-tr-sm text-sm whitespace-pre-wrap"
+        <div className="max-w-[85%] px-3 py-2 rounded-2xl rounded-tr-sm text-sm whitespace-pre-wrap"
           style={{ background: 'var(--primary)', color: 'white' }}>
           {text}
         </div>
@@ -339,7 +339,7 @@ function MessageBubble({ role, parts }: { role: 'user' | 'assistant' | 'system';
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src="/avatar-coxy.png" alt="" className="w-full h-full object-contain" />
       </div>
-      <div className="max-w-[85%] px-3 py-2 rounded-full rounded-tl-sm text-sm whitespace-pre-wrap"
+      <div className="max-w-[85%] px-3 py-2 rounded-2xl rounded-tl-sm text-sm whitespace-pre-wrap"
         style={{ background: 'white', border: '1px solid #e2e8f0', color: 'var(--foreground)' }}>
         {text || <span style={{ color: '#cbd5e1' }}>…</span>}
       </div>

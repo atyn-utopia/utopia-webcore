@@ -40,10 +40,12 @@ export default function HeaderBar({ onMobileMenuOpen }: Props) {
         </button>
       )}
 
-      {/* Brand */}
-      <Link href="/" className="flex items-center gap-2.5 flex-shrink-0">
+      {/* Brand. Hidden on mobile — the mobile sidebar drawer's brand strip
+          covers context there, freeing up the header for the hamburger +
+          site selector + right-side icons. */}
+      <Link href="/" className="hidden sm:flex items-center gap-2.5 flex-shrink-0">
         <Logo size={32} rounded="md" />
-        <div className="hidden sm:block leading-tight">
+        <div className="leading-tight">
           <span className="block text-sm font-bold tracking-tight" style={{ color: 'var(--header-text-strong)' }}>Utopia Webcore</span>
           <span className="block text-[10px]" style={{ color: 'var(--header-text)' }}>Web &amp; Content Ops</span>
         </div>
