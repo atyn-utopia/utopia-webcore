@@ -4,6 +4,7 @@ import { Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import PageHeader from '@/components/PageHeader'
 import RemoveFromWebcoreCard from '@/components/RemoveFromWebcoreCard'
+import RenameDomainCard from '@/components/RenameDomainCard'
 import { useUser } from '@/contexts/UserContext'
 
 export default function SiteSettingsPage() {
@@ -39,7 +40,10 @@ function SiteSettingsInner() {
       />
 
       {canRemove ? (
-        <RemoveFromWebcoreCard domain={domain} />
+        <div className="space-y-4">
+          <RenameDomainCard domain={domain} />
+          <RemoveFromWebcoreCard domain={domain} />
+        </div>
       ) : (
         <div className="rounded-xl border bg-white p-10 text-center" style={{ borderColor: '#e2e8f0' }}>
           <p className="text-sm" style={{ color: '#64748b' }}>No site-level settings available for your role yet.</p>

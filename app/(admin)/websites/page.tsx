@@ -152,6 +152,13 @@ export default function WebsitesPage() {
   const compareSites = (searchParams.get('compare') ?? '').split(',').map(s => s.trim()).filter(Boolean)
   const [compareOpen, setCompareOpen] = useState(false)
 
+  // The no-context global /websites view duplicates the dashboard's
+  // Companies grid, so redirect there. /websites?website=... remains the
+  // canonical per-site dashboard.
+  useEffect(() => {
+    if (!openCompany && !openWebsite) router.replace('/')
+  }, [openCompany, openWebsite, router])
+
   const [sites, setSites] = useState<WebsiteSummary[]>([])
   const [companies, setCompanies] = useState<CompanyInfo[]>([])
   const [analytics, setAnalytics] = useState<AnalyticsData | null>(null)

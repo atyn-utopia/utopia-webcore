@@ -48,12 +48,15 @@ export default function CoxyWidget() {
   const dragRef = useRef<{ startX: number; startY: number; startRight: number; startPosY: number; anchor: Anchor; moved: boolean } | null>(null)
   const [isDragging, setIsDragging] = useState(false)
 
-  // Reset position on every route change. Dashboard-like pages pin Coxy near
-  // the hero; everywhere else falls back to bottom-right. Drag still works
-  // during a session but doesn't persist across navigations.
+  // Reset position on every route change. Dashboard-like pages pin Coxy
+  // near the hero; everywhere else falls back to bottom-right. Drag still
+  // works during a session but doesn't persist across navigations. Depend
+  // on `pathname` (not the derived `isDashboard` boolean) — otherwise
+  // navigating between two non-dashboard pages doesn't trigger the reset
+  // and a drag offset can leak across.
   useEffect(() => {
     setPos(isDashboard ? DASHBOARD_POS : DEFAULT_POS)
-  }, [isDashboard])
+  }, [pathname, isDashboard])
 
   function onBubblePointerDown(e: React.PointerEvent<HTMLButtonElement>) {
     e.preventDefault()
