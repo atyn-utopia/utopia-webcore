@@ -1,42 +1,50 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { usePathname } from 'next/navigation'
+import { usePathname, useSearchParams } from 'next/navigation'
 
 /**
- * Page-transition loading veil. Shown for ~600ms after every route change
- * so the user sees something happen even when the next page is still
- * fetching data. Uses the brand /loading-animation.gif on a soft white
- * backdrop. The GIF ships white so CSS invert flips it to black against
- * the light backdrop.
+ * Top-of-page navigation progress strip. 2px indeterminate bar that flashes
+ * brand blue for ~700ms after every route change. Lives directly under the
+ * HeaderBar (rendered by AdminShell), so it has nowhere to sit on
+ * unauthenticated screens — by design, those pages don't need it.
+ *
+ * The bar is always in the DOM at h-0.5 to avoid layout shift; only the
+ * inner gradient stripe animates in/out.
  */
 export default function LoadingBar() {
   const pathname = usePathname()
+  const searchParams = useSearchParams()
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
     setLoading(true)
-    const timeout = setTimeout(() => setLoading(false), 600)
+    const timeout = setTimeout(() => setLoading(false), 700)
     return () => clearTimeout(timeout)
-  }, [pathname])
-
-  if (!loading) return null
+  }, [pathname, searchParams])
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: 'rgba(255,255,255,0.7)', backdropFilter: 'blur(2px)' }}>
-      <div className="flex flex-col items-center gap-3">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src="/loading-animation.gif"
-          alt=""
-          width={56}
-          height={56}
-          style={{ width: 56, height: 56, filter: 'invert(1)' }}
-          aria-hidden
-          draggable={false}
+    <div
+      className="relative h-0.5 flex-shrink-0 overflow-hidden"
+      style={{ background: 'transparent' }}
+      aria-hidden
+    >
+      {loading && (
+        <div
+          className="absolute inset-y-0 w-1/3 rounded-full"
+          style={{
+            background: 'linear-gradient(90deg, transparent 0%, var(--primary) 50%, transparent 100%)',
+            animation: 'loadingBarSlide 700ms cubic-bezier(0.4, 0, 0.2, 1) forwards',
+          }}
         />
-        <span className="text-xs font-medium text-slate-400">Loading…</span>
-      </div>
+      )}
+      <style>{`
+        @keyframes loadingBarSlide {
+          0%   { transform: translateX(-100%); opacity: 0.6; }
+          50%  { opacity: 1; }
+          100% { transform: translateX(400%); opacity: 0.4; }
+        }
+      `}</style>
     </div>
   )
 }

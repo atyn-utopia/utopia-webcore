@@ -1,7 +1,6 @@
 import type { Metadata } from 'next'
 import { Fira_Sans, Nunito } from 'next/font/google'
 import './globals.css'
-import LoadingBar from '@/components/LoadingBar'
 
 const fira = Fira_Sans({
   subsets: ['latin'],
@@ -45,7 +44,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="apple-touch-icon" sizes="180x180" href="/utopia-webcore-apple-touch.png" />
       </head>
       <body className="min-h-full">
-        <LoadingBar />
         {children}
         <script
           dangerouslySetInnerHTML={{

@@ -11,6 +11,7 @@ import { CoxyProvider } from '@/contexts/CoxyContext'
 import Sidebar from './Sidebar'
 import Breadcrumb from './Breadcrumb'
 import HeaderBar from './HeaderBar'
+import LoadingBar from './LoadingBar'
 import CoxyWidget from './CoxyWidget'
 
 import {
@@ -74,6 +75,10 @@ export default function AdminShell({ userEmail, userName, userRole, children }: 
 
         {/* Wix-style top header bar */}
         <HeaderBar onMobileMenuOpen={() => setSidebarOpen(true)} />
+
+        {/* Thin progress strip directly under the header. Always present so
+            it doesn't shift the layout when navigation kicks in. */}
+        <LoadingBar />
 
         <div className="flex flex-1 min-h-0">
         {/* Mobile backdrop */}
