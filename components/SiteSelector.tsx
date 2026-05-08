@@ -92,7 +92,7 @@ export default function SiteSelector() {
     <div className="relative" ref={containerRef}>
       <button
         onClick={() => setOpen(v => !v)}
-        className="flex items-center gap-1.5 sm:gap-2 h-9 px-2 sm:px-3 rounded-md text-sm font-medium transition-colors"
+        className="flex items-center gap-1.5 sm:gap-2 h-9 px-2 sm:px-3 rounded-full text-sm font-medium transition-colors"
         style={{
           background: open ? 'var(--header-hover)' : 'transparent',
           color: 'var(--header-text-strong)',

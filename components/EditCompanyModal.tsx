@@ -157,7 +157,7 @@ export default function EditCompanyModal({ open, company, onClose, onSaved }: Pr
                     type="button"
                     onClick={() => fileInputRef.current?.click()}
                     disabled={busy}
-                    className="inline-flex items-center gap-1.5 text-xs font-medium px-3 h-9 rounded-md border transition-colors hover:bg-slate-50 disabled:opacity-50"
+                    className="inline-flex items-center gap-1.5 text-xs font-medium px-3 h-9 rounded-full border transition-colors hover:bg-slate-50 disabled:opacity-50"
                     style={{ borderColor: '#e2e8f0', color: '#475569', background: 'white' }}
                   >
                     <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8"><path strokeLinecap="round" strokeLinejoin="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" /></svg>
@@ -199,7 +199,7 @@ export default function EditCompanyModal({ open, company, onClose, onSaved }: Pr
                 value={logoUrl}
                 onChange={e => { setLogoUrl(e.target.value); setLogoBroken(false) }}
                 placeholder="https://example.com/logo.png"
-                className="w-full h-9 mt-1 px-3 text-sm rounded-md border outline-none focus:border-[var(--primary)] transition-colors"
+                className="w-full h-9 mt-1 px-3 text-sm rounded-full border outline-none focus:border-[var(--primary)] transition-colors"
                 style={{ borderColor: '#e2e8f0', background: 'white' }}
               />
             )}
@@ -212,7 +212,7 @@ export default function EditCompanyModal({ open, company, onClose, onSaved }: Pr
               type="text"
               value={name}
               onChange={e => setName(e.target.value)}
-              className="w-full h-9 px-3 text-sm rounded-md border outline-none focus:border-[var(--primary)] transition-colors"
+              className="w-full h-9 px-3 text-sm rounded-full border outline-none focus:border-[var(--primary)] transition-colors"
               style={{ borderColor: '#e2e8f0', background: 'white' }}
             />
           </div>

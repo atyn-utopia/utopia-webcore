@@ -75,7 +75,7 @@ export default function DashboardClient({ role, isScoped, websiteCount, phoneCou
       <div className={`grid grid-cols-1 ${isWriter || isScoped ? 'sm:grid-cols-2' : 'sm:grid-cols-2 lg:grid-cols-3'} gap-4 mb-8`}>
         <Card variant="default">
           <div className="flex items-center gap-3 mb-3">
-            <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: '#f1f5f9' }}>
+            <div className="w-9 h-9 rounded-full flex items-center justify-center" style={{ background: '#f1f5f9' }}>
               <GlobeAltIcon className="w-5 h-5 text-slate-500" />
             </div>
             <span className="text-xs font-medium text-slate-400 uppercase tracking-wide">{t('dashboard.stats.websites')}</span>
@@ -87,7 +87,7 @@ export default function DashboardClient({ role, isScoped, websiteCount, phoneCou
         {!isWriter && (
           <Card variant="default">
             <div className="flex items-center gap-3 mb-3">
-              <div className="w-9 h-9 rounded-lg flex items-center justify-center bg-slate-100">
+              <div className="w-9 h-9 rounded-full flex items-center justify-center bg-slate-100">
                 <ChatBubbleLeftRightIcon className="w-5 h-5 text-slate-500" />
               </div>
               <span className="text-xs font-medium text-slate-400 uppercase tracking-wide">{t('dashboard.stats.phoneNumbers')}</span>
@@ -100,7 +100,7 @@ export default function DashboardClient({ role, isScoped, websiteCount, phoneCou
         {!isWriter && (
           <Card variant="default">
             <div className="flex items-center gap-3 mb-3">
-              <div className="w-9 h-9 rounded-lg flex items-center justify-center bg-slate-100">
+              <div className="w-9 h-9 rounded-full flex items-center justify-center bg-slate-100">
                 <CubeIcon className="w-5 h-5 text-slate-500" />
               </div>
               <span className="text-xs font-medium text-slate-400 uppercase tracking-wide">Products</span>

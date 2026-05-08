@@ -119,7 +119,7 @@ export default function AllBlogPage() {
           <label className="block text-[10px] font-medium mb-1" style={{ color: '#94a3b8' }}>Company</label>
           <div className="relative">
             <select value={filterCompany} onChange={e => setFilterCompany(e.target.value)}
-              className="px-3 py-2 text-sm rounded-lg border focus:outline-none cursor-pointer pr-9" style={{ borderColor: '#e2e8f0', appearance: 'none', WebkitAppearance: 'none', background: 'white', minWidth: '160px', color: '#64748b' }}>
+              className="px-3 py-2 text-sm rounded-full border focus:outline-none cursor-pointer pr-9" style={{ borderColor: '#e2e8f0', appearance: 'none', WebkitAppearance: 'none', background: 'white', minWidth: '160px', color: '#64748b' }}>
               <option value="">All companies</option>
               {companyNames.map(c => <option key={c} value={c}>{c}</option>)}
             </select>
@@ -130,7 +130,7 @@ export default function AllBlogPage() {
           <label className="block text-[10px] font-medium mb-1" style={{ color: '#94a3b8' }}>Status</label>
           <div className="relative">
             <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)}
-              className="px-3 py-2 text-sm rounded-lg border focus:outline-none cursor-pointer pr-9" style={{ borderColor: '#e2e8f0', appearance: 'none', WebkitAppearance: 'none', background: 'white', minWidth: '130px', color: '#64748b' }}>
+              className="px-3 py-2 text-sm rounded-full border focus:outline-none cursor-pointer pr-9" style={{ borderColor: '#e2e8f0', appearance: 'none', WebkitAppearance: 'none', background: 'white', minWidth: '130px', color: '#64748b' }}>
               <option value="">All statuses</option>
               <option value="published">Published</option>
               <option value="draft">Draft</option>
@@ -185,7 +185,7 @@ export default function AllBlogPage() {
                         <Link href={`/blog/${post.id}/edit`}
                           className="group/tip relative w-7 h-7 flex items-center justify-center rounded-full border transition-colors hover:border-[var(--primary)] hover:text-[var(--primary)]" style={{ borderColor: '#e2e8f0', color: '#94a3b8' }}>
                           <PencilSquareIcon className="w-3.5 h-3.5" />
-                          <div className="pointer-events-none absolute top-full left-1/2 -translate-x-1/2 mt-2 px-3 py-1.5 rounded-lg text-[10px] font-medium text-white whitespace-nowrap opacity-0 group-hover/tip:opacity-100 transition-opacity z-20" style={{ background: '#1e293b' }}>
+                          <div className="pointer-events-none absolute top-full left-1/2 -translate-x-1/2 mt-2 px-3 py-1.5 rounded-full text-[10px] font-medium text-white whitespace-nowrap opacity-0 group-hover/tip:opacity-100 transition-opacity z-20" style={{ background: '#1e293b' }}>
                             Edit post
                             <div className="absolute bottom-full left-1/2 -translate-x-1/2 w-0 h-0 border-x-4 border-x-transparent border-b-4" style={{ borderBottomColor: '#1e293b' }} />
                           </div>
@@ -193,7 +193,7 @@ export default function AllBlogPage() {
                         <Link href={`/blog/${post.id}/view`}
                           className="group/tip relative w-7 h-7 flex items-center justify-center rounded-full border transition-colors hover:border-[var(--primary)] hover:text-[var(--primary)]" style={{ borderColor: '#e2e8f0', color: '#94a3b8' }}>
                           <EyeIcon className="w-3.5 h-3.5" />
-                          <div className="pointer-events-none absolute top-full left-1/2 -translate-x-1/2 mt-2 px-3 py-1.5 rounded-lg text-[10px] font-medium text-white whitespace-nowrap opacity-0 group-hover/tip:opacity-100 transition-opacity z-20" style={{ background: '#1e293b' }}>
+                          <div className="pointer-events-none absolute top-full left-1/2 -translate-x-1/2 mt-2 px-3 py-1.5 rounded-full text-[10px] font-medium text-white whitespace-nowrap opacity-0 group-hover/tip:opacity-100 transition-opacity z-20" style={{ background: '#1e293b' }}>
                             Preview
                             <div className="absolute bottom-full left-1/2 -translate-x-1/2 w-0 h-0 border-x-4 border-x-transparent border-b-4" style={{ borderBottomColor: '#1e293b' }} />
                           </div>

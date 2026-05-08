@@ -163,15 +163,28 @@ export default function Breadcrumb() {
         </svg>
       </Link>
 
+      {/* On mobile, only the last two crumbs (parent + current) render so the
+          breadcrumb stays one line. An ellipsis dot stands in for the
+          collapsed middle crumbs to hint there's more depth. Desktop sees
+          the full chain. */}
+      {crumbs.length > 2 && (
+        <span className="flex sm:hidden items-center gap-2 min-w-0 flex-shrink-0">
+          <ChevronRightIcon className="w-3 h-3 flex-shrink-0" style={{ color: '#cbd5e1' }} />
+          <span style={{ color: '#cbd5e1' }} title={`${crumbs.length - 2} more level${crumbs.length - 2 === 1 ? '' : 's'}`}>…</span>
+        </span>
+      )}
+
       {crumbs.map((crumb, i) => {
         const isLast = i === crumbs.length - 1
+        const isParent = i === crumbs.length - 2
+        const hideOnMobile = crumbs.length > 2 && !isLast && !isParent
         return (
-          <span key={i} className="flex items-center gap-2 min-w-0">
-            <ChevronRightIcon className="w-3 h-3 flex-shrink-0" />
+          <span key={i} className={`${hideOnMobile ? 'hidden sm:flex' : 'flex'} items-center gap-2 min-w-0`}>
+            <ChevronRightIcon className="w-3 h-3 flex-shrink-0" style={{ color: '#cbd5e1' }} />
             {crumb.href && !isLast ? (
               <Link
                 href={crumb.href}
-                className="transition-colors truncate max-w-[200px]"
+                className="transition-colors truncate max-w-[120px] sm:max-w-[200px]"
                 style={{ color: '#94a3b8' }}
                 title={crumb.label}
                 onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = 'var(--foreground)'}
@@ -181,7 +194,7 @@ export default function Breadcrumb() {
               </Link>
             ) : (
               <span
-                className={`${isLast ? 'font-semibold truncate max-w-[260px]' : 'font-medium'}`}
+                className={`${isLast ? 'font-semibold truncate max-w-[180px] sm:max-w-[260px]' : 'font-medium'}`}
                 style={{ color: isLast ? 'var(--foreground)' : '#94a3b8' }}
                 title={crumb.label}
               >

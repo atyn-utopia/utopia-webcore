@@ -53,7 +53,7 @@ export default function HeaderBar({ onMobileMenuOpen }: Props) {
       <div className="hidden sm:block h-6 w-px flex-shrink-0" style={{ background: 'var(--header-divider)' }} />
 
       {/* Site selector */}
-      <Suspense fallback={<div className="h-9 w-32 rounded-md" style={{ background: 'var(--header-hover)' }} />}>
+      <Suspense fallback={<div className="h-9 w-32 rounded-full" style={{ background: 'var(--header-hover)' }} />}>
         <SiteSelector />
       </Suspense>
 

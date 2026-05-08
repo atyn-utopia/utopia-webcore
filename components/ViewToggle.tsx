@@ -4,7 +4,7 @@ export type ViewMode = 'grid' | 'list'
 
 export default function ViewToggle({ value, onChange }: { value: ViewMode; onChange: (mode: ViewMode) => void }) {
   return (
-    <div className="flex items-center h-9 rounded-lg border overflow-hidden" style={{ borderColor: '#cbd5e1' }}>
+    <div className="flex items-center h-9 rounded-full border overflow-hidden" style={{ borderColor: '#cbd5e1' }}>
       <button
         type="button"
         onClick={() => onChange('list')}

@@ -154,7 +154,7 @@ export default function ProductsPage() {
               <Link key={c.id} href={`/products?company=${encodeURIComponent(c.name)}`}
                 className="group flex items-center gap-3 px-4 py-3.5 hover:bg-[#f8fafc] transition-colors"
                 style={{ borderBottom: i < filtered.length - 1 ? '1px solid #f1f5f9' : 'none' }}>
-                <div className="w-8 h-8 rounded-md flex items-center justify-center flex-shrink-0" style={{ background: '#f1f5f9' }}>
+                <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: '#f1f5f9' }}>
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: 'var(--primary)' }} strokeWidth="1.5">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
                   </svg>
@@ -211,7 +211,7 @@ export default function ProductsPage() {
               <Link key={site.domain} href={`/products?website=${encodeURIComponent(site.domain)}`}
                 className="group flex items-center gap-3 px-4 py-3.5 hover:bg-[#f8fafc] transition-colors"
                 style={{ borderBottom: i < companySites.length - 1 ? '1px solid #f1f5f9' : 'none' }}>
-                <div className="w-8 h-8 rounded-md flex items-center justify-center flex-shrink-0" style={{ background: '#f1f5f9' }}>
+                <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: '#f1f5f9' }}>
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: 'var(--primary)' }} strokeWidth="1.5">
                     <circle cx="12" cy="12" r="9"/><path d="M12 3c0 0-3 4-3 9s3 9 3 9"/><path d="M3 12h18"/>
                   </svg>
@@ -252,7 +252,7 @@ export default function ProductsPage() {
                 value={search}
                 onChange={e => setSearch(e.target.value)}
                 placeholder="Search products by name or slug…"
-                className="w-full h-9 pl-9 pr-9 text-sm rounded-lg border outline-none focus:ring-2 focus:ring-offset-0"
+                className="w-full h-9 pl-9 pr-9 text-sm rounded-full border outline-none focus:ring-2 focus:ring-offset-0"
                 style={{ borderColor: '#cbd5e1', background: 'white', ['--tw-ring-color' as string]: 'rgba(41, 117, 204, 0.2)' }}
               />
               {search && (
@@ -263,7 +263,7 @@ export default function ProductsPage() {
             </div>
           </div>
 
-          <div className="flex items-center rounded-lg border overflow-hidden h-9 flex-shrink-0" style={{ borderColor: '#cbd5e1', background: 'white' }}>
+          <div className="flex items-center rounded-full border overflow-hidden h-9 flex-shrink-0" style={{ borderColor: '#cbd5e1', background: 'white' }}>
             <button
               onClick={() => setViewMode('grid')}
               className="w-9 h-full flex items-center justify-center transition-colors"
@@ -365,7 +365,7 @@ export default function ProductsPage() {
                         <button
                           type="button"
                           onClick={() => deleteProduct(product.id, product.name)}
-                          className="text-xs font-medium px-3 h-8 inline-flex items-center justify-center rounded-md border transition-colors hover:bg-red-50 hover:border-red-200 hover:text-red-600"
+                          className="text-xs font-medium px-3 h-8 inline-flex items-center justify-center rounded-full border transition-colors hover:bg-red-50 hover:border-red-200 hover:text-red-600"
                           style={{ borderColor: '#e2e8f0', color: '#94a3b8' }}
                         >
                           Delete

@@ -172,7 +172,7 @@ export default function ApiKeysPage() {
         description="Keys are visible on this page for 5 hours. If never used in that window they auto-expire."
         actions={
           <button onClick={() => setShowForm(v => !v)}
-            className="inline-flex items-center gap-2 text-white text-sm font-medium px-4 h-9 rounded-lg transition-opacity hover:opacity-90"
+            className="inline-flex items-center gap-2 text-white text-sm font-medium px-4 h-9 rounded-full transition-opacity hover:opacity-90"
             style={{ background: 'var(--primary)' }}>
             <PlusIcon className="w-4 h-4" />
             Generate Key
@@ -269,7 +269,7 @@ function KeyCard({ k, nowMs, copiedToken, snippetExpanded, onCopy, onToggleSnipp
       <div className="px-5 py-4 flex items-start justify-between gap-4 flex-wrap">
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2 flex-wrap">
-            <span className="inline-flex items-center text-[11px] font-semibold px-2 py-0.5 rounded-md"
+            <span className="inline-flex items-center text-[11px] font-semibold px-2 py-0.5 rounded-full"
               style={{ background: statusMeta.bg, color: statusMeta.color, border: `1px solid ${statusMeta.border}` }}>
               {graceLabel}
             </span>
@@ -389,7 +389,7 @@ function ClaudeHandoff({ domain, apiKey, permissions, copiedToken, onCopy }: {
         </div>
         <button type="button"
           onClick={() => onCopy(fullSetupMarkdown({ domain, apiKey, permissions, revalidateSecret }), token, 'Paste into Claude. It will do the rest')}
-          className="inline-flex items-center gap-1.5 text-[11px] font-medium px-3 py-1.5 rounded-md transition-all flex-shrink-0"
+          className="inline-flex items-center gap-1.5 text-[11px] font-medium px-3 py-1.5 rounded-full transition-all flex-shrink-0"
           style={{
             background: copied ? '#dcfce7' : 'white',
             border: `1px solid ${copied ? '#86efac' : '#e2e8f0'}`,
@@ -429,7 +429,7 @@ function InfoPanel({ label, hint, value, token, copiedToken, onCopy, tone }: {
           {hint && <div className="text-[11px] mt-0.5" style={{ color: fg, opacity: 0.75 }}>{hint}</div>}
         </div>
         <button onClick={() => onCopy(value, token, `${label} copied`)}
-          className="flex-shrink-0 inline-flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-medium rounded-md transition-all"
+          className="flex-shrink-0 inline-flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-medium rounded-full transition-all"
           style={{
             background: copied ? '#dcfce7' : 'white',
             border: `1px solid ${copied ? '#86efac' : '#e2e8f0'}`,
@@ -495,14 +495,14 @@ function CreateForm({ form, websites, saving, onChange, onCancel, onSubmit, onTo
             <label className="block text-xs font-semibold mb-1.5" style={{ color: '#334155' }}>Name</label>
             <input type="text" value={form.name} onChange={e => onChange(f => ({ ...f, name: e.target.value }))}
               placeholder="e.g. Production website"
-              className="w-full px-3 py-2.5 border rounded-lg text-sm outline-none transition-colors focus:border-[var(--primary)]"
+              className="w-full px-3 py-2.5 border rounded-full text-sm outline-none transition-colors focus:border-[var(--primary)]"
               style={{ borderColor: '#e2e8f0' }} />
           </div>
           <div>
             <label className="block text-xs font-semibold mb-1.5" style={{ color: '#334155' }}>Website</label>
             <div className="relative">
               <select value={form.website} onChange={e => onChange(f => ({ ...f, website: e.target.value }))}
-                className="w-full px-3 py-2.5 border rounded-lg text-sm outline-none cursor-pointer pr-9 transition-colors focus:border-[var(--primary)]"
+                className="w-full px-3 py-2.5 border rounded-full text-sm outline-none cursor-pointer pr-9 transition-colors focus:border-[var(--primary)]"
                 style={{ borderColor: '#e2e8f0', appearance: 'none', WebkitAppearance: 'none' }}>
                 <option value="">Select a website…</option>
                 <option value="*">All websites (wildcard)</option>

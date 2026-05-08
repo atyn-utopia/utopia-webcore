@@ -71,13 +71,13 @@ export default function BlogViewPage() {
                   <ArrowTopRightOnSquareIcon className="w-3.5 h-3.5" />
                 </a>
               ) : (
-                <span className="inline-flex items-center gap-1.5 px-4 h-9 text-sm font-medium rounded-lg border border-slate-200 cursor-not-allowed opacity-40" style={{ color: '#94a3b8' }}>
+                <span className="inline-flex items-center gap-1.5 px-4 h-9 text-sm font-medium rounded-full border border-slate-200 cursor-not-allowed opacity-40" style={{ color: '#94a3b8' }}>
                   Open
                   <ArrowTopRightOnSquareIcon className="w-3.5 h-3.5" />
                 </span>
               )}
               {post.status !== 'published' && (
-                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-1.5 rounded-lg text-xs font-medium text-white whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" style={{ background: '#1e293b' }}>
+                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-1.5 rounded-full text-xs font-medium text-white whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" style={{ background: '#1e293b' }}>
                   Publish this post first to open the live link
                   <div className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0 border-x-4 border-x-transparent border-t-4" style={{ borderTopColor: '#1e293b' }} />
                 </div>
@@ -194,13 +194,13 @@ export default function BlogViewPage() {
                   <ArrowTopRightOnSquareIcon className="w-3 h-3" />
                 </a>
               ) : (
-                <span className="flex items-center justify-center gap-2 w-full px-4 py-2.5 rounded-lg border border-slate-200 text-xs font-medium cursor-not-allowed opacity-40" style={{ color: '#94a3b8' }}>
+                <span className="flex items-center justify-center gap-2 w-full px-4 py-2.5 rounded-full border border-slate-200 text-xs font-medium cursor-not-allowed opacity-40" style={{ color: '#94a3b8' }}>
                   Open in Browser
                   <ArrowTopRightOnSquareIcon className="w-3 h-3" />
                 </span>
               )}
               {post.status !== 'published' && (
-                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-1.5 rounded-lg text-[10px] font-medium text-white whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" style={{ background: '#1e293b' }}>
+                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-1.5 rounded-full text-[10px] font-medium text-white whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" style={{ background: '#1e293b' }}>
                   Publish this post first to open the live link
                   <div className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0 border-x-4 border-x-transparent border-t-4" style={{ borderTopColor: '#1e293b' }} />
                 </div>

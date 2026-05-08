@@ -121,7 +121,7 @@ export default function OnboardPage() {
             {mode === 'existing' ? (
               <div className="relative">
                 <select value={form.company_id} onChange={e => setForm(f => ({ ...f, company_id: e.target.value }))}
-                  className="w-full px-3 py-2.5 border rounded-lg text-sm outline-none cursor-pointer pr-9"
+                  className="w-full px-3 py-2.5 border rounded-full text-sm outline-none cursor-pointer pr-9"
                   style={{ borderColor: '#cbd5e1', appearance: 'none', WebkitAppearance: 'none' }}>
                   <option value="">Select company…</option>
                   {companies.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
@@ -131,7 +131,7 @@ export default function OnboardPage() {
             ) : (
               <input type="text" value={form.company_name} onChange={e => setForm(f => ({ ...f, company_name: e.target.value }))}
                 placeholder="e.g. ABC Wheelchairs Sdn Bhd"
-                className="w-full px-3 py-2.5 border rounded-lg text-sm outline-none"
+                className="w-full px-3 py-2.5 border rounded-full text-sm outline-none"
                 style={{ borderColor: '#cbd5e1' }} />
             )}
           </section>
@@ -142,7 +142,7 @@ export default function OnboardPage() {
             <label className="block text-xs font-medium mb-1.5" style={{ color: '#475569' }}>Domain</label>
             <input type="text" value={form.domain} onChange={e => setForm(f => ({ ...f, domain: e.target.value }))}
               placeholder="abc-wheelchairs.com"
-              className="w-full px-3 py-2.5 border rounded-lg text-sm outline-none"
+              className="w-full px-3 py-2.5 border rounded-full text-sm outline-none"
               style={{ borderColor: '#cbd5e1' }} />
             <p className="text-[11px] mt-1.5" style={{ color: '#94a3b8' }}>Without https:// or trailing slash. Must match exactly what the designer uses.</p>
           </section>
@@ -155,14 +155,14 @@ export default function OnboardPage() {
                 <label className="block text-xs font-medium mb-1.5" style={{ color: '#475569' }}>Full Name</label>
                 <input type="text" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
                   placeholder="Sarah Ahmad"
-                  className="w-full px-3 py-2.5 border rounded-lg text-sm outline-none"
+                  className="w-full px-3 py-2.5 border rounded-full text-sm outline-none"
                   style={{ borderColor: '#cbd5e1' }} />
               </div>
               <div>
                 <label className="block text-xs font-medium mb-1.5" style={{ color: '#475569' }}>Email</label>
                 <input type="email" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
                   placeholder="sarah@abc-wheelchairs.com"
-                  className="w-full px-3 py-2.5 border rounded-lg text-sm outline-none"
+                  className="w-full px-3 py-2.5 border rounded-full text-sm outline-none"
                   style={{ borderColor: '#cbd5e1' }} />
               </div>
             </div>
@@ -265,11 +265,11 @@ function ResultView({ result, onReset }: { result: OnboardResult; onReset: () =>
           <h3 className="text-xs font-semibold" style={{ color: '#475569' }}>Tracking snippet. Paste in &lt;head&gt; of every page</h3>
         </div>
         <div className="p-5 flex items-center gap-2">
-          <code className="flex-1 text-xs bg-slate-50 px-3 py-2.5 rounded-lg border font-mono break-all" style={{ borderColor: '#e2e8f0', color: '#334155' }}>
+          <code className="flex-1 text-xs bg-slate-50 px-3 py-2.5 rounded-full border font-mono break-all" style={{ borderColor: '#e2e8f0', color: '#334155' }}>
             {result.tracking_snippet}
           </code>
           <button onClick={() => copy(result.tracking_snippet, 'snip')}
-            className="flex-shrink-0 px-3 py-2 text-xs font-medium rounded-lg text-white transition-colors"
+            className="flex-shrink-0 px-3 py-2 text-xs font-medium rounded-full text-white transition-colors"
             style={{ background: copied === 'snip' ? '#16a34a' : 'var(--primary)' }}>
             {copied === 'snip' ? 'Copied!' : 'Copy'}
           </button>
@@ -278,7 +278,7 @@ function ResultView({ result, onReset }: { result: OnboardResult; onReset: () =>
 
       <div className="flex items-center justify-between gap-2">
         <button onClick={() => copy(fullSummary, 'all')}
-          className="px-4 py-2 text-sm font-medium rounded-lg border transition-colors"
+          className="px-4 py-2 text-sm font-medium rounded-full border transition-colors"
           style={{ borderColor: '#cbd5e1', color: '#475569', background: copied === 'all' ? '#dcfce7' : 'white' }}>
           {copied === 'all' ? 'Copied all!' : 'Copy all as one block'}
         </button>
@@ -311,7 +311,7 @@ function CredRow({ label, value, onCopy, copied, mono, warn }: {
       </code>
       {onCopy && (
         <button onClick={() => onCopy(value)}
-          className="flex-shrink-0 px-2.5 py-1 text-[11px] font-medium rounded-md border transition-colors"
+          className="flex-shrink-0 px-2.5 py-1 text-[11px] font-medium rounded-full border transition-colors"
           style={{
             borderColor: copied ? '#16a34a' : '#cbd5e1',
             color: copied ? '#16a34a' : '#475569',

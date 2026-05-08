@@ -337,7 +337,7 @@ export default function SiteApiKeysCard({ domain }: Props) {
             style={{ background: '#f8fafc', borderTop: '1px solid #f1f5f9', borderBottomLeftRadius: 11, borderBottomRightRadius: 11 }}
           >
             <div className="flex items-start gap-3 min-w-0 flex-1">
-              <div className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: 'white', border: '1px solid #e2e8f0', color: '#1E5BFF' }}>
+              <div className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: 'white', border: '1px solid #e2e8f0', color: '#1E5BFF' }}>
                 <BoltIcon className="w-4 h-4" />
               </div>
               <div className="min-w-0">

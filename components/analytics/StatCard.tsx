@@ -12,7 +12,7 @@ export default function StatCard({ label, value, icon, color, hint, today, yeste
     <div className="rounded-xl border border-slate-200 bg-white p-4">
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: color + '15' }}>
+          <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{ background: color + '15' }}>
             <div style={{ color }}>{icon}</div>
           </div>
           <span className="text-xs font-medium" style={{ color: '#64748b' }}>{label}</span>

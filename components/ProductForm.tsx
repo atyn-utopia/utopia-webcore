@@ -236,7 +236,7 @@ export default function ProductForm({ mode, productId, initialData = {} }: Produ
             <div>
               <label className="block text-xs font-medium mb-1.5" style={{ color: '#475569' }}>Product Name<span className="text-red-500 ml-0.5">*</span></label>
               <input type="text" value={name} onChange={e => setName(e.target.value)} placeholder="e.g. Electric Wheelchair"
-                className="w-full px-3 py-2.5 text-sm rounded-lg border focus:outline-none transition-colors"
+                className="w-full px-3 py-2.5 text-sm rounded-full border focus:outline-none transition-colors"
                 style={{ borderColor: errors.name ? '#fca5a5' : '#cbd5e1' }} />
               {errors.name && <p className="mt-1 text-xs text-red-500">{errors.name}</p>}
             </div>
@@ -244,7 +244,7 @@ export default function ProductForm({ mode, productId, initialData = {} }: Produ
               <label className="block text-xs font-medium mb-1.5" style={{ color: '#475569' }}>Description</label>
               <textarea value={description} onChange={e => setDescription(e.target.value)} placeholder="Product description…"
                 rows={4}
-                className="w-full px-3 py-2.5 text-sm rounded-lg border focus:outline-none transition-colors resize-y"
+                className="w-full px-3 py-2.5 text-sm rounded-full border focus:outline-none transition-colors resize-y"
                 style={{ borderColor: '#cbd5e1' }} />
             </div>
           </div>
@@ -270,7 +270,7 @@ export default function ProductForm({ mode, productId, initialData = {} }: Produ
               <div className="flex gap-2">
                 <input type="text" value={newPhotoUrl} onChange={e => setNewPhotoUrl(e.target.value)}
                   placeholder="Paste image URL (https://...)"
-                  className="flex-1 px-3 py-2 text-sm rounded-lg border focus:outline-none"
+                  className="flex-1 px-3 py-2 text-sm rounded-full border focus:outline-none"
                   style={{ borderColor: '#cbd5e1' }}
                   onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addPhoto() } }} />
                 <button type="button" onClick={addPhoto}
@@ -299,7 +299,7 @@ export default function ProductForm({ mode, productId, initialData = {} }: Produ
               ) : (
                 <div className="space-y-2">
                   {subProducts.map(sub => (
-                    <div key={sub.id} className="flex items-center gap-3 px-3 py-2.5 rounded-lg border" style={{ borderColor: '#f1f5f9' }}>
+                    <div key={sub.id} className="flex items-center gap-3 px-3 py-2.5 rounded-full border" style={{ borderColor: '#f1f5f9' }}>
                       {sub.photos.length > 0 ? (
                         // eslint-disable-next-line @next/next/no-img-element
                         <img src={sub.photos[0].url} alt="" className="w-10 h-10 rounded object-cover flex-shrink-0" />
@@ -320,7 +320,7 @@ export default function ProductForm({ mode, productId, initialData = {} }: Produ
                         Edit
                       </Link>
                       <button type="button" onClick={() => deleteSubProduct(sub)}
-                        className="text-xs font-medium px-2.5 py-1 rounded-md border border-[#e2e8f0] text-[#94a3b8] transition-colors hover:bg-[#ef4444] hover:border-white hover:text-white">
+                        className="text-xs font-medium px-2.5 py-1 rounded-full border border-[#e2e8f0] text-[#94a3b8] transition-colors hover:bg-[#ef4444] hover:border-white hover:text-white">
                         Delete
                       </button>
                     </div>
@@ -342,7 +342,7 @@ export default function ProductForm({ mode, productId, initialData = {} }: Produ
                   <select value={selectedCompany}
                     onChange={e => { setSelectedCompany(e.target.value); setWebsite(''); setParentId('') }}
                     disabled={mode === 'edit'}
-                    className="w-full px-3 py-2 text-sm rounded-lg border focus:outline-none cursor-pointer disabled:opacity-60"
+                    className="w-full px-3 py-2 text-sm rounded-full border focus:outline-none cursor-pointer disabled:opacity-60"
                     style={{ borderColor: '#cbd5e1', appearance: 'none', WebkitAppearance: 'none', paddingRight: '2.5rem' }}>
                     <option value="">Select company…</option>
                     {companies.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
@@ -356,7 +356,7 @@ export default function ProductForm({ mode, productId, initialData = {} }: Produ
                   <select value={website}
                     onChange={e => { setWebsite(e.target.value); setParentId('') }}
                     disabled={!selectedCompany || mode === 'edit'}
-                    className="w-full px-3 py-2 text-sm rounded-lg border focus:outline-none cursor-pointer disabled:opacity-60"
+                    className="w-full px-3 py-2 text-sm rounded-full border focus:outline-none cursor-pointer disabled:opacity-60"
                     style={{ borderColor: errors.website ? '#fca5a5' : '#cbd5e1', appearance: 'none', WebkitAppearance: 'none', paddingRight: '2.5rem' }}>
                     <option value="">{selectedCompany ? 'Select website…' : 'Select a company first'}</option>
                     {companyWebsites.map(w => <option key={w.domain} value={w.domain}>{w.domain}</option>)}
@@ -373,7 +373,7 @@ export default function ProductForm({ mode, productId, initialData = {} }: Produ
                   <select value={parentId}
                     onChange={e => setParentId(e.target.value)}
                     disabled={!website}
-                    className="w-full px-3 py-2 text-sm rounded-lg border focus:outline-none cursor-pointer disabled:opacity-60"
+                    className="w-full px-3 py-2 text-sm rounded-full border focus:outline-none cursor-pointer disabled:opacity-60"
                     style={{ borderColor: '#cbd5e1', appearance: 'none', WebkitAppearance: 'none', paddingRight: '2.5rem' }}>
                     <option value="">Main Product (top-level)</option>
                     {mainProducts.map(p => <option key={p.id} value={p.id}>↳ Sub-product of &quot;{p.name}&quot;</option>)}
@@ -395,14 +395,14 @@ export default function ProductForm({ mode, productId, initialData = {} }: Produ
                 <label className="block text-xs font-medium mb-1.5" style={{ color: '#475569' }}>Sale Price (RM)</label>
                 <input type="number" step="0.01" min="0" value={salePrice} onChange={e => setSalePrice(e.target.value)}
                   placeholder="0.00"
-                  className="w-full px-3 py-2 text-sm rounded-lg border focus:outline-none"
+                  className="w-full px-3 py-2 text-sm rounded-full border focus:outline-none"
                   style={{ borderColor: '#cbd5e1' }} />
               </div>
               <div>
                 <label className="block text-xs font-medium mb-1.5" style={{ color: '#475569' }}>Rental Price (RM)</label>
                 <input type="number" step="0.01" min="0" value={rentalPrice} onChange={e => setRentalPrice(e.target.value)}
                   placeholder="0.00"
-                  className="w-full px-3 py-2 text-sm rounded-lg border focus:outline-none"
+                  className="w-full px-3 py-2 text-sm rounded-full border focus:outline-none"
                   style={{ borderColor: '#cbd5e1' }} />
               </div>
             </div>

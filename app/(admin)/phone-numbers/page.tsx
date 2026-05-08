@@ -208,7 +208,7 @@ export default function PhoneNumbersPage() {
               <Link key={c.id} href={`/phone-numbers?company=${encodeURIComponent(c.name)}`}
                 className="group flex items-center gap-3 px-4 py-3.5 hover:bg-[#f8fafc] transition-colors"
                 style={{ borderBottom: i < filteredCompanies.length - 1 ? '1px solid #f1f5f9' : 'none' }}>
-                <div className="w-8 h-8 rounded-md flex items-center justify-center flex-shrink-0" style={{ background: '#f1f5f9' }}>
+                <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: '#f1f5f9' }}>
                   <BuildingOfficeIcon className="w-4 h-4" />
                 </div>
                 <p className="text-sm font-semibold truncate flex-1 group-hover:text-[var(--primary)] transition-colors" style={{ color: 'var(--foreground)' }}>{c.name}</p>

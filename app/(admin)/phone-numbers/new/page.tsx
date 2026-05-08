@@ -314,7 +314,7 @@ export default function NewPhoneNumberPage() {
 
           {/* Card header */}
           <div className="px-6 py-5 flex items-center gap-3" style={{ borderBottom: '1px solid #e2e8f0' }}>
-            <div className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: '#e0f2fe' }}>
+            <div className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: '#e0f2fe' }}>
               <PhoneIcon className="w-5 h-5 flex-shrink-0" />
             </div>
             <div>
@@ -342,7 +342,7 @@ export default function NewPhoneNumberPage() {
                     <select
                       value={selectedCompany}
                       onChange={e => { setSelectedCompany(e.target.value); setWebsite('') }}
-                      className="w-full px-3 py-2.5 text-sm rounded-lg border focus:outline-none transition-colors cursor-pointer"
+                      className="w-full px-3 py-2.5 text-sm rounded-full border focus:outline-none transition-colors cursor-pointer"
                       style={{ borderColor: errors.company ? '#fca5a5' : '#cbd5e1', background: 'white', appearance: 'none', WebkitAppearance: 'none', paddingRight: '2.5rem' }}
                     >
                       <option value="">Select company…</option>
@@ -361,7 +361,7 @@ export default function NewPhoneNumberPage() {
                       value={website}
                       onChange={e => setWebsite(e.target.value)}
                       disabled={!selectedCompany}
-                      className="w-full px-3 py-2.5 text-sm rounded-lg border focus:outline-none transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="w-full px-3 py-2.5 text-sm rounded-full border focus:outline-none transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                       style={{ borderColor: errors.website ? '#fca5a5' : '#cbd5e1', background: 'white', appearance: 'none', WebkitAppearance: 'none', paddingRight: '2.5rem' }}
                     >
                       <option value="">{selectedCompany ? 'Select website…' : 'Select a company first'}</option>
@@ -532,7 +532,7 @@ export default function NewPhoneNumberPage() {
                                 <button
                                   type="button"
                                   onClick={() => startEdit(n)}
-                                  className="text-xs font-medium px-3 py-1.5 rounded-md border transition-colors hover:border-[var(--primary)] hover:text-[var(--primary)]"
+                                  className="text-xs font-medium px-3 py-1.5 rounded-full border transition-colors hover:border-[var(--primary)] hover:text-[var(--primary)]"
                                   style={{ borderColor: '#e2e8f0', color: '#64748b' }}
                                 >
                                   Edit
@@ -542,12 +542,12 @@ export default function NewPhoneNumberPage() {
                                   <button
                                     type="button"
                                     onClick={() => deleteExisting(n.id)}
-                                    className="text-xs font-medium px-3 py-1.5 rounded-md border border-[#e2e8f0] text-[#94a3b8] transition-colors hover:bg-[#ef4444] hover:border-white hover:text-white"
+                                    className="text-xs font-medium px-3 py-1.5 rounded-full border border-[#e2e8f0] text-[#94a3b8] transition-colors hover:bg-[#ef4444] hover:border-white hover:text-white"
                                   >
                                     Delete
                                   </button>
                                 ) : (
-                                  <span className="text-xs font-medium px-3 py-1.5 rounded-md border invisible" aria-hidden="true">Delete</span>
+                                  <span className="text-xs font-medium px-3 py-1.5 rounded-full border invisible" aria-hidden="true">Delete</span>
                                 )}
                               </div>
                             </div>
@@ -561,7 +561,7 @@ export default function NewPhoneNumberPage() {
                                     type="text"
                                     value={editDraft.phone_number ?? ''}
                                     onChange={e => setEditDraft(d => ({ ...d, phone_number: e.target.value }))}
-                                    className="w-full px-3 py-2 text-sm rounded-lg border focus:outline-none"
+                                    className="w-full px-3 py-2 text-sm rounded-full border focus:outline-none"
                                     style={{ borderColor: '#cbd5e1', background: 'white' }}
                                   />
                                 </div>
@@ -571,7 +571,7 @@ export default function NewPhoneNumberPage() {
                                     type="text"
                                     value={editDraft.whatsapp_text ?? ''}
                                     onChange={e => setEditDraft(d => ({ ...d, whatsapp_text: e.target.value }))}
-                                    className="w-full px-3 py-2 text-sm rounded-lg border focus:outline-none"
+                                    className="w-full px-3 py-2 text-sm rounded-full border focus:outline-none"
                                     style={{ borderColor: '#cbd5e1', background: 'white' }}
                                   />
                                 </div>
@@ -581,7 +581,7 @@ export default function NewPhoneNumberPage() {
                                     <select
                                       value={editDraft.location_slug ?? 'all'}
                                       onChange={e => setEditDraft(d => ({ ...d, location_slug: e.target.value }))}
-                                      className="w-full px-3 py-2 text-sm rounded-lg border focus:outline-none cursor-pointer"
+                                      className="w-full px-3 py-2 text-sm rounded-full border focus:outline-none cursor-pointer"
                                       style={{ borderColor: '#cbd5e1', background: 'white', appearance: 'none', WebkitAppearance: 'none', paddingRight: '2.5rem' }}
                                     >
                                       <option value="all">All locations</option>
@@ -599,7 +599,7 @@ export default function NewPhoneNumberPage() {
                                       max="100"
                                       value={editDraft.percentage ?? 0}
                                       onChange={e => setEditDraft(d => ({ ...d, percentage: parseInt(e.target.value) || 0 }))}
-                                      className="w-full px-3 py-2 text-sm rounded-lg border focus:outline-none"
+                                      className="w-full px-3 py-2 text-sm rounded-full border focus:outline-none"
                                       style={{ borderColor: '#cbd5e1', background: 'white' }}
                                     />
                                   </div>
@@ -610,7 +610,7 @@ export default function NewPhoneNumberPage() {
                                       value={editDraft.label ?? ''}
                                       onChange={e => setEditDraft(d => ({ ...d, label: e.target.value }))}
                                       disabled={isDefault}
-                                      className="w-full px-3 py-2 text-sm rounded-lg border focus:outline-none disabled:opacity-50"
+                                      className="w-full px-3 py-2 text-sm rounded-full border focus:outline-none disabled:opacity-50"
                                       style={{ borderColor: '#cbd5e1', background: 'white' }}
                                     />
                                   </div>
@@ -684,7 +684,7 @@ export default function NewPhoneNumberPage() {
                       + Add another
                     </button>
                     {!website && (
-                      <div className="pointer-events-none absolute top-full left-1/2 -translate-x-1/2 mt-2 px-3 py-1.5 rounded-lg text-xs font-medium text-white whitespace-nowrap opacity-0 group-hover/add:opacity-100 transition-opacity z-20" style={{ background: '#1e293b' }}>
+                      <div className="pointer-events-none absolute top-full left-1/2 -translate-x-1/2 mt-2 px-3 py-1.5 rounded-full text-xs font-medium text-white whitespace-nowrap opacity-0 group-hover/add:opacity-100 transition-opacity z-20" style={{ background: '#1e293b' }}>
                         Select a website first
                         <div className="absolute bottom-full left-1/2 -translate-x-1/2 w-0 h-0 border-x-4 border-x-transparent border-b-4" style={{ borderBottomColor: '#1e293b' }} />
                       </div>
@@ -708,7 +708,7 @@ export default function NewPhoneNumberPage() {
                           <button
                             type="button"
                             onClick={() => removeRow(row.id)}
-                            className="text-xs font-medium px-3 py-1.5 rounded-md border border-[#e2e8f0] text-[#94a3b8] transition-colors hover:bg-[#ef4444] hover:border-white hover:text-white"
+                            className="text-xs font-medium px-3 py-1.5 rounded-full border border-[#e2e8f0] text-[#94a3b8] transition-colors hover:bg-[#ef4444] hover:border-white hover:text-white"
                           >
                             Remove
                           </button>
@@ -724,7 +724,7 @@ export default function NewPhoneNumberPage() {
                             value={row.phone_number}
                             onChange={e => updateRow(row.id, 'phone_number', e.target.value)}
                             placeholder="e.g. 60123456789"
-                            className="w-full px-3 py-2 text-sm rounded-lg border focus:outline-none transition-colors"
+                            className="w-full px-3 py-2 text-sm rounded-full border focus:outline-none transition-colors"
                             style={{ borderColor: errors[`phone_${i}`] ? '#fca5a5' : '#cbd5e1', background: 'white' }}
                             onFocus={e => e.currentTarget.style.borderColor = 'var(--primary)'}
                             onBlur={e => e.currentTarget.style.borderColor = errors[`phone_${i}`] ? '#fca5a5' : '#cbd5e1'}
@@ -740,7 +740,7 @@ export default function NewPhoneNumberPage() {
                             value={row.whatsapp_text}
                             onChange={e => updateRow(row.id, 'whatsapp_text', e.target.value)}
                             placeholder="e.g. Hi, I'd like to enquire…"
-                            className="w-full px-3 py-2 text-sm rounded-lg border focus:outline-none transition-colors"
+                            className="w-full px-3 py-2 text-sm rounded-full border focus:outline-none transition-colors"
                             style={{ borderColor: errors[`wa_${i}`] ? '#fca5a5' : '#cbd5e1', background: 'white' }}
                             onFocus={e => { e.currentTarget.style.borderColor = 'var(--primary)'; setWaDropdownId(row.id) }}
                             onBlur={e => { e.currentTarget.style.borderColor = errors[`wa_${i}`] ? '#fca5a5' : '#cbd5e1'; setTimeout(() => setWaDropdownId(prev => prev === row.id ? null : prev), 150) }}
@@ -772,7 +772,7 @@ export default function NewPhoneNumberPage() {
                             <select
                               value={row.location_slug}
                               onChange={e => updateRow(row.id, 'location_slug', e.target.value)}
-                              className="w-full px-3 py-2 text-sm rounded-lg border focus:outline-none cursor-pointer"
+                              className="w-full px-3 py-2 text-sm rounded-full border focus:outline-none cursor-pointer"
                               style={{ borderColor: '#cbd5e1', background: 'white', appearance: 'none', WebkitAppearance: 'none', paddingRight: '2.5rem' }}
                             >
                               <option value="">All locations</option>
@@ -792,7 +792,7 @@ export default function NewPhoneNumberPage() {
                               max="100"
                               value={row.percentage}
                               onChange={e => updateRow(row.id, 'percentage', e.target.value)}
-                              className="w-full px-3 py-2 text-sm rounded-lg border focus:outline-none transition-colors"
+                              className="w-full px-3 py-2 text-sm rounded-full border focus:outline-none transition-colors"
                               style={{ borderColor: '#cbd5e1', background: 'white' }}
                             />
                           </div>
@@ -803,7 +803,7 @@ export default function NewPhoneNumberPage() {
                               value={row.label}
                               onChange={e => updateRow(row.id, 'label', e.target.value)}
                               placeholder="e.g. Agent A"
-                              className="w-full px-3 py-2 text-sm rounded-lg border focus:outline-none transition-colors"
+                              className="w-full px-3 py-2 text-sm rounded-full border focus:outline-none transition-colors"
                               style={{ borderColor: '#cbd5e1', background: 'white' }}
                             />
                           </div>
@@ -877,7 +877,7 @@ export default function NewPhoneNumberPage() {
                   )}
                 </button>
                 {!website && (
-                  <div className="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-1.5 rounded-lg text-xs font-medium text-white whitespace-nowrap opacity-0 group-hover/submit:opacity-100 transition-opacity z-20" style={{ background: '#1e293b' }}>
+                  <div className="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-1.5 rounded-full text-xs font-medium text-white whitespace-nowrap opacity-0 group-hover/submit:opacity-100 transition-opacity z-20" style={{ background: '#1e293b' }}>
                     Select a company and website first
                     <div className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0 border-x-4 border-x-transparent border-t-4" style={{ borderTopColor: '#1e293b' }} />
                   </div>

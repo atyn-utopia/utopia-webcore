@@ -99,7 +99,7 @@ export default function SimpleChart({ data }: { data: DailyStat[] }) {
               <button
                 key={s.key}
                 onClick={() => toggle(s.key)}
-                className="inline-flex items-center gap-1.5 h-7 px-2.5 rounded-md text-[11px] font-medium transition-all"
+                className="inline-flex items-center gap-1.5 h-7 px-2.5 rounded-full text-[11px] font-medium transition-all"
                 style={{
                   background: active ? `${s.color}10` : '#f8fafc',
                   color: active ? s.color : '#cbd5e1',
@@ -226,7 +226,7 @@ export default function SimpleChart({ data }: { data: DailyStat[] }) {
 
 function ChartIcon() {
   return (
-    <div className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: '#eff6ff' }}>
+    <div className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: '#eff6ff' }}>
       <svg className="w-4 h-4" fill="none" stroke="#2979d6" viewBox="0 0 24 24" strokeWidth="1.8" aria-hidden>
         <path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
       </svg>

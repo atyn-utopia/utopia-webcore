@@ -40,7 +40,7 @@ function SectionCard({ icon, title, status, children }: {
   return (
     <div className="rounded-xl border bg-white overflow-hidden" style={{ borderColor: '#e2e8f0' }}>
       <div className="px-5 py-3 flex items-center gap-3" style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
-        <div className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: 'white' }}>{icon}</div>
+        <div className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: 'white' }}>{icon}</div>
         <div className="flex items-center gap-2 flex-wrap">
           <h3 className="text-sm font-semibold" style={{ color: 'var(--foreground)' }}>{title}</h3>
           {status && (
@@ -294,7 +294,7 @@ function GoogleSearchConsoleSection({ domain }: { domain: string }) {
               </div>
               <div className="flex items-center justify-end gap-2 pt-1">
                 <button type="button" onClick={() => setShowPicker(false)}
-                  className="text-[11px] font-medium px-3 py-1.5 rounded-md transition-colors hover:bg-slate-100"
+                  className="text-[11px] font-medium px-3 py-1.5 rounded-full transition-colors hover:bg-slate-100"
                   style={{ color: '#475569' }}>Cancel</button>
                 <button type="button" onClick={saveProperty} disabled={!selected || saving}
                   className="text-[11px] font-medium px-3 py-1.5 rounded-full text-white disabled:opacity-50 transition-opacity hover:opacity-90"
@@ -428,7 +428,7 @@ function LiveRevalidationSection({ domain }: { domain: string }) {
             type="button"
             onClick={() => setExpanded(v => !v)}
             disabled={loading}
-            className="text-[11px] font-medium px-3 py-1.5 rounded-md border disabled:opacity-50 transition-colors hover:bg-slate-50"
+            className="text-[11px] font-medium px-3 py-1.5 rounded-full border disabled:opacity-50 transition-colors hover:bg-slate-50"
             style={{ borderColor: '#e2e8f0', color: '#475569', background: 'white' }}
           >
             {expanded ? 'Hide' : isActive ? 'Edit' : 'Configure'}
@@ -445,7 +445,7 @@ function LiveRevalidationSection({ domain }: { domain: string }) {
               value={urlInput}
               onChange={e => setUrlInput(e.target.value)}
               placeholder="https://designersite.com/api/revalidate"
-              className="flex-1 text-xs px-3 py-2 rounded-md outline-none focus:border-[var(--primary)]"
+              className="flex-1 text-xs px-3 py-2 rounded-full outline-none focus:border-[var(--primary)]"
               style={{ border: '1px solid #e2e8f0', color: 'var(--foreground)', background: 'white' }}
               disabled={saving}
             />
@@ -477,7 +477,7 @@ function LiveRevalidationSection({ domain }: { domain: string }) {
                 </button>
               </div>
               <div className="flex gap-2">
-                <code className="flex-1 text-[11px] font-mono px-3 py-2 rounded-md truncate" style={{ background: 'white', border: '1px solid #e2e8f0', color: 'var(--foreground)' }}>
+                <code className="flex-1 text-[11px] font-mono px-3 py-2 rounded-full truncate" style={{ background: 'white', border: '1px solid #e2e8f0', color: 'var(--foreground)' }}>
                   {showSecret ? settings.revalidate_secret : '••••••••••••••••••••••••••••••••'}
                 </code>
                 <button
@@ -501,7 +501,7 @@ function LiveRevalidationSection({ domain }: { domain: string }) {
           )}
 
           {flash && (
-            <div className="mt-3 px-3 py-2 rounded-md text-xs"
+            <div className="mt-3 px-3 py-2 rounded-full text-xs"
               style={{ background: flash.kind === 'success' ? '#f0fdf4' : '#fef2f2', border: `1px solid ${flash.kind === 'success' ? '#bbf7d0' : '#fecaca'}`, color: flash.kind === 'success' ? '#166534' : '#b91c1c' }}>
               {flash.text}
             </div>

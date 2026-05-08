@@ -182,7 +182,7 @@ export default function UsersPage() {
             </Link>
             <button
               onClick={() => { setShowForm(!showForm); setError(''); setSuccess('') }}
-              className="inline-flex items-center gap-2 text-white text-sm font-medium px-4 h-9 rounded-lg transition-opacity"
+              className="inline-flex items-center gap-2 text-white text-sm font-medium px-4 h-9 rounded-full transition-opacity"
               style={{ background: 'var(--primary)' }}
             >
               <PlusIcon className="w-4 h-4" />
@@ -207,7 +207,7 @@ export default function UsersPage() {
       {showForm && (
         <div className="mb-6 rounded-2xl border bg-white shadow-sm overflow-hidden" style={{ borderColor: '#e2e8f0' }}>
           <div className="px-6 py-4 flex items-center gap-3" style={{ borderBottom: '1px solid #e2e8f0' }}>
-            <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: '#e0f2fe' }}>
+            <div className="w-9 h-9 rounded-full flex items-center justify-center" style={{ background: '#e0f2fe' }}>
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: 'var(--primary)' }} strokeWidth="1.8">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
               </svg>
@@ -226,28 +226,28 @@ export default function UsersPage() {
                 <label className="block text-xs font-medium mb-1.5" style={{ color: '#475569' }}>Full Name</label>
                 <input type="text" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
                   placeholder="Sarah Ahmad"
-                  className="w-full px-3 py-2.5 border rounded-lg text-sm outline-none focus:border-[var(--primary)] transition-colors"
+                  className="w-full px-3 py-2.5 border rounded-full text-sm outline-none focus:border-[var(--primary)] transition-colors"
                   style={{ borderColor: '#cbd5e1' }} />
               </div>
               <div>
                 <label className="block text-xs font-medium mb-1.5" style={{ color: '#475569' }}>Email</label>
                 <input type="email" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
                   placeholder="sarah@company.com"
-                  className="w-full px-3 py-2.5 border rounded-lg text-sm outline-none focus:border-[var(--primary)] transition-colors"
+                  className="w-full px-3 py-2.5 border rounded-full text-sm outline-none focus:border-[var(--primary)] transition-colors"
                   style={{ borderColor: '#cbd5e1' }} />
               </div>
               <div>
                 <label className="block text-xs font-medium mb-1.5" style={{ color: '#475569' }}>Password</label>
                 <input type="password" value={form.password} onChange={e => setForm(f => ({ ...f, password: e.target.value }))}
                   placeholder="Min 6 characters"
-                  className="w-full px-3 py-2.5 border rounded-lg text-sm outline-none focus:border-[var(--primary)] transition-colors"
+                  className="w-full px-3 py-2.5 border rounded-full text-sm outline-none focus:border-[var(--primary)] transition-colors"
                   style={{ borderColor: '#cbd5e1' }} />
               </div>
               <div>
                 <label className="block text-xs font-medium mb-1.5" style={{ color: '#475569' }}>Role</label>
                 <div className="relative">
                   <select value={form.role} onChange={e => setForm(f => ({ ...f, role: e.target.value as UserRole, company_ids: [] }))}
-                    className="w-full px-3 py-2.5 border rounded-lg text-sm outline-none focus:border-[var(--primary)] transition-colors cursor-pointer pr-9"
+                    className="w-full px-3 py-2.5 border rounded-full text-sm outline-none focus:border-[var(--primary)] transition-colors cursor-pointer pr-9"
                     style={{ borderColor: '#cbd5e1', appearance: 'none', WebkitAppearance: 'none' }}>
                     {(Object.keys(ROLE_META) as UserRole[]).map(r => (
                       <option key={r} value={r}>{ROLE_META[r].label}. {ROLE_META[r].desc}</option>
@@ -291,7 +291,7 @@ export default function UsersPage() {
 
             <div className="flex items-center justify-end gap-2 pt-2">
               <button type="button" onClick={() => { setShowForm(false); setError('') }}
-                className="px-4 py-2 text-sm rounded-lg border transition-colors hover:bg-slate-50"
+                className="px-4 py-2 text-sm rounded-full border transition-colors hover:bg-slate-50"
                 style={{ borderColor: '#cbd5e1', color: '#475569' }}>Cancel</button>
               <button type="submit" disabled={saving}
                 className="px-5 py-2 text-sm font-medium text-white rounded-full transition-opacity disabled:opacity-50"
@@ -380,7 +380,7 @@ export default function UsersPage() {
                     <button
                       type="button"
                       onClick={() => startEdit(user)}
-                      className="text-xs font-medium px-3 py-1.5 rounded-md border transition-colors hover:border-[var(--primary)] hover:text-[var(--primary)]"
+                      className="text-xs font-medium px-3 py-1.5 rounded-full border transition-colors hover:border-[var(--primary)] hover:text-[var(--primary)]"
                       style={{ borderColor: '#e2e8f0', color: '#64748b' }}
                     >
                       Edit
@@ -405,14 +405,14 @@ export default function UsersPage() {
                       <div>
                         <label className="block text-xs font-medium mb-1.5" style={{ color: '#475569' }}>Name</label>
                         <input type="text" value={editDraft.name} onChange={e => setEditDraft(d => ({ ...d, name: e.target.value }))}
-                          className="w-full px-3 py-2.5 border rounded-lg text-sm outline-none focus:border-[var(--primary)] transition-colors"
+                          className="w-full px-3 py-2.5 border rounded-full text-sm outline-none focus:border-[var(--primary)] transition-colors"
                           style={{ borderColor: '#cbd5e1', background: 'white' }} />
                       </div>
                       <div>
                         <label className="block text-xs font-medium mb-1.5" style={{ color: '#475569' }}>Role</label>
                         <div className="relative">
                           <select value={editDraft.role} onChange={e => setEditDraft(d => ({ ...d, role: e.target.value as UserRole, company_ids: isScoped(e.target.value as UserRole) ? d.company_ids : [] }))}
-                            className="w-full px-3 py-2.5 border rounded-lg text-sm outline-none focus:border-[var(--primary)] transition-colors cursor-pointer pr-9"
+                            className="w-full px-3 py-2.5 border rounded-full text-sm outline-none focus:border-[var(--primary)] transition-colors cursor-pointer pr-9"
                             style={{ borderColor: '#cbd5e1', background: 'white', appearance: 'none', WebkitAppearance: 'none' }}>
                             {(Object.keys(ROLE_META) as UserRole[]).map(r => (
                               <option key={r} value={r}>{ROLE_META[r].label}. {ROLE_META[r].desc}</option>

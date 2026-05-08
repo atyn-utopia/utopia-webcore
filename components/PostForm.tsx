@@ -191,18 +191,18 @@ export default function PostForm({ mode, initialData = {}, postId }: PostFormPro
               type="button"
               onClick={() => router.push(website ? `/blog?website=${encodeURIComponent(website)}` : '/blog')}
               disabled={saving}
-              className="inline-flex items-center gap-2 text-sm font-medium px-4 h-9 rounded-lg border transition-colors disabled:opacity-50 hover:bg-slate-50"
+              className="inline-flex items-center gap-2 text-sm font-medium px-4 h-9 rounded-full border transition-colors disabled:opacity-50 hover:bg-slate-50"
               style={{ borderColor: '#e2e8f0', color: '#475569', background: 'white' }}
             >
               Cancel
             </button>
             <button type="button" onClick={() => handleSave('draft')} disabled={saving}
-              className="inline-flex items-center gap-2 text-sm font-medium px-4 h-9 rounded-lg border transition-colors disabled:opacity-50 hover:bg-slate-50"
+              className="inline-flex items-center gap-2 text-sm font-medium px-4 h-9 rounded-full border transition-colors disabled:opacity-50 hover:bg-slate-50"
               style={{ borderColor: '#cbd5e1', color: '#475569' }}>
               {tr('post.saveDraft')}
             </button>
             <button type="button" onClick={() => handleSave('published')} disabled={saving}
-              className="inline-flex items-center gap-2 text-white text-sm font-medium px-4 h-9 rounded-lg transition-opacity disabled:opacity-50"
+              className="inline-flex items-center gap-2 text-white text-sm font-medium px-4 h-9 rounded-full transition-opacity disabled:opacity-50"
               style={{ background: 'var(--primary)' }}>
               {saving ? tr('common.saving') : status === 'published' ? tr('post.republish') : tr('post.publish')}
             </button>
@@ -281,7 +281,7 @@ export default function PostForm({ mode, initialData = {}, postId }: PostFormPro
             <div>
               <label className="text-[10px] font-medium uppercase tracking-wider mb-1.5 block" style={{ color: '#94a3b8' }}>Company</label>
               <select value={selectedCompany} onChange={e => { setSelectedCompany(e.target.value); setWebsite('') }}
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs focus:outline-none transition-colors cursor-pointer"
+                className="w-full px-3 py-2 border border-slate-200 rounded-full text-xs focus:outline-none transition-colors cursor-pointer"
                 style={{ appearance: 'none', WebkitAppearance: 'none', paddingRight: '2rem' }}>
                 <option value="">Select…</option>
                 {companies.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
@@ -313,7 +313,7 @@ export default function PostForm({ mode, initialData = {}, postId }: PostFormPro
             <div>
               <label className="text-[10px] font-medium uppercase tracking-wider mb-1.5 block" style={{ color: '#94a3b8' }}>Cover Image</label>
               <input type="url" value={coverImageUrl} onChange={e => setCoverImageUrl(e.target.value)}
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs focus:outline-none transition-colors" placeholder="https://…" />
+                className="w-full px-3 py-2 border border-slate-200 rounded-full text-xs focus:outline-none transition-colors" placeholder="https://…" />
             </div>
             {coverImageUrl && (
               // eslint-disable-next-line @next/next/no-img-element
@@ -329,12 +329,12 @@ export default function PostForm({ mode, initialData = {}, postId }: PostFormPro
             </div>
             <div>
               <input type="text" value={t?.meta_title ?? ''} onChange={e => updateTranslation(activeLang, { meta_title: e.target.value })}
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs focus:outline-none transition-colors" placeholder="Meta title (50–60 chars)" />
+                className="w-full px-3 py-2 border border-slate-200 rounded-full text-xs focus:outline-none transition-colors" placeholder="Meta title (50–60 chars)" />
               <p className="mt-1 text-[10px] text-right" style={{ color: (t?.meta_title ?? '').length > 60 ? '#ef4444' : '#cbd5e1' }}>{(t?.meta_title ?? '').length}/60</p>
             </div>
             <div>
               <textarea value={t?.meta_description ?? ''} onChange={e => updateTranslation(activeLang, { meta_description: e.target.value })}
-                rows={2} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs focus:outline-none transition-colors resize-none" placeholder="Meta description (150–160 chars)" />
+                rows={2} className="w-full px-3 py-2 border border-slate-200 rounded-full text-xs focus:outline-none transition-colors resize-none" placeholder="Meta description (150–160 chars)" />
               <p className="mt-1 text-[10px] text-right" style={{ color: (t?.meta_description ?? '').length > 160 ? '#ef4444' : '#cbd5e1' }}>{(t?.meta_description ?? '').length}/160</p>
             </div>
           </div>

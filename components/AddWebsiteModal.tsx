@@ -137,7 +137,7 @@ export default function AddWebsiteModal({ open, onClose, onCreated, presetCompan
           <form onSubmit={handleSubmit}>
             <div className="px-6 pb-2 space-y-5">
               {error && (
-                <div className="px-3 py-2.5 rounded-lg text-sm flex items-start gap-2"
+                <div className="px-3 py-2.5 rounded-full text-sm flex items-start gap-2"
                   style={{ background: '#fef2f2', color: '#b91c1c', border: '1px solid #fecaca' }}>
                   <svg className="w-4 h-4 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><circle cx="12" cy="12" r="9" /><path strokeLinecap="round" d="M12 8v4m0 4h.01" /></svg>
                   <span>{error}</span>
@@ -272,7 +272,7 @@ function InfoRow({ label, value, mono, small, hint, copyKey, onCopy, copied }: {
         </div>
         {copyKey && onCopy && (
           <button onClick={() => onCopy(value, copyKey)}
-            className="flex-shrink-0 inline-flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-medium rounded-md transition-all"
+            className="flex-shrink-0 inline-flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-medium rounded-full transition-all"
             style={{
               background: isCopied ? '#dcfce7' : 'white',
               border: `1px solid ${isCopied ? '#86efac' : '#e2e8f0'}`,
@@ -308,10 +308,10 @@ function Field({ label, hint, children }: { label: string; hint?: string; childr
 
 function SegmentedToggle({ value, options, onChange }: { value: string; options: { v: string; l: string }[]; onChange: (v: string) => void }) {
   return (
-    <div className="inline-flex p-0.5 rounded-lg" style={{ background: '#f1f5f9' }}>
+    <div className="inline-flex p-0.5 rounded-full" style={{ background: '#f1f5f9' }}>
       {options.map(o => (
         <button key={o.v} type="button" onClick={() => onChange(o.v)}
-          className="text-xs font-medium px-3 py-1.5 rounded-md transition-all"
+          className="text-xs font-medium px-3 py-1.5 rounded-full transition-all"
           style={{
             background: value === o.v ? 'white' : 'transparent',
             color: value === o.v ? 'var(--foreground)' : '#64748b',
@@ -349,7 +349,7 @@ function SelectField({ value, onChange, placeholder, options }: {
   return (
     <div className="relative">
       <select value={value} onChange={e => onChange(e.target.value)}
-        className="w-full px-3 py-2.5 border rounded-lg text-sm outline-none cursor-pointer pr-9 transition-colors focus:border-[var(--primary)]"
+        className="w-full px-3 py-2.5 border rounded-full text-sm outline-none cursor-pointer pr-9 transition-colors focus:border-[var(--primary)]"
         style={{ borderColor: '#e2e8f0', appearance: 'none', WebkitAppearance: 'none', background: 'white' }}>
         {placeholder && <option value="">{placeholder}</option>}
         {options.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}

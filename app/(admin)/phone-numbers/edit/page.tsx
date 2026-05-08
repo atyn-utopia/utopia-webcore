@@ -744,7 +744,7 @@ export default function ManagePhoneNumbersPage() {
           </Panel>
 
           {/* Save bar */}
-          <div className="sticky bottom-4 rounded-xl border flex items-center justify-between gap-3 flex-wrap px-5 py-3 shadow-sm"
+          <div className="sticky bottom-4 rounded-full border flex items-center justify-between gap-3 flex-wrap px-5 py-3 shadow-sm"
             style={{ borderColor: '#e2e8f0', background: 'white' }}>
             <div className="flex items-center gap-3 text-xs" style={{ color: '#64748b' }}>
               <Link href={cancelHref}
@@ -820,7 +820,7 @@ function Select({ value, onChange, options, disabled }: {
   return (
     <div className="relative">
       <select value={value} onChange={e => onChange(e.target.value)} disabled={disabled}
-        className="w-full px-3 py-2.5 text-sm rounded-lg border cursor-pointer focus:outline-none focus:border-[var(--primary)] disabled:opacity-50 disabled:cursor-not-allowed"
+        className="w-full px-3 py-2.5 text-sm rounded-full border cursor-pointer focus:outline-none focus:border-[var(--primary)] disabled:opacity-50 disabled:cursor-not-allowed"
         style={{ borderColor: '#e2e8f0', background: 'white', appearance: 'none', WebkitAppearance: 'none', paddingRight: '2.25rem' }}>
         {options.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
       </select>
@@ -1000,7 +1000,7 @@ function RowEditor({ r, existingTexts, waOpenKey, setWaOpenKey, showLocationColu
       </td>
       <td className="px-3 py-2">
         {isDefault ? (
-          <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2 py-1 rounded-md"
+          <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2 py-1 rounded-full"
             style={{ background: 'var(--primary)', color: 'white', boxShadow: '0 0 0 2px rgba(41,121,214,0.15)' }}>
             <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.286 3.963a1 1 0 00.95.69h4.167c.969 0 1.371 1.24.588 1.81l-3.371 2.449a1 1 0 00-.364 1.118l1.287 3.963c.3.922-.755 1.688-1.54 1.118l-3.37-2.449a1 1 0 00-1.176 0l-3.371 2.449c-.784.57-1.838-.196-1.539-1.118l1.287-3.963a1 1 0 00-.364-1.118L2.098 9.39c-.783-.57-.38-1.81.588-1.81h4.167a1 1 0 00.95-.69l1.286-3.963z"/></svg>
             Default

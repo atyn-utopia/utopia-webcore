@@ -182,7 +182,7 @@ export default function AuditTrailPage() {
           <label className="block text-[10px] font-medium mb-1" style={{ color: '#94a3b8' }}>Entity</label>
           <div className="relative">
             <select value={filterEntity} onChange={e => setFilterEntity(e.target.value as '' | 'phone_number' | 'blog_post' | 'product' | 'website' | 'api_key')}
-              className="px-3 py-2 text-sm rounded-lg border focus:outline-none cursor-pointer pr-9" style={{ borderColor: '#e2e8f0', appearance: 'none', WebkitAppearance: 'none', background: 'white', minWidth: '140px', color: '#64748b' }}>
+              className="px-3 py-2 text-sm rounded-full border focus:outline-none cursor-pointer pr-9" style={{ borderColor: '#e2e8f0', appearance: 'none', WebkitAppearance: 'none', background: 'white', minWidth: '140px', color: '#64748b' }}>
               <option value="">All entities</option>
               <option value="phone_number">Phone numbers</option>
               <option value="blog_post">Blog posts</option>
@@ -197,7 +197,7 @@ export default function AuditTrailPage() {
           <label className="block text-[10px] font-medium mb-1" style={{ color: '#94a3b8' }}>Action</label>
           <div className="relative">
             <select value={filterAction} onChange={e => setFilterAction(e.target.value as '' | 'create' | 'update' | 'delete')}
-              className="px-3 py-2 text-sm rounded-lg border focus:outline-none cursor-pointer pr-9" style={{ borderColor: '#e2e8f0', appearance: 'none', WebkitAppearance: 'none', background: 'white', minWidth: '140px', color: '#64748b' }}>
+              className="px-3 py-2 text-sm rounded-full border focus:outline-none cursor-pointer pr-9" style={{ borderColor: '#e2e8f0', appearance: 'none', WebkitAppearance: 'none', background: 'white', minWidth: '140px', color: '#64748b' }}>
               <option value="">All actions</option>
               <option value="create">Created</option>
               <option value="update">Updated</option>

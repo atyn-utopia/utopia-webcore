@@ -90,13 +90,13 @@ export default function TicketsPage() {
 
       {/* Stats */}
       <div className="flex gap-3 mb-5">
-        <div className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg" style={{ background: '#fef3c7', color: '#92400e' }}>
+        <div className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full" style={{ background: '#fef3c7', color: '#92400e' }}>
           <span className="font-semibold">{openCount}</span> Open
         </div>
-        <div className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg" style={{ background: '#e0f2fe', color: '#0369a1' }}>
+        <div className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full" style={{ background: '#e0f2fe', color: '#0369a1' }}>
           <span className="font-semibold">{inProgressCount}</span> In Progress
         </div>
-        <div className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg" style={{ background: '#f1f5f9', color: '#64748b' }}>
+        <div className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full" style={{ background: '#f1f5f9', color: '#64748b' }}>
           <span className="font-semibold">{tickets.length}</span> Total
         </div>
       </div>

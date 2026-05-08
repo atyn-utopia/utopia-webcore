@@ -73,7 +73,7 @@ export default function HelpPage() {
         description={t('page.help.description')}
         actions={
           <button onClick={() => { setShowForm(!showForm); setSuccess(''); setError('') }}
-            className="inline-flex items-center gap-2 text-white text-sm font-medium px-4 h-9 rounded-lg transition-opacity"
+            className="inline-flex items-center gap-2 text-white text-sm font-medium px-4 h-9 rounded-full transition-opacity"
             style={{ background: 'var(--primary)' }}>
             <PlusIcon className="w-4 h-4" />
             {t('button.newTicket')}
@@ -96,17 +96,17 @@ export default function HelpPage() {
             <div>
               <label className="block text-xs font-medium mb-1" style={{ color: '#475569' }}>Subject <span className="text-red-500">*</span></label>
               <input type="text" value={subject} onChange={e => setSubject(e.target.value)} placeholder="Brief description of the issue"
-                className="w-full px-3 py-2 border rounded-lg text-sm outline-none focus:border-[var(--primary)] transition-colors" style={{ borderColor: '#e2e8f0' }} />
+                className="w-full px-3 py-2 border rounded-full text-sm outline-none focus:border-[var(--primary)] transition-colors" style={{ borderColor: '#e2e8f0' }} />
             </div>
             <div>
               <label className="block text-xs font-medium mb-1" style={{ color: '#475569' }}>Description</label>
               <textarea value={description} onChange={e => setDescription(e.target.value)} rows={4}
                 placeholder="Steps to reproduce, expected behavior, screenshots, etc."
-                className="w-full px-3 py-2 border rounded-lg text-sm outline-none focus:border-[var(--primary)] transition-colors resize-y" style={{ borderColor: '#e2e8f0' }} />
+                className="w-full px-3 py-2 border rounded-full text-sm outline-none focus:border-[var(--primary)] transition-colors resize-y" style={{ borderColor: '#e2e8f0' }} />
             </div>
             <div className="flex justify-end gap-2">
               <button type="button" onClick={() => setShowForm(false)}
-                className="px-4 py-2 text-xs rounded-lg border transition-colors hover:bg-slate-50" style={{ borderColor: '#cbd5e1', color: '#475569' }}>Cancel</button>
+                className="px-4 py-2 text-xs rounded-full border transition-colors hover:bg-slate-50" style={{ borderColor: '#cbd5e1', color: '#475569' }}>Cancel</button>
               <button type="submit" disabled={saving}
                 className="px-4 py-2 text-xs font-medium text-white rounded-full transition-opacity disabled:opacity-50" style={{ background: 'var(--primary)' }}>
                 {saving ? 'Submitting…' : 'Submit Ticket'}

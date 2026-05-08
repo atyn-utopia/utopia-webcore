@@ -111,7 +111,7 @@ export default function CompareModal({ open, onClose, preselect }: CompareModalP
           </span>
           {selected.map(d => (
             <span key={d}
-              className="inline-flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded-md"
+              className="inline-flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded-full"
               style={{ background: '#eff6ff', color: '#1d4ed8', border: '1px solid #bfdbfe' }}>
               {d}
               <button onClick={() => toggle(d)} aria-label={`Remove ${d}`}

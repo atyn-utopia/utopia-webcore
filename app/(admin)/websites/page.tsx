@@ -73,7 +73,7 @@ function FactPill({ label, value, tone = 'neutral', href }: {
   href?: string
 }) {
   const inner = (
-    <div className="inline-flex items-center gap-2 h-8 px-2.5 rounded-md text-xs transition-colors"
+    <div className="inline-flex items-center gap-2 h-8 px-2.5 rounded-full text-xs transition-colors"
       style={{ background: 'white', border: '1px solid #e2e8f0' }}>
       <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: FACT_DOT[tone] }} />
       <span className="text-[11px] font-medium leading-none" style={{ color: '#94a3b8' }}>{label}</span>
@@ -97,7 +97,7 @@ function DetailCard({ title, accent, bgTint, icon, items, emptyText }: {
   return (
     <div className="rounded-xl border bg-white overflow-hidden" style={{ borderColor: '#e2e8f0' }}>
       <div className="px-5 py-3 flex items-center gap-2" style={{ background: bgTint, borderBottom: '1px solid #e2e8f0' }}>
-        <div className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: 'white', color: accent }}>
+        <div className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: 'white', color: accent }}>
           {icon}
         </div>
         <h3 className="text-sm font-semibold" style={{ color: accent }}>{title}</h3>
@@ -125,7 +125,7 @@ function DetailCard({ title, accent, bgTint, icon, items, emptyText }: {
   )
 }
 function PeriodSelector({ value, onChange }: { value: string; onChange: (v: '7d' | '30d' | '90d') => void }) {
-  return (<div className="flex items-center rounded-md border overflow-hidden h-9" style={{ borderColor: '#e2e8f0' }}>{[{ v: '7d' as const, l: '7d' }, { v: '30d' as const, l: '30d' }, { v: '90d' as const, l: '90d' }].map((p, i) => (<button key={p.v} onClick={() => onChange(p.v)} className="px-3 h-full text-xs font-medium transition-colors" style={{ background: value === p.v ? 'var(--primary)' : 'white', color: value === p.v ? 'white' : '#64748b', borderLeft: i > 0 ? '1px solid #e2e8f0' : undefined }}>{p.l}</button>))}</div>)
+  return (<div className="flex items-center rounded-full border overflow-hidden h-9" style={{ borderColor: '#e2e8f0' }}>{[{ v: '7d' as const, l: '7d' }, { v: '30d' as const, l: '30d' }, { v: '90d' as const, l: '90d' }].map((p, i) => (<button key={p.v} onClick={() => onChange(p.v)} className="px-3 h-full text-xs font-medium transition-colors" style={{ background: value === p.v ? 'var(--primary)' : 'white', color: value === p.v ? 'white' : '#64748b', borderLeft: i > 0 ? '1px solid #e2e8f0' : undefined }}>{p.l}</button>))}</div>)
 }
 
 export default function WebsitesPage() {
@@ -294,13 +294,13 @@ export default function WebsitesPage() {
         }
         actions={<>
           <button onClick={() => setCompareOpen(true)}
-            className="inline-flex items-center gap-2 text-sm font-medium px-4 h-9 rounded-lg border transition-colors hover:bg-slate-50"
+            className="inline-flex items-center gap-2 text-sm font-medium px-4 h-9 rounded-full border transition-colors hover:bg-slate-50"
             style={{ borderColor: '#cbd5e1', color: '#475569' }}>
             <CalendarIcon className="w-4 h-4" />
             Change sites
           </button>
           <button onClick={() => router.push('/websites')}
-            className="inline-flex items-center gap-2 text-sm font-medium px-4 h-9 rounded-lg transition-colors hover:bg-slate-50"
+            className="inline-flex items-center gap-2 text-sm font-medium px-4 h-9 rounded-full transition-colors hover:bg-slate-50"
             style={{ color: '#64748b' }}>
             Exit compare
           </button>
@@ -336,14 +336,14 @@ export default function WebsitesPage() {
     return (<div>
       <PageHeader title={t('page.websites.title')} description={t('page.websites.description')} actions={<>
         <button onClick={() => setCompareOpen(true)}
-          className="inline-flex items-center gap-2 text-sm font-medium px-4 h-9 rounded-lg border transition-colors hover:bg-slate-50"
+          className="inline-flex items-center gap-2 text-sm font-medium px-4 h-9 rounded-full border transition-colors hover:bg-slate-50"
           style={{ borderColor: '#cbd5e1', color: '#475569' }}>
           <CalendarIcon className="w-4 h-4" />
           Compare
         </button>
         {canAddWebsite && (
           <button onClick={() => setAddOpen(true)}
-            className="inline-flex items-center gap-2 text-white text-sm font-medium px-4 h-9 rounded-lg transition-opacity"
+            className="inline-flex items-center gap-2 text-white text-sm font-medium px-4 h-9 rounded-full transition-opacity"
             style={{ background: 'var(--primary)' }}>
             <PlusIcon className="w-4 h-4" />
             Add Website
@@ -427,14 +427,14 @@ export default function WebsitesPage() {
     return (<div>
       <PageHeader title={openCompany} description={`${companySites.length} website${companySites.length !== 1 ? 's' : ''}`} actions={<>
         <button onClick={() => setCompareOpen(true)}
-          className="inline-flex items-center gap-2 text-sm font-medium px-4 h-9 rounded-lg border transition-colors hover:bg-slate-50"
+          className="inline-flex items-center gap-2 text-sm font-medium px-4 h-9 rounded-full border transition-colors hover:bg-slate-50"
           style={{ borderColor: '#cbd5e1', color: '#475569' }}>
           <CalendarIcon className="w-4 h-4" />
           Compare
         </button>
         {canAddWebsite && currentCompany && (
           <button onClick={() => setAddOpen(true)}
-            className="inline-flex items-center gap-2 text-white text-sm font-medium px-4 h-9 rounded-lg transition-opacity"
+            className="inline-flex items-center gap-2 text-white text-sm font-medium px-4 h-9 rounded-full transition-opacity"
             style={{ background: 'var(--primary)' }}>
             <PlusIcon className="w-4 h-4" />
             Add Website
@@ -582,7 +582,7 @@ export default function WebsitesPage() {
             {/* Action buttons */}
             <div className="flex items-center gap-2 flex-shrink-0">
               <button onClick={() => setCompareOpen(true)}
-                className="inline-flex items-center gap-1.5 text-xs font-medium px-3 h-9 rounded-md border transition-colors hover:bg-slate-50"
+                className="inline-flex items-center gap-1.5 text-xs font-medium px-3 h-9 rounded-full border transition-colors hover:bg-slate-50"
                 style={{ borderColor: '#e2e8f0', color: '#475569', background: 'white' }}>
                 <CalendarIcon className="w-3.5 h-3.5" />
                 Compare
@@ -665,7 +665,7 @@ export default function WebsitesPage() {
           + the Ask Coxy pill share this). */}
       <div className="rounded-xl border bg-white overflow-hidden" style={{ borderColor: '#e2e8f0' }}>
         <div className="px-5 py-3 flex items-center gap-2" style={{ background: '#ecfeff', borderBottom: '1px solid #e2e8f0' }}>
-          <div className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: 'white', color: '#0891b2' }}>
+          <div className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: 'white', color: '#0891b2' }}>
             <ComputerDesktopIcon className="w-4 h-4" />
           </div>
           <h3 className="text-sm font-semibold" style={{ color: '#0891b2' }}>Visitor Mix</h3>
@@ -747,7 +747,7 @@ function SearchConsoleCard({ domain, period }: { domain: string; period: string 
   function Header({ rightSlot }: { rightSlot?: React.ReactNode }) {
     return (
       <div className="px-5 py-3 flex items-center gap-2" style={{ background: '#eff6ff', borderBottom: '1px solid #e2e8f0' }}>
-        <div className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 bg-white">
+        <div className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 bg-white">
           <svg className="w-4 h-4" viewBox="0 0 24 24" aria-hidden>
             <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
             <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
@@ -798,7 +798,7 @@ function SearchConsoleCard({ domain, period }: { domain: string; period: string 
             Reconnect to restore search analytics.
           </p>
           <button type="button" onClick={() => startGscReconnect(domain)}
-            className="text-[11px] font-medium px-3 py-1.5 rounded-md text-white transition-opacity hover:opacity-90 flex-shrink-0"
+            className="text-[11px] font-medium px-3 py-1.5 rounded-full text-white transition-opacity hover:opacity-90 flex-shrink-0"
             style={{ background: 'var(--primary)' }}>
             Reconnect Search Console
           </button>
@@ -888,7 +888,7 @@ function SearchConsoleCard({ domain, period }: { domain: string; period: string 
 
 function GscStat({ label, value, color }: { label: string; value: string; color: string }) {
   return (
-    <div className="rounded-lg px-3 py-2.5" style={{ background: '#fafbfc', border: '1px solid #f1f5f9' }}>
+    <div className="rounded-full px-3 py-2.5" style={{ background: '#fafbfc', border: '1px solid #f1f5f9' }}>
       <div className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: '#94a3b8' }}>{label}</div>
       <div className="text-lg font-bold mt-0.5 tabular-nums" style={{ color }}>{value}</div>
     </div>

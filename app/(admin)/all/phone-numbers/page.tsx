@@ -113,7 +113,7 @@ export default function AllPhoneNumbersPage() {
           <label className="block text-[10px] font-medium mb-1" style={{ color: '#94a3b8' }}>Company</label>
           <div className="relative">
             <select value={filterCompany} onChange={e => setFilterCompany(e.target.value)}
-              className="px-3 py-2 text-sm rounded-lg border focus:outline-none cursor-pointer pr-9" style={{ borderColor: '#e2e8f0', appearance: 'none', WebkitAppearance: 'none', background: 'white', minWidth: '160px', color: '#64748b' }}>
+              className="px-3 py-2 text-sm rounded-full border focus:outline-none cursor-pointer pr-9" style={{ borderColor: '#e2e8f0', appearance: 'none', WebkitAppearance: 'none', background: 'white', minWidth: '160px', color: '#64748b' }}>
               <option value="">All companies</option>
               {companyNames.map(c => <option key={c} value={c}>{c}</option>)}
             </select>

@@ -191,7 +191,7 @@ export default function RenameDomainCard({ domain }: Props) {
       <div className="px-5 py-4 space-y-3">
         <div>
           <label className="block text-xs font-medium mb-1.5" style={{ color: '#475569' }}>Current</label>
-          <p className="font-mono text-sm px-3 py-2 rounded-md" style={{ background: '#f8fafc', color: '#475569', border: '1px solid #e2e8f0' }}>
+          <p className="font-mono text-sm px-3 py-2 rounded-full" style={{ background: '#f8fafc', color: '#475569', border: '1px solid #e2e8f0' }}>
             {domain}
           </p>
         </div>

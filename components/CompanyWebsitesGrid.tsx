@@ -129,7 +129,7 @@ export default function CompanyWebsitesGrid({ domains, initialSites }: { domains
           </button>
         )}
 
-        <div className="ml-auto flex items-center gap-2">
+        <div className="sm:ml-auto flex flex-wrap items-center gap-2">
           {/* Filter pill (popover) */}
           <div className="relative" ref={filterRef}>
             <button
@@ -155,7 +155,7 @@ export default function CompanyWebsitesGrid({ domains, initialSites }: { domains
                 <div className="space-y-1">
                   <button
                     onClick={() => setLeadsMode('')}
-                    className="w-full flex items-center justify-between px-2 py-1.5 rounded-md text-xs hover:bg-slate-50 transition-colors"
+                    className="w-full flex items-center justify-between px-2 py-1.5 rounded-full text-xs hover:bg-slate-50 transition-colors"
                     style={{ color: !leadsMode ? 'var(--primary)' : '#475569', fontWeight: !leadsMode ? 600 : 500 }}
                   >
                     All
@@ -165,7 +165,7 @@ export default function CompanyWebsitesGrid({ domains, initialSites }: { domains
                     <button
                       key={k}
                       onClick={() => setLeadsMode(k)}
-                      className="w-full flex items-center justify-between px-2 py-1.5 rounded-md text-xs hover:bg-slate-50 transition-colors"
+                      className="w-full flex items-center justify-between px-2 py-1.5 rounded-full text-xs hover:bg-slate-50 transition-colors"
                       style={{ color: leadsMode === k ? 'var(--primary)' : '#475569', fontWeight: leadsMode === k ? 600 : 500 }}
                     >
                       {label}
@@ -196,7 +196,7 @@ export default function CompanyWebsitesGrid({ domains, initialSites }: { domains
               value={search}
               onChange={e => setSearch(e.target.value)}
               placeholder="Search…"
-              className="h-9 w-44 lg:w-56 pl-9 pr-8 rounded-full text-sm focus:outline-none focus:border-[var(--primary)] transition-colors"
+              className="h-9 w-32 sm:w-44 lg:w-56 pl-9 pr-8 rounded-full text-sm focus:outline-none focus:border-[var(--primary)] transition-colors"
               style={{ border: '1px solid #e2e8f0', background: 'white', color: 'var(--foreground)' }}
             />
             {search && (
@@ -207,7 +207,7 @@ export default function CompanyWebsitesGrid({ domains, initialSites }: { domains
           </div>
 
           {/* View toggle */}
-          <div className="flex items-center rounded-md border h-9 overflow-hidden" style={{ borderColor: '#e2e8f0', background: 'white' }}>
+          <div className="flex items-center rounded-full border h-9 overflow-hidden" style={{ borderColor: '#e2e8f0', background: 'white' }}>
             <button onClick={() => setViewMode('grid')} className="w-9 h-full flex items-center justify-center transition-colors"
               style={{ background: viewMode === 'grid' ? 'var(--primary)' : 'white', color: viewMode === 'grid' ? 'white' : '#94a3b8' }}
               title="Grid view">

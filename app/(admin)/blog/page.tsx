@@ -257,7 +257,7 @@ export default function BlogListPage() {
               <Link key={c.id} href={`/blog?company=${encodeURIComponent(c.name)}`}
                 className="group flex items-center gap-3 px-4 py-3.5 hover:bg-[#f8fafc] transition-colors"
                 style={{ borderBottom: i < filtered.length - 1 || unassignedSites.length > 0 ? '1px solid #f1f5f9' : 'none' }}>
-                <div className="w-8 h-8 rounded-md flex items-center justify-center flex-shrink-0" style={{ background: '#f1f5f9' }}>
+                <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: '#f1f5f9' }}>
                   <BuildingOfficeIcon className="w-4 h-4" />
                 </div>
                 <p className="text-sm font-semibold truncate flex-1 group-hover:text-[var(--primary)] transition-colors" style={{ color: 'var(--foreground)' }}>{c.name}</p>
@@ -272,7 +272,7 @@ export default function BlogListPage() {
               <Link key={site.domain} href={`/blog?website=${encodeURIComponent(site.domain)}`}
                 className="group flex items-center gap-3 px-4 py-3.5 hover:bg-[#f8fafc] transition-colors"
                 style={{ borderBottom: i < unassignedSites.length - 1 ? '1px solid #f1f5f9' : 'none' }}>
-                <div className="w-8 h-8 rounded-md flex items-center justify-center flex-shrink-0" style={{ background: '#f1f5f9' }}>
+                <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: '#f1f5f9' }}>
                   <FolderIcon className="w-4 h-4" />
                 </div>
                 <p className="text-sm font-semibold truncate flex-1 group-hover:text-[var(--primary)] transition-colors" style={{ color: '#94a3b8' }}>{site.domain}</p>
@@ -319,7 +319,7 @@ export default function BlogListPage() {
               <Link key={site.domain} href={`/blog?website=${encodeURIComponent(site.domain)}`}
                 className="group flex items-center gap-3 px-4 py-3.5 hover:bg-[#f8fafc] transition-colors"
                 style={{ borderBottom: i < companySites.length - 1 ? '1px solid #f1f5f9' : 'none' }}>
-                <div className="w-8 h-8 rounded-md flex items-center justify-center flex-shrink-0" style={{ background: '#f1f5f9' }}>
+                <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: '#f1f5f9' }}>
                   <FolderIcon className="w-4 h-4" />
                 </div>
                 <p className="text-sm font-semibold truncate flex-1 group-hover:text-[var(--primary)] transition-colors" style={{ color: 'var(--foreground)' }}>{site.domain}</p>
@@ -370,7 +370,7 @@ export default function BlogListPage() {
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
           <div className="rounded-xl border border-slate-200 bg-white p-4">
             <div className="flex items-center gap-2 mb-2">
-              <div className="w-7 h-7 rounded-md flex items-center justify-center" style={{ background: '#eff6ff' }}>
+              <div className="w-7 h-7 rounded-full flex items-center justify-center" style={{ background: '#eff6ff' }}>
                 <DocumentTextIcon className="w-3.5 h-3.5" />
               </div>
               <span className="text-[10px] font-medium" style={{ color: '#64748b' }}>Total Posts</span>
@@ -380,7 +380,7 @@ export default function BlogListPage() {
           </div>
           <div className="rounded-xl border border-slate-200 bg-white p-4">
             <div className="flex items-center gap-2 mb-2">
-              <div className="w-7 h-7 rounded-md flex items-center justify-center" style={{ background: '#f0fdf4' }}>
+              <div className="w-7 h-7 rounded-full flex items-center justify-center" style={{ background: '#f0fdf4' }}>
                 <EyeIcon className="w-3.5 h-3.5" />
               </div>
               <span className="text-[10px] font-medium" style={{ color: '#64748b' }}>Total Views</span>
@@ -395,7 +395,7 @@ export default function BlogListPage() {
           </div>
           <div className="rounded-xl border border-slate-200 bg-white p-4">
             <div className="flex items-center gap-2 mb-2">
-              <div className="w-7 h-7 rounded-md flex items-center justify-center" style={{ background: '#f0fdf4' }}>
+              <div className="w-7 h-7 rounded-full flex items-center justify-center" style={{ background: '#f0fdf4' }}>
                 <ArrowTrendingUpIcon className="w-3.5 h-3.5" />
               </div>
               <span className="text-[10px] font-medium" style={{ color: '#64748b' }}>Growing</span>
@@ -405,7 +405,7 @@ export default function BlogListPage() {
           </div>
           <div className="rounded-xl border border-slate-200 bg-white p-4">
             <div className="flex items-center gap-2 mb-2">
-              <div className="w-7 h-7 rounded-md flex items-center justify-center" style={{ background: '#fef2f2' }}>
+              <div className="w-7 h-7 rounded-full flex items-center justify-center" style={{ background: '#fef2f2' }}>
                 <ArrowTrendingDownIcon className="w-3.5 h-3.5" />
               </div>
               <span className="text-[10px] font-medium" style={{ color: '#64748b' }}>Declining</span>
@@ -458,7 +458,7 @@ export default function BlogListPage() {
                 value={search}
                 onChange={e => setSearch(e.target.value)}
                 placeholder="Search posts by title, slug, or excerpt…"
-                className="w-full h-9 pl-9 pr-9 text-sm rounded-lg border outline-none focus:ring-2 focus:ring-offset-0"
+                className="w-full h-9 pl-9 pr-9 text-sm rounded-full border outline-none focus:ring-2 focus:ring-offset-0"
                 style={{ borderColor: '#cbd5e1', background: 'white', ['--tw-ring-color' as string]: 'rgba(41, 117, 204, 0.2)' }}
               />
               {search && (
@@ -469,7 +469,7 @@ export default function BlogListPage() {
             </div>
           </div>
 
-          <div className="flex items-center rounded-lg border overflow-hidden h-9 flex-shrink-0" style={{ borderColor: '#cbd5e1', background: 'white' }}>
+          <div className="flex items-center rounded-full border overflow-hidden h-9 flex-shrink-0" style={{ borderColor: '#cbd5e1', background: 'white' }}>
             <button
               onClick={() => setViewMode('list')}
               className="w-9 h-full flex items-center justify-center transition-colors"
@@ -494,7 +494,7 @@ export default function BlogListPage() {
 
           <Link
             href={`/blog/new?website=${encodeURIComponent(openFolder)}${websites.find(w => w.domain === openFolder)?.company_name ? `&company=${encodeURIComponent(websites.find(w => w.domain === openFolder)!.company_name!)}` : ''}`}
-            className="inline-flex items-center justify-center gap-2 text-white text-sm font-medium px-4 h-9 rounded-lg transition-opacity hover:opacity-90 flex-shrink-0"
+            className="inline-flex items-center justify-center gap-2 text-white text-sm font-medium px-4 h-9 rounded-full transition-opacity hover:opacity-90 flex-shrink-0"
             style={{ background: 'var(--primary)' }}
           >
             <PlusIcon className="w-4 h-4" />
@@ -513,7 +513,7 @@ export default function BlogListPage() {
           <p className="text-xs mt-1 mb-4" style={{ color: '#94a3b8' }}>Create the first blog post for {openFolder}</p>
           <Link
             href={`/blog/new?website=${encodeURIComponent(openFolder)}${websites.find(w => w.domain === openFolder)?.company_name ? `&company=${encodeURIComponent(websites.find(w => w.domain === openFolder)!.company_name!)}` : ''}`}
-            className="inline-flex items-center gap-1.5 text-xs font-medium px-4 py-2 rounded-lg text-white transition-opacity hover:opacity-90"
+            className="inline-flex items-center gap-1.5 text-xs font-medium px-4 py-2 rounded-full text-white transition-opacity hover:opacity-90"
             style={{ background: 'var(--primary)' }}
           >
             <PlusIcon className="w-3.5 h-3.5" />
@@ -550,7 +550,7 @@ export default function BlogListPage() {
                 <button
                   onClick={e => { e.preventDefault(); deletePost(post.id, post.title) }}
                   disabled={deleting === post.id}
-                  className="w-6 h-6 flex items-center justify-center rounded-md border border-[#e2e8f0] text-[#cbd5e1] transition-colors flex-shrink-0 disabled:opacity-50 hover:bg-[#ef4444] hover:border-white hover:text-white"
+                  className="w-6 h-6 flex items-center justify-center rounded-full border border-[#e2e8f0] text-[#cbd5e1] transition-colors flex-shrink-0 disabled:opacity-50 hover:bg-[#ef4444] hover:border-white hover:text-white"
                   title="Delete"
                 >
                   <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -695,13 +695,13 @@ export default function BlogListPage() {
                   <td className="px-2 py-3 align-middle text-[10px] sm:text-xs" style={{ color: '#475569' }}>{formatDate(post.updated_at)}</td>
                   <td className="px-2 sm:px-4 py-3 align-middle">
                     <div className="flex items-center gap-1 justify-center">
-                      <button onClick={() => router.push(`/blog/${post.id}/edit?website=${encodeURIComponent(openFolder)}`)} className="w-8 h-8 flex items-center justify-center rounded-lg border transition-colors hover:text-[var(--primary)] hover:border-[var(--primary)]" style={{ borderColor: '#cbd5e1', color: '#475569' }} title="Edit">
+                      <button onClick={() => router.push(`/blog/${post.id}/edit?website=${encodeURIComponent(openFolder)}`)} className="w-8 h-8 flex items-center justify-center rounded-full border transition-colors hover:text-[var(--primary)] hover:border-[var(--primary)]" style={{ borderColor: '#cbd5e1', color: '#475569' }} title="Edit">
                         <PencilSquareIcon className="w-3.5 h-3.5" />
                       </button>
                       <button
                         onClick={() => deletePost(post.id, post.title)}
                         disabled={deleting === post.id}
-                        className="w-8 h-8 flex items-center justify-center rounded-lg border border-[#e2e8f0] text-[#94a3b8] transition-colors disabled:opacity-50 hover:bg-[#ef4444] hover:border-white hover:text-white"
+                        className="w-8 h-8 flex items-center justify-center rounded-full border border-[#e2e8f0] text-[#94a3b8] transition-colors disabled:opacity-50 hover:bg-[#ef4444] hover:border-white hover:text-white"
                         title="Delete"
                       >
                         <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.8"><path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>

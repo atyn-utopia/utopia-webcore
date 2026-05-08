@@ -15,7 +15,7 @@ export default function InsightsPanel({ insights }: { insights: Insight[] }) {
   return (
     <div className="rounded-xl border border-slate-200 bg-white p-5 flex flex-col">
       <div className="flex items-center gap-2 mb-4">
-        <div className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: '#fef3c7' }}>
+        <div className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: '#fef3c7' }}>
           <LightBulbIcon className="w-4 h-4" />
         </div>
         <h3 className="text-sm font-semibold" style={{ color: 'var(--foreground)' }}>Daily Insights</h3>
@@ -26,8 +26,8 @@ export default function InsightsPanel({ insights }: { insights: Insight[] }) {
           {insights.map((insight, i) => {
             const style = INSIGHT_STYLES[insight.type] ?? INSIGHT_STYLES.neutral
             return (
-              <div key={i} className="flex items-center gap-3 px-3 py-2.5 rounded-lg" style={{ background: style.bg }}>
-                <div className="w-7 h-7 rounded-md flex items-center justify-center flex-shrink-0" style={{ background: style.border + '66' }}>
+              <div key={i} className="flex items-center gap-3 px-3 py-2.5 rounded-full" style={{ background: style.bg }}>
+                <div className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: style.border + '66' }}>
                   {insight.type === 'positive' && <ArrowTrendingUpIcon className="w-3.5 h-3.5" />}
                   {insight.type === 'negative' && <ArrowTrendingDownIcon className="w-3.5 h-3.5" />}
                   {insight.type === 'warning' && <ExclamationTriangleIcon className="w-3.5 h-3.5" />}
