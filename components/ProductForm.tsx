@@ -214,7 +214,7 @@ export default function ProductForm({ mode, productId, initialData = {} }: Produ
               type="button"
               onClick={() => router.push(website ? `/products?website=${encodeURIComponent(website)}` : '/products')}
               disabled={saving}
-              className="inline-flex items-center gap-2 text-sm font-medium px-4 h-9 rounded-lg border transition-colors disabled:opacity-50 hover:bg-slate-50"
+              className="inline-flex items-center gap-2 text-sm font-medium px-4 h-9 rounded-full border transition-colors disabled:opacity-50 hover:bg-slate-50"
               style={{ borderColor: '#e2e8f0', color: '#475569', background: 'white' }}
             >
               Cancel

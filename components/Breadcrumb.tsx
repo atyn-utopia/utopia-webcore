@@ -129,7 +129,6 @@ export default function Breadcrumb() {
     if (pathname === '/analytics') return [{ label: 'Analytics' }]
 
     // /all/* power-user cross-site views
-    if (pathname === '/all/websites') return [{ label: 'All Websites' }]
     if (pathname === '/all/phone-numbers') return [{ label: 'All Phone Numbers' }]
     if (pathname === '/all/blog') return [{ label: 'All Blog' }]
 

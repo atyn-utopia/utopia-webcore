@@ -167,6 +167,9 @@ export default function Sidebar({ userRole, open, onClose, collapsed = false, on
       {/* Quick Actions popover. Only visible when sidebar expanded */}
       {!collapsed && quickActionsOpen && (
         <div className="mx-3 mb-2 rounded-lg p-2 space-y-1" style={{ background: 'rgba(255,255,255,0.06)' }}>
+          {(userRole === 'admin' || userRole === 'designer') && (
+            <Link href="/?addWebsite=1" onClick={() => { setQuickActionsOpen(false); onClose?.() }} className="block px-2 py-1.5 text-xs rounded-md text-white/80 hover:bg-white/10 transition-colors">Add website</Link>
+          )}
           <Link href="/api-keys" onClick={() => { setQuickActionsOpen(false); onClose?.() }} className="block px-2 py-1.5 text-xs rounded-md text-white/80 hover:bg-white/10 transition-colors">Generate API key</Link>
           <Link href="/blog/new" onClick={() => { setQuickActionsOpen(false); onClose?.() }} className="block px-2 py-1.5 text-xs rounded-md text-white/80 hover:bg-white/10 transition-colors">New blog post</Link>
           <Link href="/users/onboard" onClick={() => { setQuickActionsOpen(false); onClose?.() }} className="block px-2 py-1.5 text-xs rounded-md text-white/80 hover:bg-white/10 transition-colors">Onboard designer</Link>

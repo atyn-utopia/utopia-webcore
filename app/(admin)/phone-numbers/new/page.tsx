@@ -377,7 +377,7 @@ export default function NewPhoneNumberPage() {
               {website && (
                 <div className="rounded-xl border p-5" style={{ borderColor: modeChanged ? '#fbbf24' : '#e2e8f0', background: modeChanged ? '#fffbeb' : '#f8fafc' }}>
                   <div className="flex items-center gap-2 mb-4">
-                    <InformationCircleIcon className="w-5 h-5" />
+                    <InformationCircleIcon className="w-5 h-5" style={{ color: '#1E5BFF' }} />
                     <span className="text-sm font-semibold" style={{ color: 'var(--foreground)' }}>Leads Mode</span>
                     {modeChanged && (
                       <span className="text-xs font-semibold ml-auto px-2 py-1 rounded-full" style={{ background: '#fef3c7', color: '#d97706' }}>

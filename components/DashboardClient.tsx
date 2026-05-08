@@ -1,7 +1,8 @@
 'use client'
 
 import Link from 'next/link'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { useLanguage } from '@/contexts/LanguageContext'
 import { useCoxy } from '@/contexts/CoxyContext'
 import type { UserRole } from '@/contexts/UserContext'
@@ -34,9 +35,21 @@ interface Props {
 export default function DashboardClient({ role, isScoped, websiteCount, phoneCount, postCount, productCount, companies }: Props) {
   const { t } = useLanguage()
   const { setOpen: openCoxy } = useCoxy()
+  const router = useRouter()
+  const searchParams = useSearchParams()
   const [addOpen, setAddOpen] = useState(false)
   const isWriter = role === 'writer'
   const canAddWebsite = role === 'admin' || role === 'designer'
+
+  // Auto-open the Add Website modal when ?addWebsite=1 is present so the
+  // SiteSelector and Quick Actions can deep-link into the create flow.
+  useEffect(() => {
+    if (searchParams.get('addWebsite') === '1' && canAddWebsite) {
+      setAddOpen(true)
+      // Clean the param so a refresh doesn't re-open the modal.
+      router.replace('/')
+    }
+  }, [searchParams, canAddWebsite, router])
 
   const welcomeKey = `dashboard.welcome.${role}` as TranslationKey
 

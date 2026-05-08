@@ -127,7 +127,7 @@ export default function SiteSelector() {
             </div>
             {canAdd && (
               <Link
-                href="/"
+                href="/?addWebsite=1"
                 onClick={() => setOpen(false)}
                 className="inline-flex items-center gap-1 text-xs font-semibold whitespace-nowrap transition-colors"
                 style={{ color: 'var(--primary)' }}
