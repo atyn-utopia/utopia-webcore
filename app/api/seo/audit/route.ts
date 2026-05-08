@@ -170,7 +170,7 @@ export async function POST(request: Request) {
     const controller = new AbortController()
     const timeout = setTimeout(() => controller.abort(), 10_000)
     const res = await fetch(url, {
-      headers: { 'User-Agent': 'Webcore-SEO-Audit/1.0 (+https://utopia-webcore.vercel.app)' },
+      headers: { 'User-Agent': 'Webcore-SEO-Audit/1.0 (+https://webcore.utopiaai.my)' },
       signal: controller.signal,
       cache: 'no-store',
     })

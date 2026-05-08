@@ -5,7 +5,7 @@
 ## Base URL
 
 ```
-https://utopia-webcore.vercel.app
+https://webcore.utopiaai.my
 ```
 
 ## Authentication
@@ -48,7 +48,7 @@ Read operations (GET) are **public** — no auth needed.
 ### Create a main product
 
 ```js
-const res = await fetch('https://utopia-webcore.vercel.app/api/public/products', {
+const res = await fetch('https://webcore.utopiaai.my/api/public/products', {
   method: 'POST',
   headers: {
     'Content-Type': 'application/json',
@@ -75,7 +75,7 @@ const mainProduct = await res.json()
 ### Create sub-products under a main product
 
 ```js
-await fetch('https://utopia-webcore.vercel.app/api/public/products', {
+await fetch('https://webcore.utopiaai.my/api/public/products', {
   method: 'POST',
   headers: {
     'Content-Type': 'application/json',
@@ -99,7 +99,7 @@ await fetch('https://utopia-webcore.vercel.app/api/public/products', {
 
 ```js
 const API_KEY = 'uwc_your_key_here'
-const BASE = 'https://utopia-webcore.vercel.app/api/public/products'
+const BASE = 'https://webcore.utopiaai.my/api/public/products'
 const WEBSITE = 'service-aircond-kl.vercel.app'
 
 const headers = {
@@ -152,7 +152,7 @@ console.log('Done! Products inserted for', WEBSITE)
 ```js
 // Next.js example — server component or getStaticProps
 const products = await fetch(
-  'https://utopia-webcore.vercel.app/api/public/products?website=client-site.vercel.app',
+  'https://webcore.utopiaai.my/api/public/products?website=client-site.vercel.app',
   { next: { revalidate: 60 } }  // cache for 60 seconds
 ).then(r => r.json())
 ```
@@ -200,7 +200,7 @@ const products = await fetch(
 ```jsx
 export default async function ProductSection() {
   const products = await fetch(
-    'https://utopia-webcore.vercel.app/api/public/products?website=my-site.vercel.app',
+    'https://webcore.utopiaai.my/api/public/products?website=my-site.vercel.app',
     { next: { revalidate: 60 } }
   ).then(r => r.json())
 

@@ -26,7 +26,7 @@ async function fetchXml(url: string, ms = 8000): Promise<{ status: number; body:
     const controller = new AbortController()
     const timer = setTimeout(() => controller.abort(), ms)
     const res = await fetch(url, {
-      headers: { 'User-Agent': 'Webcore-SEO-Sitemap/1.0 (+https://utopia-webcore.vercel.app)' },
+      headers: { 'User-Agent': 'Webcore-SEO-Sitemap/1.0 (+https://webcore.utopiaai.my)' },
       signal: controller.signal,
       cache: 'no-store',
     })

@@ -65,7 +65,7 @@ Webcore centralises the non-design parts of a website so multiple designer-built
 
 ## Tracking
 
-- One-line script embed: \`<script defer src="https://utopia-webcore.vercel.app/t.js" data-website="DOMAIN"></script>\`
+- One-line script embed: \`<script defer src="https://webcore.utopiaai.my/t.js" data-website="DOMAIN"></script>\`
 - Manual events: \`window.uwc('click', { label: 'whatsapp-60123...' })\`
 - Label conventions: \`whatsapp-{phone}\`, \`call-{phone}\`, \`product-{slug}\`, \`blog-{slug}\`
 

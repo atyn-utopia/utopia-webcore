@@ -58,7 +58,7 @@ function formatDate(d: string | null) {
 }
 
 function trackingSnippetFor(domain: string): string {
-  return `<script defer src="https://utopia-webcore.vercel.app/t.js" data-website="${domain}"></script>`
+  return `<script defer src="https://webcore.utopiaai.my/t.js" data-website="${domain}"></script>`
 }
 
 export default function ApiKeysPage() {

@@ -2,7 +2,7 @@
 
 Admin dashboard and data platform that powers the websites we build for clients. One place to manage companies, sites, phone numbers, blog posts, products, analytics, and API access — so designers and external partners can self-serve without touching the code.
 
-Production: **https://utopia-webcore.vercel.app**
+Production: **https://webcore.utopiaai.my**
 
 ## What lives here
 
@@ -73,7 +73,7 @@ The Supabase migrations in `supabase-migration-*.sql` are applied manually via t
 
 ## Integrations
 
-- **Tracking script** — sites embed `<script defer src="https://utopia-webcore.vercel.app/t.js" data-website="example.com"></script>` in `<head>`.
+- **Tracking script** — sites embed `<script defer src="https://webcore.utopiaai.my/t.js" data-website="example.com"></script>` in `<head>`.
 - **Public Product API** — read-only, authenticated via website-scoped API key. See `docs/` for the integration guide.
 - **Google Search Console** — OAuth on each website's L3 page; backfills clicks/impressions/queries into the analytics panel.
 - **Claude Code handoff** — API key creation surfaces a single paste-ready markdown doc so any Claude can wire up a designer's website end-to-end.

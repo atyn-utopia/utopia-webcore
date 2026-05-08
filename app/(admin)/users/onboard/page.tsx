@@ -221,7 +221,7 @@ function ResultView({ result, onReset }: { result: OnboardResult; onReset: () =>
   const fullSummary = [
     `Login: ${result.user.email}`,
     `Password: ${result.user.temp_password}`,
-    `Webcore URL: https://utopia-webcore.vercel.app`,
+    `Webcore URL: https://webcore.utopiaai.my`,
     ``,
     `Website: ${result.website.domain}`,
     `Company: ${result.company.name}`,
@@ -232,7 +232,7 @@ function ResultView({ result, onReset }: { result: OnboardResult; onReset: () =>
     `Tracking snippet (paste in <head>):`,
     result.tracking_snippet,
     ``,
-    `Integration guide: https://utopia-webcore.vercel.app/docs/TRACKING-GUIDE.md`,
+    `Integration guide: https://webcore.utopiaai.my/docs/TRACKING-GUIDE.md`,
   ].join('\n')
 
   return (
@@ -253,7 +253,7 @@ function ResultView({ result, onReset }: { result: OnboardResult; onReset: () =>
       <div className="rounded-2xl border bg-white shadow-sm overflow-hidden mb-5" style={{ borderColor: '#e2e8f0' }}>
         <CredRow label="Login email" value={result.user.email} onCopy={v => copy(v, 'email')} copied={copied === 'email'} />
         <CredRow label="Temporary password" value={result.user.temp_password} onCopy={v => copy(v, 'pw')} copied={copied === 'pw'} mono />
-        <CredRow label="Webcore URL" value="https://utopia-webcore.vercel.app" onCopy={v => copy(v, 'url')} copied={copied === 'url'} />
+        <CredRow label="Webcore URL" value="https://webcore.utopiaai.my" onCopy={v => copy(v, 'url')} copied={copied === 'url'} />
         <CredRow label="Website domain" value={result.website.domain} onCopy={v => copy(v, 'dom')} copied={copied === 'dom'} mono />
         <CredRow label="Company" value={result.company.name} />
         <CredRow label="API Key" value={result.api_key} onCopy={v => copy(v, 'key')} copied={copied === 'key'} mono warn />

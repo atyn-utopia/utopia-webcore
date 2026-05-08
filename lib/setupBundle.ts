@@ -131,14 +131,14 @@ You're helping build a website that integrates with **Utopia Webcore** — a cen
 ## This project
 
 - **Domain**: \`${domain}\`
-- **Webcore base URL**: \`https://utopia-webcore.vercel.app\`
+- **Webcore base URL**: \`https://webcore.utopiaai.my\`
 - **API key**: see \`.env.local\` (key variable: \`WEBCORE_API_KEY\`, permissions: ${permList})
 
 ## Non-negotiable requirements
 
 1. **Every page MUST embed the tracking snippet** in \`<head>\`. Use \`components/WebcoreTracker.tsx\` or paste the script tag directly:
    \`\`\`html
-   <script defer src="https://utopia-webcore.vercel.app/t.js" data-website="${domain}"></script>
+   <script defer src="https://webcore.utopiaai.my/t.js" data-website="${domain}"></script>
    \`\`\`
    The same tracker also applies **alt-text overrides** at runtime: when an admin fills in missing alt text in the webcore SEO panel, the tracker fetches the override map and rewrites \`<img alt="">\` for matching images on every page load. No designer-side changes needed.
 
@@ -340,7 +340,7 @@ ${secretLine}
 # NEXT_PUBLIC_GSC_VERIFICATION=
 
 # Base URL (shouldn't need to change)
-WEBCORE_BASE_URL=https://utopia-webcore.vercel.app
+WEBCORE_BASE_URL=https://webcore.utopiaai.my
 `
 }
 
@@ -352,7 +352,7 @@ function webcoreTs({ domain }: { domain: string }): string {
  * Client-safe read functions only need the domain.
  */
 
-const BASE = process.env.WEBCORE_BASE_URL ?? 'https://utopia-webcore.vercel.app'
+const BASE = process.env.WEBCORE_BASE_URL ?? 'https://webcore.utopiaai.my'
 const SITE = process.env.NEXT_PUBLIC_WEBCORE_DOMAIN ?? '${domain}'
 
 /* ─── Types ─────────────────────────────────────────────────── */
@@ -694,7 +694,7 @@ function webcoreSeoTs({ domain }: { domain: string }): string {
  */
 import type { Metadata } from 'next'
 
-const BASE = process.env.WEBCORE_BASE_URL ?? 'https://utopia-webcore.vercel.app'
+const BASE = process.env.WEBCORE_BASE_URL ?? 'https://webcore.utopiaai.my'
 const SITE = process.env.NEXT_PUBLIC_WEBCORE_DOMAIN ?? '${domain}'
 
 export interface WebcoreSeoOptions {
@@ -826,7 +826,7 @@ export default function WebcoreTracker() {
       {gscVerification && <meta name="google-site-verification" content={gscVerification} />}
       <script
         defer
-        src="https://utopia-webcore.vercel.app/t.js"
+        src="https://webcore.utopiaai.my/t.js"
         data-website={domain}
       />
     </>
@@ -843,7 +843,7 @@ function trackingGuideMd(): string {
 Add to every page's \`<head>\`:
 
 \`\`\`html
-<script defer src="https://utopia-webcore.vercel.app/t.js" data-website="YOUR-DOMAIN"></script>
+<script defer src="https://webcore.utopiaai.my/t.js" data-website="YOUR-DOMAIN"></script>
 \`\`\`
 
 Pageviews and SPA navigation are tracked automatically.

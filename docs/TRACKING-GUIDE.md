@@ -7,7 +7,7 @@
 Add this **one line** to your website's `<head>` tag:
 
 ```html
-<script defer src="https://utopia-webcore.vercel.app/t.js" data-website="your-domain.vercel.app"></script>
+<script defer src="https://webcore.utopiaai.my/t.js" data-website="your-domain.vercel.app"></script>
 ```
 
 Replace `your-domain.vercel.app` with the **exact domain** of the website.
@@ -99,7 +99,7 @@ export default function RootLayout({ children }) {
       <head>
         <script
           defer
-          src="https://utopia-webcore.vercel.app/t.js"
+          src="https://webcore.utopiaai.my/t.js"
           data-website="your-domain.vercel.app"
         />
       </head>
@@ -231,7 +231,7 @@ Besides tracking, your website can **pull data** from Webcore so that admins can
 
 ```js
 // From any website, anytime
-fetch('https://utopia-webcore.vercel.app/api/public/phone-numbers?website=your-domain.vercel.app')
+fetch('https://webcore.utopiaai.my/api/public/phone-numbers?website=your-domain.vercel.app')
   .then(r => r.json())
   .then(phones => {
     // [{ phone_number, whatsapp_text, type, label, location_slug }, ...]
@@ -248,7 +248,7 @@ Optional filter by location:
 If your site uses rotation/hybrid mode, let the server pick the right number for you:
 
 ```js
-fetch('https://utopia-webcore.vercel.app/api/public/phone-numbers/resolve?website=your-domain.vercel.app&location=shah-alam')
+fetch('https://webcore.utopiaai.my/api/public/phone-numbers/resolve?website=your-domain.vercel.app&location=shah-alam')
   .then(r => r.json())
   .then(({ phone_number, whatsapp_text }) => {
     // One chosen number, weighted by percentage
@@ -261,14 +261,14 @@ Without `location`, it picks from numbers scoped to `all` locations.
 
 ```js
 // List published posts (light payload)
-fetch('https://utopia-webcore.vercel.app/api/public/blog?website=your-domain.vercel.app&language=en')
+fetch('https://webcore.utopiaai.my/api/public/blog?website=your-domain.vercel.app&language=en')
   .then(r => r.json())
   .then(posts => {
     // [{ id, slug, title, excerpt, cover_image_url, published_at, languages }, ...]
   })
 
 // Single post with full content
-fetch('https://utopia-webcore.vercel.app/api/public/blog?website=your-domain.vercel.app&slug=wheelchair-guide&language=en')
+fetch('https://webcore.utopiaai.my/api/public/blog?website=your-domain.vercel.app&slug=wheelchair-guide&language=en')
   .then(r => r.json())
   .then(post => {
     // { slug, title, content, excerpt, meta_title, meta_description, cover_image_url }
@@ -280,7 +280,7 @@ Omit `language` on single-post fetch to get **all translations** nested under `t
 ### Products
 
 ```js
-fetch('https://utopia-webcore.vercel.app/api/public/products?website=your-domain.vercel.app')
+fetch('https://webcore.utopiaai.my/api/public/products?website=your-domain.vercel.app')
   .then(r => r.json())
   .then(products => {
     // Main products with nested sub_products and photos
@@ -303,7 +303,7 @@ Designers can push products, phone numbers, and blog posts back into Webcore. **
 
 ```js
 // Products
-fetch('https://utopia-webcore.vercel.app/api/public/products', {
+fetch('https://webcore.utopiaai.my/api/public/products', {
   method: 'POST',
   headers: { 'Content-Type': 'application/json', 'X-API-Key': 'uwc_...' },
   body: JSON.stringify({
@@ -316,7 +316,7 @@ fetch('https://utopia-webcore.vercel.app/api/public/products', {
 })
 
 // Phone numbers (the admin 'default' number is read-only from the API)
-fetch('https://utopia-webcore.vercel.app/api/public/phone-numbers', {
+fetch('https://webcore.utopiaai.my/api/public/phone-numbers', {
   method: 'POST',
   headers: { 'Content-Type': 'application/json', 'X-API-Key': 'uwc_...' },
   body: JSON.stringify({
@@ -330,7 +330,7 @@ fetch('https://utopia-webcore.vercel.app/api/public/phone-numbers', {
 })
 
 // Blog posts — translations are upserted by language on PATCH
-fetch('https://utopia-webcore.vercel.app/api/public/blog', {
+fetch('https://webcore.utopiaai.my/api/public/blog', {
   method: 'POST',
   headers: { 'Content-Type': 'application/json', 'X-API-Key': 'uwc_...' },
   body: JSON.stringify({

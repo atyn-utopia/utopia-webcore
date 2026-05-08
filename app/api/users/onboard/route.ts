@@ -144,6 +144,6 @@ export async function POST(request: Request) {
     website: { domain: cleanDomain },
     api_key: apiKey,
     api_key_permissions: perms,
-    tracking_snippet: `<script defer src="https://utopia-webcore.vercel.app/t.js" data-website="${cleanDomain}"></script>`,
+    tracking_snippet: `<script defer src="https://webcore.utopiaai.my/t.js" data-website="${cleanDomain}"></script>`,
   }, { status: 201 })
 }
