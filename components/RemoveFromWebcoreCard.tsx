@@ -18,9 +18,9 @@ export default function RemoveFromWebcoreCard({ domain }: { domain: string }) {
 
   async function remove() {
     const ok = await confirm({
-      title: `Remove ${domain} from webcore?`,
+      title: `Remove ${domain} from Webcore?`,
       message: `This unlinks ${domain} from its company so it stops appearing in dropdowns and analytics. Phone numbers, products, blog posts, and tracking events for this domain stay in the database. Re-adding the site will surface them again. The action is logged in /audit.`,
-      confirmLabel: 'Remove from webcore',
+      confirmLabel: 'Remove from Webcore',
       variant: 'danger',
     })
     if (!ok) return
@@ -64,9 +64,9 @@ export default function RemoveFromWebcoreCard({ domain }: { domain: string }) {
       </div>
       <div className="px-5 py-4 flex items-center justify-between gap-4 flex-wrap">
         <div className="min-w-0 flex-1">
-          <p className="text-sm font-medium" style={{ color: 'var(--foreground)' }}>Remove this site from webcore</p>
+          <p className="text-sm font-medium" style={{ color: 'var(--foreground)' }}>Remove this site from Webcore</p>
           <p className="text-xs mt-1 leading-relaxed" style={{ color: '#64748b' }}>
-            Use when this site has been deleted from Vercel (or you otherwise no longer want webcore tracking it). Unlinks the domain from its company; data stays in the DB and is recoverable by re-adding the site.
+            Use when this site has been deleted from Vercel (or you otherwise no longer want Webcore tracking it). Unlinks the domain from its company; data stays in the DB and is recoverable by re-adding the site.
           </p>
         </div>
         <button
@@ -75,7 +75,7 @@ export default function RemoveFromWebcoreCard({ domain }: { domain: string }) {
           className="inline-flex items-center justify-center text-xs font-medium px-3 h-9 rounded-full text-white transition-opacity disabled:opacity-50 flex-shrink-0"
           style={{ background: '#dc2626' }}
         >
-          {busy ? 'Removing…' : 'Remove from webcore'}
+          {busy ? 'Removing…' : 'Remove from Webcore'}
         </button>
       </div>
     </div>

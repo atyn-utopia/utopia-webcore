@@ -731,7 +731,7 @@ export default function ManagePhoneNumbersPage() {
                     </div>
                     {cleanNum.length >= 8 && (
                       <a href={testUrl} target="_blank" rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 text-[11px] font-medium px-2.5 py-1.5 rounded-md border transition-colors hover:border-green-500 hover:text-green-700 flex-shrink-0"
+                        className="inline-flex items-center gap-1 text-[11px] font-medium h-7 px-3 rounded-full border transition-colors hover:border-green-500 hover:text-green-700 flex-shrink-0"
                         style={{ borderColor: '#e2e8f0', color: '#16a34a' }}>
                         Test
                         <ArrowTopRightOnSquareIcon className="w-3 h-3" />

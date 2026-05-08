@@ -5,7 +5,9 @@ import { useToast } from '@/contexts/ToastContext'
 import { useConfirm } from '@/contexts/ConfirmContext'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
+import { fullSetupMarkdown } from '@/lib/setupBundle'
 import {
+  BoltIcon,
   CheckIcon,
   ClipboardDocumentListIcon,
   EyeIcon,
@@ -69,6 +71,18 @@ export default function SiteApiKeysCard({ domain }: Props) {
   const [creating, setCreating] = useState(false)
   const [revealed, setRevealed] = useState<Record<string, boolean>>({})
   const [copied, setCopied] = useState<string | null>(null)
+  const [revalidateSecret, setRevalidateSecret] = useState<string | null>(null)
+
+  // Pull the website's revalidate_secret once so the Claude handoff can
+  // bake it into the generated setup markdown alongside the API key.
+  useEffect(() => {
+    let cancelled = false
+    fetch(`/api/website-settings?website=${encodeURIComponent(domain)}`)
+      .then(r => r.ok ? r.json() : null)
+      .then(d => { if (!cancelled) setRevalidateSecret(d?.revalidate_secret ?? null) })
+      .catch(() => {})
+    return () => { cancelled = true }
+  }, [domain])
 
   const fetchKeys = useCallback(async () => {
     setLoading(true)
@@ -272,6 +286,22 @@ export default function SiteApiKeysCard({ domain }: Props) {
                       >
                         <ClipboardDocumentListIcon className="w-3 h-3" />
                         {copied === k.id ? 'Copied' : 'Copy'}
+                      </button>
+                    )}
+                    {showFull && k.full_key && (
+                      <button
+                        type="button"
+                        onClick={() => copy(
+                          fullSetupMarkdown({ domain, apiKey: k.full_key!, permissions: k.permissions, revalidateSecret }),
+                          `${k.id}-claude`,
+                          'Setup pasted. Drop it into Claude Code and it will integrate the customer site.',
+                        )}
+                        className="inline-flex items-center gap-1 text-[11px] font-medium transition-colors hover:text-[var(--primary)]"
+                        style={{ color: '#64748b' }}
+                        title="Generates a setup bundle (Webcore client + API key + revalidate secret) for the designer to paste into Claude Code"
+                      >
+                        <BoltIcon className="w-3 h-3" />
+                        {copied === `${k.id}-claude` ? 'Copied for Claude' : 'Copy for Claude'}
                       </button>
                     )}
                     {!showFull && (

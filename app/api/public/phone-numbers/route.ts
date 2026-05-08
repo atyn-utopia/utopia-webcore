@@ -91,16 +91,26 @@ export async function POST(request: Request) {
     .maybeSingle()
   if (existing) return json({ error: `phone_number "${phone_number}" already exists for this website` }, 409)
 
+  // First phone for the website becomes the default. Otherwise it's a custom
+  // row. This guarantees every site always has exactly one resolver fallback.
+  const { count: defaultCount } = await service
+    .from('phone_numbers')
+    .select('*', { count: 'exact', head: true })
+    .eq('website', website)
+    .eq('type', 'default')
+
+  const isFirstDefault = (defaultCount ?? 0) === 0
+
   const { data, error } = await service
     .from('phone_numbers')
     .insert({
       website,
       location_slug: location_slug || 'all',
       phone_number,
-      type: 'custom',
+      type: isFirstDefault ? 'default' : 'custom',
       whatsapp_text,
       percentage: typeof percentage === 'number' ? percentage : 0,
-      label: label ?? null,
+      label: isFirstDefault ? 'default' : (label ?? null),
       is_active: true,
     })
     .select()

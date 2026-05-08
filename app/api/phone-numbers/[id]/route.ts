@@ -82,6 +82,17 @@ export async function DELETE(_request: Request, { params }: { params: Promise<{ 
   const denied = await assertWriteAccess(user.id, before.website, [...PHONE_WRITE_ROLES])
   if (denied) return denied
 
+  // The default row is the resolver's last-resort fallback. Allowing it to
+  // be deleted leaves the website with no resolvable phone for unmatched
+  // locations. To replace it, create a new phone with type='default' first
+  // (POST auto-demotes the old default to 'custom').
+  if (before.type === 'default') {
+    return NextResponse.json(
+      { error: 'The default phone number cannot be deleted. Create a new default first — it will replace this one — or change this row to a custom type before deleting.' },
+      { status: 409 },
+    )
+  }
+
   const { error } = await service.from('phone_numbers').delete().eq('id', id)
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })

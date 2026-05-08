@@ -1100,7 +1100,7 @@ function Step3Card({ domain }: { domain: string }) {
         applicable: data.productsCount > 0,
         label: 'Product / blog revalidation wired',
         detail: data.revalidate.configured
-          ? `Webhook posts to ${data.revalidate.url}. Edits in webcore appear on the live site within seconds.`
+          ? `Webhook posts to ${data.revalidate.url}. Edits in Webcore appear on the live site within seconds.`
           : `No revalidate URL configured. With ${data.productsCount} products on this site, edits won't reach the live page until the host rebuilds. Add a webhook in Settings → Revalidation.`,
       },
       // GSC connection lives in Step 1 already — don't duplicate it here.
@@ -1906,7 +1906,7 @@ function HeadingDetail({ audit, domain, language }: { audit: AuditResult | null;
         <ul className="text-xs space-y-1 mt-1" style={{ color: '#475569' }}>
           {tips.map((t, i) => <li key={i}>· {t}</li>)}
         </ul>
-        <p className="text-[10px] mt-2" style={{ color: '#94a3b8' }}>Headings live in the designer site&apos;s code. Unlike alt text, webcore can&apos;t safely rewrite them at runtime. Use the <strong>Suggest</strong> button per heading to generate stronger phrasings, then paste them into the designer code.</p>
+        <p className="text-[10px] mt-2" style={{ color: '#94a3b8' }}>Headings live in the designer site&apos;s code. Unlike alt text, Webcore can&apos;t safely rewrite them at runtime. Use the <strong>Suggest</strong> button per heading to generate stronger phrasings, then paste them into the designer code.</p>
       </div>
     </div>
   )

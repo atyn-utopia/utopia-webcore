@@ -460,7 +460,7 @@ function EmptyState({ onCreate }: { onCreate: () => void }) {
         </svg>
       </div>
       <h3 className="text-sm font-semibold mb-1" style={{ color: 'var(--foreground)' }}>No API keys yet</h3>
-      <p className="text-xs mb-4" style={{ color: '#94a3b8' }}>Generate a key to let an external website fetch data from webcore.</p>
+      <p className="text-xs mb-4" style={{ color: '#94a3b8' }}>Generate a key to let an external website fetch data from Webcore.</p>
       <button onClick={onCreate}
         className="inline-flex items-center gap-2 text-white text-xs font-medium px-4 py-2 rounded-full transition-opacity hover:opacity-90"
         style={{ background: 'var(--primary)' }}>

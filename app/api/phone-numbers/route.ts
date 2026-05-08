@@ -57,16 +57,54 @@ export async function POST(request: Request) {
   if (denied) return denied
 
   const service = createServiceClient()
+
+  // Reject types other than the two webcore actually supports. Without this
+  // check designers can paste DDL/SQL that lands rows with type='main' (or
+  // similar) which silently bypass the resolver and the default-row guard.
+  const allowedTypes = new Set(['default', 'custom'])
+  let resolvedType: 'default' | 'custom'
+  if (type && !allowedTypes.has(type)) {
+    return NextResponse.json({ error: `type must be 'default' or 'custom' (got '${type}')` }, { status: 400 })
+  }
+
+  // Auto-promote the first phone for a website to 'default' so every site
+  // always has exactly one resolver fallback. Subsequent inserts default to
+  // 'custom'; the caller can still pass type='default' explicitly to take
+  // over the default slot (the existing default is then demoted below).
+  const { count: defaultCount } = await service
+    .from('phone_numbers')
+    .select('*', { count: 'exact', head: true })
+    .eq('website', website)
+    .eq('type', 'default')
+
+  if (type === 'default') {
+    resolvedType = 'default'
+  } else if ((defaultCount ?? 0) === 0) {
+    resolvedType = 'default'
+  } else {
+    resolvedType = (type as 'custom') ?? 'custom'
+  }
+
+  // If we're claiming 'default' and one already exists, demote the previous
+  // default to 'custom' so the website still has exactly one default row.
+  if (resolvedType === 'default' && (defaultCount ?? 0) > 0) {
+    await service
+      .from('phone_numbers')
+      .update({ type: 'custom' })
+      .eq('website', website)
+      .eq('type', 'default')
+  }
+
   const { data, error } = await service
     .from('phone_numbers')
     .insert({
       website,
       location_slug,
       phone_number,
-      type: type || 'custom',
+      type: resolvedType,
       whatsapp_text,
       percentage: percentage ?? 100,
-      label: type === 'default' ? 'default' : (label || null),
+      label: resolvedType === 'default' ? 'default' : (label || null),
       is_active: true,
     })
     .select()
