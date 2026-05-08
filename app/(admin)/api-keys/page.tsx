@@ -367,12 +367,27 @@ function ClaudeHandoff({ domain, apiKey, permissions, copiedToken, onCopy }: {
   const token = `setup-${domain}`
   const copied = copiedToken === token
   const [revalidateSecret, setRevalidateSecret] = useState<string | null>(null)
+  const [preferredDomain, setPreferredDomain] = useState<string>(domain)
 
   useEffect(() => {
     let cancelled = false
     fetch(`/api/website-settings?website=${encodeURIComponent(domain)}`)
       .then(r => r.ok ? r.json() : null)
       .then(d => { if (!cancelled) setRevalidateSecret(d?.revalidate_secret ?? null) })
+      .catch(() => {})
+    return () => { cancelled = true }
+  }, [domain])
+
+  // Prefer the team-zone alias when one's attached on Vercel — keeps the
+  // customer site's queries pinned to a single webcore row.
+  useEffect(() => {
+    let cancelled = false
+    setPreferredDomain(domain)
+    fetch(`/api/company-websites/preferred-domain?domain=${encodeURIComponent(domain)}`)
+      .then(r => r.ok ? r.json() : null)
+      .then((d: { preferred?: string } | null) => {
+        if (!cancelled && d?.preferred) setPreferredDomain(d.preferred)
+      })
       .catch(() => {})
     return () => { cancelled = true }
   }, [domain])
@@ -384,11 +399,16 @@ function ClaudeHandoff({ domain, apiKey, permissions, copiedToken, onCopy }: {
           <BoltIcon className="w-4 h-4 flex-shrink-0" />
           <div className="min-w-0">
             <div className="text-xs font-semibold" style={{ color: 'var(--foreground)' }}>Claude Code handoff</div>
-            <div className="text-[11px]" style={{ color: '#64748b' }}>Paste into any Claude. It creates all files and does the integration.</div>
+            <div className="text-[11px]" style={{ color: '#64748b' }}>
+              Paste into any Claude. It creates all files and does the integration.
+              {preferredDomain !== domain && (
+                <> Pinned to <code className="font-mono">{preferredDomain}</code> (team alias).</>
+              )}
+            </div>
           </div>
         </div>
         <button type="button"
-          onClick={() => onCopy(fullSetupMarkdown({ domain, apiKey, permissions, revalidateSecret }), token, 'Paste into Claude. It will do the rest')}
+          onClick={() => onCopy(fullSetupMarkdown({ domain: preferredDomain, apiKey, permissions, revalidateSecret }), token, 'Paste into Claude. It will do the rest')}
           className="inline-flex items-center gap-1.5 text-[11px] font-medium px-3 py-1.5 rounded-full transition-all flex-shrink-0"
           style={{
             background: copied ? '#dcfce7' : 'white',

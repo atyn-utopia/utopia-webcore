@@ -28,15 +28,13 @@ const DEFAULT_POS: Pos = { anchor: 'bottom', right: 20, y: 26 }
 // shrank to h-20 on mobile.
 const DASHBOARD_POS: Pos = { anchor: 'top', right: 30, y: 160 }
 
-// Pages where DASHBOARD_POS makes sense: the global home and any per-company
-// dashboard. Scoped users (manager / indoor_sales) typically click straight
-// into `/company/[id]` and treat it as their home, so Coxy should sit near
-// the hero there too instead of dropping to bottom-right.
+// DASHBOARD_POS only applies on the global home (/). The per-company
+// folder page used to count too, but it has its own header strip + grid
+// of website cards — Coxy hovering in the upper-right got in the way of
+// the company-name strip and the right-side analytics chips.
 function isDashboardPath(pathname: string | null): boolean {
   if (!pathname) return false
-  if (pathname === '/') return true
-  if (pathname.startsWith('/company/')) return true
-  return false
+  return pathname === '/'
 }
 
 export default function CoxyWidget() {

@@ -72,6 +72,11 @@ export default function SiteApiKeysCard({ domain }: Props) {
   const [revealed, setRevealed] = useState<Record<string, boolean>>({})
   const [copied, setCopied] = useState<string | null>(null)
   const [revalidateSecret, setRevalidateSecret] = useState<string | null>(null)
+  // Domain to bake into the setup bundle. When the recorded webcore domain
+  // is a *.vercel.app and the Vercel project also has a team-zone alias
+  // (e.g. *.utopiaai.my), prefer that alias — saves the operator from
+  // adding a duplicate webcore row per host the customer site responds on.
+  const [preferredDomain, setPreferredDomain] = useState<string>(domain)
 
   // Pull the website's revalidate_secret once so the Claude handoff can
   // bake it into the generated setup markdown alongside the API key.
@@ -80,6 +85,18 @@ export default function SiteApiKeysCard({ domain }: Props) {
     fetch(`/api/website-settings?website=${encodeURIComponent(domain)}`)
       .then(r => r.ok ? r.json() : null)
       .then(d => { if (!cancelled) setRevalidateSecret(d?.revalidate_secret ?? null) })
+      .catch(() => {})
+    return () => { cancelled = true }
+  }, [domain])
+
+  useEffect(() => {
+    let cancelled = false
+    setPreferredDomain(domain)
+    fetch(`/api/company-websites/preferred-domain?domain=${encodeURIComponent(domain)}`)
+      .then(r => r.ok ? r.json() : null)
+      .then((d: { preferred?: string } | null) => {
+        if (!cancelled && d?.preferred) setPreferredDomain(d.preferred)
+      })
       .catch(() => {})
     return () => { cancelled = true }
   }, [domain])
@@ -344,13 +361,16 @@ export default function SiteApiKeysCard({ domain }: Props) {
                 <p className="text-sm font-semibold" style={{ color: 'var(--foreground)' }}>Paste to Claude</p>
                 <p className="text-[11px] mt-0.5" style={{ color: '#64748b' }}>
                   Hands the full setup bundle (<code className="font-mono">lib/webcore.ts</code>, API key, revalidate secret) to Claude Code so the designer doesn&apos;t copy-paste fields one by one. Uses key <span className="font-semibold" style={{ color: '#475569' }}>{handoffKey.name}</span>.
+                  {preferredDomain !== domain && (
+                    <> Bundle pinned to <code className="font-mono">{preferredDomain}</code> (team alias) instead of <code className="font-mono">{domain}</code> so the customer site lines up with one webcore row.</>
+                  )}
                 </p>
               </div>
             </div>
             <button
               type="button"
               onClick={() => copy(
-                fullSetupMarkdown({ domain, apiKey: handoffKey.full_key!, permissions: handoffKey.permissions, revalidateSecret }),
+                fullSetupMarkdown({ domain: preferredDomain, apiKey: handoffKey.full_key!, permissions: handoffKey.permissions, revalidateSecret }),
                 claudeToken,
                 'Setup copied. Paste it into Claude Code.',
               )}

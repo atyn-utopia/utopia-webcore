@@ -161,6 +161,20 @@ export async function findProjectNameByDomain(domain: string): Promise<string | 
 }
 
 /**
+ * List every domain alias attached to a Vercel project. Includes the
+ * default *.vercel.app, any team-zone aliases (e.g. *.utopiaai.my), and
+ * custom domains. Used by the preferred-domain lookup so the Claude setup
+ * bundle can pin the customer site to the team domain instead of the
+ * volatile vercel.app default.
+ */
+export async function getProjectAliases(projectId: string): Promise<string[]> {
+  const res = await vercelFetch(`/v9/projects/${projectId}/domains?limit=100`)
+  if (!res.ok) return []
+  const data = (await res.json()) as { domains?: { name: string }[] }
+  return (data.domains ?? []).map(d => d.name).filter(Boolean)
+}
+
+/**
  * Trigger a redeploy of the latest production deployment so the new domain
  * gets served by a fresh build (some builds bake the canonical hostname into
  * the bundle — easier to redeploy than to audit every site).
