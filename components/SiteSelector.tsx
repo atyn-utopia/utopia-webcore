@@ -6,14 +6,7 @@ import { useRouter, useSearchParams, usePathname } from 'next/navigation'
 import { useUser } from '@/contexts/UserContext'
 import { MagnifyingGlassIcon, PlusIcon, CheckIcon, ChevronDownIcon } from '@heroicons/react/24/solid'
 
-type Site = { domain: string; leadsMode?: string | null }
-
-const LEADS_MODE_LABEL: Record<string, string> = {
-  single: 'Single',
-  rotation: 'Rotation',
-  location: 'Location',
-  hybrid: 'Hybrid',
-}
+type Site = { domain: string }
 
 function friendlyName(domain: string) {
   return domain.replace(/^www\./, '').split('.')[0]
@@ -55,10 +48,7 @@ export default function SiteSelector() {
           const domain = typeof item === 'string' ? item : (item as { domain?: string })?.domain
           if (!domain || seen.has(domain)) continue
           seen.add(domain)
-          out.push({
-            domain,
-            leadsMode: typeof item === 'object' ? (item as { leads_mode?: string | null })?.leads_mode ?? null : null,
-          })
+          out.push({ domain })
         }
         out.sort((a, b) => a.domain.localeCompare(b.domain))
         setSites(out)
@@ -157,7 +147,6 @@ export default function SiteSelector() {
             ) : (
               filtered.map(s => {
                 const active = s.domain === websiteParam
-                const lm = s.leadsMode && LEADS_MODE_LABEL[s.leadsMode] ? LEADS_MODE_LABEL[s.leadsMode] : null
                 return (
                   <button
                     key={s.domain}
@@ -186,14 +175,13 @@ export default function SiteSelector() {
                         {s.domain}
                       </p>
                     </div>
-                    {lm && (
-                      <span
-                        className="text-[10px] font-semibold px-2 py-0.5 rounded-full flex-shrink-0"
-                        style={{ background: '#eff6ff', color: '#1646D9' }}
-                      >
-                        {lm}
-                      </span>
-                    )}
+                    <span
+                      className="inline-flex items-center gap-1 text-[9px] font-medium px-1.5 py-0.5 rounded-full flex-shrink-0"
+                      style={{ background: '#dcfce7', color: '#15803d' }}
+                    >
+                      <span className="w-1 h-1 rounded-full" style={{ background: '#15803d' }} />
+                      Active
+                    </span>
                     {active && (
                       <CheckIcon className="w-4 h-4 flex-shrink-0" style={{ color: 'var(--primary)' }} />
                     )}
@@ -207,7 +195,7 @@ export default function SiteSelector() {
           <Link
             href="/"
             onClick={() => setOpen(false)}
-            className="block w-full py-3 text-center text-sm font-semibold transition-colors hover:bg-slate-50"
+            className="block w-full py-3 text-center text-sm font-medium transition-colors hover:bg-slate-50"
             style={{ color: 'var(--primary)', borderTop: '1px solid #f1f5f9' }}
           >
             Go to All Sites
