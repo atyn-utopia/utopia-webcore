@@ -108,7 +108,7 @@ export default function SiteSelector() {
 
       {open && (
         <div
-          className="absolute top-11 left-0 w-[26rem] rounded-xl shadow-2xl z-50 overflow-hidden"
+          className="absolute top-11 left-0 w-[min(26rem,calc(100vw-1.5rem))] rounded-xl shadow-2xl z-50 overflow-hidden"
           style={{ background: 'white', border: '1px solid #e2e8f0' }}
         >
           {/* Header: search pill + (admin) Add Website link */}

@@ -171,13 +171,14 @@ export default function TopBar() {
         )}
       </div>
 
-      {/* Back */}
-      <button onClick={() => router.back()} className="w-9 h-9 flex items-center justify-center rounded-full transition-colors" style={{ color: 'var(--header-text)' }} onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = 'var(--header-hover)'} onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'} title="Go back">
+      {/* Back / Forward — hidden on mobile (browser swipe-back covers this and
+          the header was overflowing with hamburger + logo + selector + 4 icons
+          + avatar at iPhone widths). */}
+      <button onClick={() => router.back()} className="hidden sm:flex w-9 h-9 items-center justify-center rounded-full transition-colors" style={{ color: 'var(--header-text)' }} onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = 'var(--header-hover)'} onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'} title="Go back">
         <ChevronLeftIcon className="w-4 h-4" />
       </button>
 
-      {/* Forward */}
-      <button onClick={() => router.forward()} className="w-9 h-9 flex items-center justify-center rounded-full transition-colors" style={{ color: 'var(--header-text)' }} onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = 'var(--header-hover)'} onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'} title="Go forward">
+      <button onClick={() => router.forward()} className="hidden sm:flex w-9 h-9 items-center justify-center rounded-full transition-colors" style={{ color: 'var(--header-text)' }} onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = 'var(--header-hover)'} onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'} title="Go forward">
         <ChevronRightIcon className="w-4 h-4" />
       </button>
 

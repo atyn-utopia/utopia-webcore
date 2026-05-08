@@ -1858,7 +1858,7 @@ function HeadingDetail({ audit, domain, language }: { audit: AuditResult | null;
         <p className="text-xs mt-1" style={{ color: '#475569' }}>Headings tell Google and screen readers how the page is organised. A single <code className="font-mono text-[11px]">h1</code> describes the page; <code className="font-mono text-[11px]">h2</code>/<code className="font-mono text-[11px]">h3</code> mark sub-sections. Skipping levels or dumping everything into one heading hurts both SEO and accessibility.</p>
       </div>
 
-      <div className="grid grid-cols-6 gap-1.5">
+      <div className="grid grid-cols-3 sm:grid-cols-6 gap-1.5">
         {(['h1', 'h2', 'h3', 'h4', 'h5', 'h6'] as const).map(l => (
           <div key={l} className="rounded-md p-2 text-center" style={{ background: levels[l] > 0 ? '#eff6ff' : '#fafbfc', border: `1px solid ${levels[l] > 0 ? '#bfdbfe' : '#f1f5f9'}` }}>
             <p className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: levels[l] > 0 ? 'var(--primary)' : '#cbd5e1' }}>{l}</p>
