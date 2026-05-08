@@ -30,7 +30,7 @@ const DEFAULT_POS: Pos = { anchor: 'bottom', right: 20, y: 26 }
 // Mobile tucks into the narrow iPhone-width banner. Desktop sits further
 // inset so it lands inside the wider banner without crowding the layout.
 const MOBILE_DASHBOARD_POS: Pos = { anchor: 'top', right: 30, y: 160 }
-const DESKTOP_DASHBOARD_POS: Pos = { anchor: 'top', right: 100, y: 180 }
+const DESKTOP_DASHBOARD_POS: Pos = { anchor: 'top', right: 100, y: 130 }
 function getDashboardPos(): Pos {
   if (typeof window === 'undefined') return MOBILE_DASHBOARD_POS
   return window.innerWidth >= 640 ? DESKTOP_DASHBOARD_POS : MOBILE_DASHBOARD_POS
