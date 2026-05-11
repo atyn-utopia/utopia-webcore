@@ -465,7 +465,7 @@ function MarketingSection({ domain }: { domain: string }) {
         body: JSON.stringify({ domain }),
       })
       const data = await res.json() as {
-        status: 'connected' | 'needs_oauth' | 'no_account' | 'error'
+        status: 'connected' | 'needs_oauth' | 'no_account' | 'quota' | 'error'
         kind?: 'ga4' | 'gtm'
         reason?: string
         measurementId?: string
@@ -479,6 +479,8 @@ function MarketingSection({ domain }: { domain: string }) {
         await connectMarketing()
       } else if (data.status === 'no_account' && data.kind) {
         setNoAccount(data.kind)
+      } else if (data.status === 'quota') {
+        setFlash({ kind: 'error', text: data.error ?? 'Google quota exhausted — try again in an hour.' })
       } else {
         setFlash({ kind: 'error', text: data.error ?? 'Auto-connect failed' })
       }

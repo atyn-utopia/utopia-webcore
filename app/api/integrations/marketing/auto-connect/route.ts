@@ -9,7 +9,10 @@ import {
 import {
   createGa4Property,
   createGa4WebStream,
+  findGa4PropertyByDisplayName,
+  Ga4QuotaError,
   listGa4AccountSummaries,
+  listGa4DataStreams,
   updateGa4DataRetention,
   updateGa4EnhancedMeasurement,
 } from '@/lib/integrations/ga4'
@@ -104,46 +107,69 @@ export async function POST(request: Request) {
     return NextResponse.json({ status: 'error', error: (e as Error).message }, { status: 500 })
   }
 
-  // 2. GA4 account.
+  // 2+3+4+5. GA4 account + property + stream + enhanced measurement + retention.
+  //
+  // Idempotency: a previous run may have created a Property but failed
+  // partway (most often on the dataStreams write quota). On retry, reuse
+  // whatever already exists named for this domain so we don't churn through
+  // Google's per-project write tokens.
   let accountPath: string
+  let propertyPath: string
+  let streamPath: string
+  let measurementId: string
   try {
     const summaries = await listGa4AccountSummaries(accessToken)
     if (summaries.length === 0) {
       return NextResponse.json({ status: 'no_account', kind: 'ga4' })
     }
-    // Prefer an existing summary that already contains a property named for
-    // this domain — picks the account the user has been organising sites
-    // under. Otherwise fall back to the first account.
-    const match = summaries.find(s => (s.propertySummaries ?? []).some(p => p.displayName === domain))
-    accountPath = (match ?? summaries[0]).account
-  } catch (e) {
-    return NextResponse.json({ status: 'error', error: `GA4 list accounts: ${(e as Error).message}` }, { status: 500 })
-  }
 
-  // 3+4+5. Property + stream + enhanced measurement + retention.
-  let propertyPath: string
-  let streamPath: string
-  let measurementId: string
-  try {
-    const property = await createGa4Property({
-      accessToken,
-      accountPath,
-      displayName: domain,
-    })
-    propertyPath = property.name
+    const existing = await findGa4PropertyByDisplayName({ accessToken, displayName: domain })
+    if (existing) {
+      accountPath = existing.accountPath
+      propertyPath = existing.propertyPath
 
-    const stream = await createGa4WebStream({
-      accessToken,
-      propertyPath,
-      displayName: domain,
-      defaultUri: `https://${domain}`,
-    })
-    streamPath = stream.name
-    measurementId = stream.webStreamData.measurementId
+      // Reuse an existing web stream when one's there. Falls through to
+      // create-a-stream when the property exists but has no web stream
+      // (the common "first run hit quota mid-flow" scenario).
+      const streams = await listGa4DataStreams({ accessToken, propertyPath })
+      const web = streams.find(s => s.type === 'WEB_DATA_STREAM' && s.webStreamData?.measurementId)
+      if (web && web.webStreamData) {
+        streamPath = web.name
+        measurementId = web.webStreamData.measurementId
+      } else {
+        const stream = await createGa4WebStream({
+          accessToken,
+          propertyPath,
+          displayName: domain,
+          defaultUri: `https://${domain}`,
+        })
+        streamPath = stream.name
+        measurementId = stream.webStreamData.measurementId
+      }
+    } else {
+      const match = summaries.find(s => (s.propertySummaries ?? []).some(p => p.displayName === domain))
+      accountPath = (match ?? summaries[0]).account
 
-    // These two are best-effort — if Google rejects the field shape on a
-    // newer property type, we still want the connection to succeed with the
-    // measurement_id already created. Surface the error in meta for debugging.
+      const property = await createGa4Property({
+        accessToken,
+        accountPath,
+        displayName: domain,
+      })
+      propertyPath = property.name
+
+      const stream = await createGa4WebStream({
+        accessToken,
+        propertyPath,
+        displayName: domain,
+        defaultUri: `https://${domain}`,
+      })
+      streamPath = stream.name
+      measurementId = stream.webStreamData.measurementId
+    }
+
+    // These two are best-effort — if they hit quota or Google rejects the
+    // field shape on a newer property type, we still want the connection to
+    // succeed with the measurement_id already in hand.
     try {
       await updateGa4EnhancedMeasurement({ accessToken, streamPath })
     } catch (e) {
@@ -155,6 +181,13 @@ export async function POST(request: Request) {
       console.error('GA4 retention update failed (non-fatal)', e)
     }
   } catch (e) {
+    if (e instanceof Ga4QuotaError) {
+      return NextResponse.json({
+        status: 'quota',
+        kind: 'ga4',
+        error: 'Google Analytics Admin write quota for this Google Cloud project is exhausted. Wait an hour and click Verify & link again — the existing property will be reused, no duplicates created.',
+      }, { status: 429 })
+    }
     return NextResponse.json({ status: 'error', error: `GA4 setup: ${(e as Error).message}` }, { status: 500 })
   }
 

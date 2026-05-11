@@ -24,7 +24,11 @@ async function gaFetch(url: string, accessToken: string, init: RequestInit = {})
 
 async function gaOk<T>(res: Response, label: string): Promise<T> {
   if (!res.ok) {
-    throw new Error(`${label} failed: ${res.status} ${await res.text()}`)
+    const body = await res.text()
+    if (res.status === 429 || /RESOURCE_EXHAUSTED|quota/i.test(body)) {
+      throw new Ga4QuotaError(`${label}: ${body}`)
+    }
+    throw new Error(`${label} failed: ${res.status} ${body}`)
   }
   return res.json() as Promise<T>
 }
@@ -51,11 +55,64 @@ export async function listGa4AccountSummaries(accessToken: string): Promise<Ga4A
   return data.accountSummaries ?? []
 }
 
+export class Ga4QuotaError extends Error {
+  readonly code = 'quota' as const
+  constructor(detail: string) {
+    super(`GA4 Admin write quota exhausted: ${detail}`)
+    this.name = 'Ga4QuotaError'
+  }
+}
+
 export interface Ga4Property {
   name: string                    // 'properties/{propertyId}'
   displayName: string
   timeZone: string
   currencyCode: string
+}
+
+/**
+ * Find a property by displayName across all of the user's accounts. Used by
+ * auto-connect to skip re-creating a property on retry (each create costs
+ * GA Admin write tokens — see Ga4QuotaError below).
+ */
+export async function findGa4PropertyByDisplayName({
+  accessToken,
+  displayName,
+}: {
+  accessToken: string
+  displayName: string
+}): Promise<{ propertyPath: string; accountPath: string } | null> {
+  const summaries = await listGa4AccountSummaries(accessToken)
+  for (const summary of summaries) {
+    const match = (summary.propertySummaries ?? []).find(p => p.displayName === displayName)
+    if (match) return { propertyPath: match.property, accountPath: summary.account }
+  }
+  return null
+}
+
+export interface Ga4DataStream {
+  name: string
+  type: string
+  displayName: string
+  webStreamData?: { measurementId: string; defaultUri: string }
+}
+
+/**
+ * List the data streams on an existing property. Used by auto-connect's
+ * idempotent path — if a property exists for this domain but the previous
+ * stream-create failed mid-flight, we want to reuse what's there instead of
+ * making more.
+ */
+export async function listGa4DataStreams({
+  accessToken,
+  propertyPath,
+}: {
+  accessToken: string
+  propertyPath: string
+}): Promise<Ga4DataStream[]> {
+  const res = await gaFetch(`${ADMIN_V1}/${propertyPath}/dataStreams?pageSize=200`, accessToken)
+  const data = await gaOk<{ dataStreams?: Ga4DataStream[] }>(res, 'GA4 listDataStreams')
+  return data.dataStreams ?? []
 }
 
 /**
