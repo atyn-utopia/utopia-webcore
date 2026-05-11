@@ -152,7 +152,7 @@ export default function RenameDomainCard({ domain }: Props) {
       })
       const data = (await res.json().catch(() => ({}))) as {
         error?: string
-        vercel?: { enabled: boolean; projectId: string | null; addedNewDomain: boolean; removedOldDomain: boolean; redeployedDeploymentId: string | null; warnings: string[] }
+        vercel?: { enabled: boolean; projectId: string | null; addedNewDomain: boolean; addedDnsRecord: boolean; removedOldDomain: boolean; redeployedDeploymentId: string | null; warnings: string[] }
         gscNeedsReconnect?: boolean
       }
       if (!res.ok) {
@@ -164,6 +164,7 @@ export default function RenameDomainCard({ domain }: Props) {
       if (v?.enabled && v.projectId) {
         const parts: string[] = []
         if (v.addedNewDomain) parts.push('Vercel domain attached')
+        if (v.addedDnsRecord) parts.push('A record added')
         if (v.removedOldDomain) parts.push('old domain detached')
         if (v.redeployedDeploymentId) parts.push('redeploy triggered')
         if (parts.length) detail += ` · ${parts.join(' · ')}`

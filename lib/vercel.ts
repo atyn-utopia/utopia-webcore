@@ -262,6 +262,37 @@ export async function findManagingApex(domain: string): Promise<string | null> {
 }
 
 /**
+ * Add a DNS A record on a Vercel-managed apex. Used by the rename flow to
+ * make sure the new subdomain actually resolves — `addDomainToProject`
+ * attaches the hostname to the project but Vercel's auto-DNS provisioning
+ * doesn't always fire (notably when a conflicting TXT record like a GSC
+ * verification token already exists at the same name; CNAME refuses to
+ * coexist, but A is fine alongside TXT).
+ *
+ * Value defaults to Vercel's legacy anycast IP `76.76.21.21`, which is what
+ * their UI suggests as the universal target. They've also rolled out
+ * per-domain CNAMEs (`<id>.vercel-dns-NNN.com`) — we don't use those here
+ * because they require a clean node (no TXT/etc).
+ */
+export async function addDnsARecord({ apex, name, value = '76.76.21.21' }: { apex: string; name: string; value?: string }): Promise<{ ok: true; recordId: string } | { ok: false; error: string }> {
+  const res = await vercelFetch(`/v2/domains/${apex}/records`, {
+    method: 'POST',
+    body: JSON.stringify({ type: 'A', name, value }),
+  })
+  if (res.ok) {
+    const data = (await res.json()) as { uid?: string }
+    return { ok: true, recordId: data.uid ?? '' }
+  }
+  const msg = await readError(res)
+  if (/already exists|duplicate|conflicting/i.test(msg)) {
+    // An A record at this name already exists — fine, that's our post-
+    // condition. Treat as success so the rename doesn't bail.
+    return { ok: true, recordId: '' }
+  }
+  return { ok: false, error: msg }
+}
+
+/**
  * Add a DNS TXT record on a Vercel-managed apex. Returns true on success,
  * false when Vercel rejects (e.g. the domain isn't actually under our
  * nameservers despite being in the inventory).

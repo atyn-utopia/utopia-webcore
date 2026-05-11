@@ -6,8 +6,10 @@ import { resolveActor, writeAuditLog } from '@/lib/auditLog'
 import {
   isVercelEnabled,
   findProjectIdByDomain,
+  findManagingApex,
   addDomainToProject,
   removeDomainFromProject,
+  addDnsARecord,
   redeployLatestProduction,
   VercelError,
 } from '@/lib/vercel'
@@ -89,10 +91,11 @@ export async function POST(request: Request) {
     enabled: boolean
     projectId: string | null
     addedNewDomain: boolean
+    addedDnsRecord: boolean
     removedOldDomain: boolean
     redeployedDeploymentId: string | null
     warnings: string[]
-  } = { enabled: isVercelEnabled(), projectId: null, addedNewDomain: false, removedOldDomain: false, redeployedDeploymentId: null, warnings: [] }
+  } = { enabled: isVercelEnabled(), projectId: null, addedNewDomain: false, addedDnsRecord: false, removedOldDomain: false, redeployedDeploymentId: null, warnings: [] }
 
   if (vercelReport.enabled) {
     try {
@@ -112,6 +115,23 @@ export async function POST(request: Request) {
           { error: `Vercel: couldn't attach ${to} to project — ${(e as Error).message}`, vercelStage: 'add-domain', vercel: vercelReport },
           { status },
         )
+      }
+
+      // Auto-create the A record on the apex so the new hostname actually
+      // resolves. addDomainToProject only attaches — Vercel's auto-DNS
+      // provisioning often fails silently when a sibling record (typically
+      // a GSC verification TXT) already lives at the same name. Adding A
+      // explicitly is safe alongside TXT.
+      try {
+        const apex = await findManagingApex(to).catch(() => null)
+        if (apex && to !== apex) {
+          const name = to.slice(0, to.length - apex.length - 1)
+          const add = await addDnsARecord({ apex, name })
+          if (add.ok) vercelReport.addedDnsRecord = true
+          else vercelReport.warnings.push(`A record: ${add.error}`)
+        }
+      } catch (e) {
+        vercelReport.warnings.push(`A record: ${(e as Error).message}`)
       }
     }
   }
