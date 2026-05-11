@@ -233,7 +233,7 @@ function SeoInner() {
           onRefresh={onRefresh}
           onAdd={prefill => setAddingRow(prefill ?? { path: '/', language, title: '', description: '', og_image: '' })}
         />
-        <Step3Card domain={domain} />
+        <Step3Card domain={domain} gscPropertyId={integrations.find(i => i.provider === 'gsc')?.property_id ?? null} />
       </div>
 
       {addingRow && (
@@ -1028,10 +1028,33 @@ type HealthCheck = {
   gscConnected: boolean
 }
 
-function Step3Card({ domain }: { domain: string }) {
+function Step3Card({ domain, gscPropertyId }: { domain: string; gscPropertyId: string | null }) {
+  const toast = useToast()
   const [data, setData] = useState<HealthCheck | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [submittingSitemap, setSubmittingSitemap] = useState(false)
+
+  async function submitSitemapToGoogle() {
+    setSubmittingSitemap(true)
+    try {
+      const res = await fetch('/api/integrations/gsc/submit-sitemap', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ domain }),
+      })
+      const json = await res.json()
+      if (!res.ok) {
+        toast.error(json.error ?? 'Submit failed', 'Sitemap submit failed')
+        return
+      }
+      toast.success(`Submitted ${json.sitemapUrl} to Google.`, 'Sitemap submitted')
+    } catch (e) {
+      toast.error((e as Error).message, 'Sitemap submit failed')
+    } finally {
+      setSubmittingSitemap(false)
+    }
+  }
 
   const runChecks = useCallback(() => {
     setLoading(true)
@@ -1178,10 +1201,32 @@ function Step3Card({ domain }: { domain: string }) {
         {/* Maintenance tips — non-automated, ongoing reminders */}
         <div className="space-y-2">
           <p className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: '#94a3b8' }}>Ongoing maintenance</p>
-          <Tip
-            title="Submit the sitemap to Search Console"
-            body={<>Paste <code className="font-mono text-[11px] px-1 py-0.5 rounded" style={{ background: '#f1f5f9' }}>{`https://${domain}/sitemap.xml`}</code> into Search Console &rsaquo; Sitemaps. Google re-fetches it on every publish, so new pages get indexed within hours instead of weeks.</>}
-          />
+          {gscPropertyId ? (
+            <div className="flex items-start gap-2.5 px-3 py-2.5 rounded-md" style={{ background: '#fafbfc', border: '1px solid #f1f5f9' }}>
+              <span className="w-5 h-5 rounded-full flex-shrink-0 flex items-center justify-center mt-0.5" style={{ background: '#dbeafe', color: 'var(--primary)' }}>
+                <BoltIcon className="w-3 h-3" />
+              </span>
+              <div className="min-w-0 flex-1">
+                <p className="text-xs font-semibold" style={{ color: 'var(--foreground)' }}>Submit the sitemap to Search Console</p>
+                <p className="text-[11px] mt-0.5" style={{ color: '#64748b' }}>One click sends <code className="font-mono text-[11px] px-1 py-0.5 rounded" style={{ background: '#f1f5f9' }}>{`https://${domain}/sitemap.xml`}</code> to Google. Re-submit after big publish runs so Google re-fetches sooner.</p>
+              </div>
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={submitSitemapToGoogle}
+                loading={submittingSitemap}
+                disabled={!data?.sitemap.ok}
+                title={!data?.sitemap.ok ? 'Sitemap is not reachable yet — fix the sitemap check first.' : undefined}
+              >
+                {submittingSitemap ? 'Submitting…' : 'Submit to Google'}
+              </Button>
+            </div>
+          ) : (
+            <Tip
+              title="Submit the sitemap to Search Console"
+              body={<>Paste <code className="font-mono text-[11px] px-1 py-0.5 rounded" style={{ background: '#f1f5f9' }}>{`https://${domain}/sitemap.xml`}</code> into Search Console &rsaquo; Sitemaps. Google re-fetches it on every publish, so new pages get indexed within hours instead of weeks. Connect GSC in Step 1 to enable one-click submission.</>}
+            />
+          )}
           <Tip
             title="Re-run the audit weekly"
             body="Designer changes can quietly introduce broken canonicals, oversized images, and stripped alt text. A weekly Step 1+2 audit catches regressions before they hurt rankings."

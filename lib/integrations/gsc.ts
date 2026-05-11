@@ -155,6 +155,26 @@ export async function addDomainPropertyToSearchConsole({ accessToken, domain }: 
   return { siteUrl }
 }
 
+/**
+ * Submit a sitemap to Search Console for a property. PUT to
+ * /webmasters/v3/sites/{siteUrl}/sitemaps/{feedpath} where feedpath is the
+ * URL-encoded absolute sitemap URL. Google returns 200 on success and 204
+ * on "already known" — we treat both as ok. Calling this on a property the
+ * user hasn't verified yet returns 403; the auto-connect flow ensures
+ * verification + sites.add happens first, so by the time we get here the
+ * property exists.
+ */
+export async function submitSitemap({ accessToken, propertyId, sitemapUrl }: { accessToken: string; propertyId: string; sitemapUrl: string }): Promise<void> {
+  const url = `https://searchconsole.googleapis.com/webmasters/v3/sites/${encodeURIComponent(propertyId)}/sitemaps/${encodeURIComponent(sitemapUrl)}`
+  const res = await fetch(url, {
+    method: 'PUT',
+    headers: { Authorization: `Bearer ${accessToken}` },
+  })
+  if (!res.ok && res.status !== 204) {
+    throw new Error(`Sitemap submit failed: ${res.status} ${await res.text()}`)
+  }
+}
+
 export interface GscSearchAnalyticsRow { keys?: string[]; clicks: number; impressions: number; ctr: number; position: number }
 
 export async function querySearchAnalytics({ accessToken, propertyId, startDate, endDate, dimensions }: {
