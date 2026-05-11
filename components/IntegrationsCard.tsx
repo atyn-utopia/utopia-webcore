@@ -156,6 +156,9 @@ function GoogleSearchConsoleSection({ domain }: { domain: string }) {
       } else if (data.status === 'awaiting_dns' && data.txt) {
         setAwaitingDns({ ...data.txt, reason: data.reason ?? '' })
       } else if (data.status === 'needs_oauth') {
+        if (data.reason === 'scope-upgrade') {
+          setFlash({ kind: 'success', text: 'Reconnecting Google with the new permissions…' })
+        }
         await connectGsc()
       } else {
         setFlash({ kind: 'error', text: data.error ?? 'Auto-connect failed' })

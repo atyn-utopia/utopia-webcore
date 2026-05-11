@@ -88,7 +88,15 @@ export async function POST(request: Request) {
     const t = await getDomainVerificationToken({ accessToken, domain })
     txtValue = t.token
   } catch (e) {
-    return NextResponse.json({ status: 'error', error: (e as Error).message }, { status: 500 })
+    const msg = (e as Error).message
+    // Refresh tokens stored before the scope expansion only carry the old
+    // 'webmasters.readonly' scope, so this call comes back 403 with
+    // ACCESS_TOKEN_SCOPE_INSUFFICIENT. Force a re-OAuth so the user
+    // re-consents to the new scope set.
+    if (/insufficient.*scope|ACCESS_TOKEN_SCOPE_INSUFFICIENT|insufficientPermissions/i.test(msg)) {
+      return NextResponse.json({ status: 'needs_oauth', reason: 'scope-upgrade' })
+    }
+    return NextResponse.json({ status: 'error', error: msg }, { status: 500 })
   }
 
   // 3. Auto-add DNS TXT if Vercel manages the apex.
