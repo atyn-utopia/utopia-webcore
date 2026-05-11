@@ -359,6 +359,67 @@ interface MessagePart {
   text?: string
 }
 
+/**
+ * Tiny inline-markdown renderer for Coxy's responses. The chat LLM emits
+ * standard Markdown (**bold**, `code`, occasional [links](url)), so we
+ * need at least these three to stop rendering literal asterisks. Lists
+ * already look right via whitespace-pre-wrap. Skip italic + headings —
+ * they don't appear in the system prompt's expected output shape.
+ */
+function renderMarkdown(text: string): React.ReactNode[] {
+  const out: React.ReactNode[] = []
+  let i = 0
+  let key = 0
+  while (i < text.length) {
+    if (text.startsWith('**', i)) {
+      const end = text.indexOf('**', i + 2)
+      if (end !== -1) {
+        out.push(<strong key={key++} className="font-semibold">{text.slice(i + 2, end)}</strong>)
+        i = end + 2
+        continue
+      }
+    }
+    if (text[i] === '`') {
+      const end = text.indexOf('`', i + 1)
+      if (end !== -1) {
+        out.push(
+          <code key={key++} className="font-mono text-[12px] px-1 py-0.5 rounded" style={{ background: '#f1f5f9', color: '#1e293b' }}>
+            {text.slice(i + 1, end)}
+          </code>,
+        )
+        i = end + 1
+        continue
+      }
+    }
+    // [label](url) link
+    if (text[i] === '[') {
+      const close = text.indexOf('](', i + 1)
+      if (close !== -1) {
+        const urlEnd = text.indexOf(')', close + 2)
+        if (urlEnd !== -1) {
+          const label = text.slice(i + 1, close)
+          const url = text.slice(close + 2, urlEnd)
+          out.push(
+            <a key={key++} href={url} target="_blank" rel="noopener noreferrer" className="underline" style={{ color: 'var(--primary)' }}>
+              {label}
+            </a>,
+          )
+          i = urlEnd + 1
+          continue
+        }
+      }
+    }
+    // Plain text up to the next special-token marker
+    const next = [text.indexOf('**', i), text.indexOf('`', i), text.indexOf('[', i)]
+      .filter(n => n !== -1)
+      .reduce((acc, n) => acc === -1 ? n : Math.min(acc, n), -1)
+    const chunk = next === -1 ? text.slice(i) : text.slice(i, next)
+    out.push(<span key={key++}>{chunk}</span>)
+    i = next === -1 ? text.length : next
+  }
+  return out
+}
+
 function MessageBubble({ role, parts }: { role: 'user' | 'assistant' | 'system'; parts: MessagePart[] }) {
   const text = parts.filter(p => p.type === 'text').map(p => p.text).join('')
   if (role === 'user') {
@@ -379,7 +440,7 @@ function MessageBubble({ role, parts }: { role: 'user' | 'assistant' | 'system';
       </div>
       <div className="max-w-[85%] px-3 py-2 rounded-2xl rounded-tl-sm text-sm whitespace-pre-wrap"
         style={{ background: 'white', border: '1px solid #e2e8f0', color: 'var(--foreground)' }}>
-        {text || <span style={{ color: '#cbd5e1' }}>…</span>}
+        {text ? renderMarkdown(text) : <span style={{ color: '#cbd5e1' }}>…</span>}
       </div>
     </div>
   )
