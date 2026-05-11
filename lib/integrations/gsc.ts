@@ -111,7 +111,7 @@ export async function getDomainVerificationToken({ accessToken, domain }: { acce
     method: 'POST',
     headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      verificationMethod: 'DNS_TXT_RECORD',
+      verificationMethod: 'DNS_TXT',
       site: { type: 'INET_DOMAIN', identifier: domain },
     }),
   })
@@ -125,7 +125,7 @@ export async function getDomainVerificationToken({ accessToken, domain }: { acce
  * (with the API's error message) when it isn't.
  */
 export async function verifyDomain({ accessToken, domain }: { accessToken: string; domain: string }) {
-  const url = 'https://www.googleapis.com/siteVerification/v1/webResource?verificationMethod=DNS_TXT_RECORD'
+  const url = 'https://www.googleapis.com/siteVerification/v1/webResource?verificationMethod=DNS_TXT'
   const res = await fetch(url, {
     method: 'POST',
     headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
