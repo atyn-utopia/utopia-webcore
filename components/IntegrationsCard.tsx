@@ -67,6 +67,7 @@ function GoogleSearchConsoleSection({ domain }: { domain: string }) {
   const [selected, setSelected] = useState<string>('')
   const [saving, setSaving] = useState(false)
   const [showVerifyHelp, setShowVerifyHelp] = useState(false)
+  const [awaitingDns, setAwaitingDns] = useState<{ name: string; value: string; reason: string } | null>(null)
 
   function load() {
     setLoading(true)
@@ -133,11 +134,49 @@ function GoogleSearchConsoleSection({ domain }: { domain: string }) {
     if (!properties && !propsLoading) loadProperties()
   }
 
+  async function autoConnect() {
+    setBusy(true)
+    try {
+      const res = await fetch('/api/integrations/gsc/auto-connect', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ domain }),
+      })
+      const data = await res.json() as {
+        status: 'connected' | 'awaiting_dns' | 'needs_oauth' | 'error'
+        propertyId?: string
+        txt?: { name: string; value: string }
+        reason?: string
+        error?: string
+      }
+      if (data.status === 'connected') {
+        setAwaitingDns(null)
+        setFlash({ kind: 'success', text: data.propertyId ? `Connected to ${data.propertyId}` : 'Connected' })
+        load()
+      } else if (data.status === 'awaiting_dns' && data.txt) {
+        setAwaitingDns({ ...data.txt, reason: data.reason ?? '' })
+      } else if (data.status === 'needs_oauth') {
+        await connectGsc()
+      } else {
+        setFlash({ kind: 'error', text: data.error ?? 'Auto-connect failed' })
+      }
+    } finally {
+      setBusy(false)
+    }
+  }
+
   useEffect(() => {
     const connected = searchParams.get('integration_connected')
     const err = searchParams.get('integration_error')
-    if (connected) setFlash({ kind: 'success', text: `Connected ${connected.toUpperCase()}` })
-    else if (err) setFlash({ kind: 'error', text: `Connection failed: ${err}` })
+    if (connected) {
+      setFlash({ kind: 'success', text: `Connected ${connected.toUpperCase()} — verifying domain…` })
+      // Auto-trigger the verify+sites.add step so OAuth → fully-linked is
+      // truly one click for the user.
+      autoConnect()
+    } else if (err) {
+      setFlash({ kind: 'error', text: `Connection failed: ${err}` })
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams])
 
   const gsc = rows.find(r => r.provider === 'gsc')
@@ -216,8 +255,52 @@ function GoogleSearchConsoleSection({ domain }: { domain: string }) {
               {busy ? 'Starting…' : 'Connect Search Console'}
             </button>
           )}
+          {gsc && !gsc.property_id && (
+            <button type="button" onClick={autoConnect} disabled={busy}
+              className="text-[11px] font-medium px-3 py-1.5 rounded-full text-white disabled:opacity-50 transition-opacity hover:opacity-90"
+              style={{ background: 'var(--primary)' }}>
+              {busy ? 'Verifying…' : 'Verify & link'}
+            </button>
+          )}
         </div>
       </div>
+
+      {awaitingDns && (
+        <div className="px-5 py-4 text-xs space-y-3" style={{ background: '#fffbeb', borderTop: '1px solid #fde68a', color: '#92400e' }}>
+          <p className="font-semibold" style={{ color: '#92400e' }}>
+            DNS isn&apos;t managed by Vercel for this domain — add this TXT record to verify ownership.
+          </p>
+          <div className="grid grid-cols-[80px_1fr] gap-2 items-center">
+            <span className="text-[10px] uppercase tracking-wider" style={{ color: '#92400e', opacity: 0.7 }}>Type</span>
+            <code className="font-mono text-[11px]">TXT</code>
+            <span className="text-[10px] uppercase tracking-wider" style={{ color: '#92400e', opacity: 0.7 }}>Name / Host</span>
+            <code className="font-mono text-[11px] break-all">{awaitingDns.name}</code>
+            <span className="text-[10px] uppercase tracking-wider" style={{ color: '#92400e', opacity: 0.7 }}>Value</span>
+            <code className="font-mono text-[11px] break-all px-2 py-1.5 rounded" style={{ background: 'white', border: '1px solid #fde68a' }}>{awaitingDns.value}</code>
+          </div>
+          <div className="flex items-center gap-2 flex-wrap">
+            <button type="button"
+              onClick={() => { navigator.clipboard.writeText(awaitingDns.value); setFlash({ kind: 'success', text: 'TXT value copied' }) }}
+              className="text-[11px] font-medium px-3 py-1.5 rounded-full transition-colors"
+              style={{ background: 'white', border: '1px solid #fde68a', color: '#92400e' }}>
+              Copy value
+            </button>
+            <button type="button" onClick={autoConnect} disabled={busy}
+              className="text-[11px] font-medium px-3 py-1.5 rounded-full text-white transition-opacity disabled:opacity-50 hover:opacity-90"
+              style={{ background: 'var(--primary)' }}>
+              {busy ? 'Verifying…' : 'I added the TXT — retry'}
+            </button>
+            <button type="button" onClick={() => setAwaitingDns(null)}
+              className="text-[11px] font-medium px-3 py-1.5 rounded-full transition-colors"
+              style={{ color: '#92400e', opacity: 0.7 }}>
+              Dismiss
+            </button>
+          </div>
+          <p className="text-[10px]" style={{ color: '#92400e', opacity: 0.7 }}>
+            DNS propagation can take a few minutes. Retry as many times as you like — once Google sees the record, this section closes and the domain property gets attached to Search Console.
+          </p>
+        </div>
+      )}
 
       {showVerifyHelp && (
         <div className="px-5 py-4 text-xs space-y-4" style={{ background: '#fafbfc', borderTop: '1px solid #e2e8f0', color: '#475569' }}>

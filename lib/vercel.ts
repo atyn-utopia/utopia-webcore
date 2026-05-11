@@ -227,6 +227,44 @@ export async function getProjectAliases(projectId: string): Promise<string[]> {
 }
 
 /**
+ * Find the apex domain in the team's owned-domain list that contains the
+ * given hostname. e.g. for 'foo.utopiaai.my' returns 'utopiaai.my'. Used
+ * to know whether the team can add DNS records via Vercel for this host.
+ * Returns null when no owned apex matches — caller should treat that as
+ * 'DNS is external'.
+ */
+export async function findManagingApex(domain: string): Promise<string | null> {
+  const team = await listTeamDomains()
+  if (team.length === 0) return null
+  // Longest suffix match — 'foo.utopiaai.my' matches 'utopiaai.my' but not 'my'.
+  let best: string | null = null
+  for (const apex of team) {
+    if (domain === apex || domain.endsWith('.' + apex)) {
+      if (!best || apex.length > best.length) best = apex
+    }
+  }
+  return best
+}
+
+/**
+ * Add a DNS TXT record on a Vercel-managed apex. Returns true on success,
+ * false when Vercel rejects (e.g. the domain isn't actually under our
+ * nameservers despite being in the inventory).
+ */
+export async function addDnsTxtRecord({ apex, name, value }: { apex: string; name: string; value: string }): Promise<{ ok: true; recordId: string } | { ok: false; error: string }> {
+  const res = await vercelFetch(`/v2/domains/${apex}/records`, {
+    method: 'POST',
+    body: JSON.stringify({ type: 'TXT', name, value }),
+  })
+  if (res.ok) {
+    const data = (await res.json()) as { uid?: string }
+    return { ok: true, recordId: data.uid ?? '' }
+  }
+  const msg = await readError(res)
+  return { ok: false, error: msg }
+}
+
+/**
  * Trigger a redeploy of the latest production deployment so the new domain
  * gets served by a fresh build (some builds bake the canonical hostname into
  * the bundle — easier to redeploy than to audit every site).
