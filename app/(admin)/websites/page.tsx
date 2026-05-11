@@ -172,19 +172,34 @@ export default function WebsitesPage() {
   // SEO brand name overrides the URL-derived title on the per-site
   // dashboard hero when set in /seo's brand profile.
   const [siteBrand, setSiteBrand] = useState<string | null>(null)
-  // mshots returns a small placeholder image when it hasn't crawled the
-  // domain yet — typical for newly-connected custom domains. Detect by
-  // naturalWidth and swap to a 'preview generating' overlay.
+  // mshots returns a thin low-info JPEG at the requested dimensions even
+  // when it hasn't actually captured the site yet. naturalWidth doesn't
+  // catch that — real screenshots and 'still pending' both come back as
+  // 600x450. File size is more reliable: real captures are typically
+  // 30 KB+, the empty-pending placeholder sits around 8-12 KB.
   const [thumbState, setThumbState] = useState<'pending' | 'ready' | 'placeholder'>('pending')
-  useEffect(() => { setThumbState('pending') }, [openWebsite])
+  useEffect(() => {
+    if (!openWebsite) { setThumbState('pending'); return }
+    setThumbState('pending')
+    const url = `https://s.wordpress.com/mshots/v1/${encodeURIComponent(`https://${openWebsite}`)}?w=600`
+    let cancelled = false
+    fetch(url, { cache: 'force-cache' })
+      .then(r => r.ok ? r.blob() : null)
+      .then(b => {
+        if (cancelled || !b) return
+        setThumbState(b.size < 20000 ? 'placeholder' : 'ready')
+      })
+      .catch(() => { if (!cancelled) setThumbState('placeholder') })
+    return () => { cancelled = true }
+  }, [openWebsite])
   useEffect(() => {
     if (!openWebsite) { setSiteBrand(null); return }
     let cancelled = false
     fetch(`/api/seo/profile?website=${encodeURIComponent(openWebsite)}`)
       .then(r => r.ok ? r.json() : null)
-      .then((d: { brand?: string | null } | null) => {
+      .then((d: { brand_name?: string | null } | null) => {
         if (cancelled) return
-        const b = (d?.brand ?? '').trim()
+        const b = (d?.brand_name ?? '').trim()
         setSiteBrand(b || null)
       })
       .catch(() => {})
@@ -567,13 +582,6 @@ export default function WebsitesPage() {
             src={thumbUrl}
             alt={openWebsite}
             loading="lazy"
-            onLoad={e => {
-              // mshots' "not crawled yet" placeholder is ~200px wide; a real
-              // screenshot at w=600 comes back at 600. Threshold at 400 to
-              // be safe against any future placeholder size changes.
-              const img = e.currentTarget
-              setThumbState(img.naturalWidth >= 400 ? 'ready' : 'placeholder')
-            }}
             onError={() => setThumbState('placeholder')}
             className={`w-full h-full object-cover object-top transition-transform hover:scale-105 ${thumbState === 'placeholder' ? 'opacity-0' : ''}`}
           />
