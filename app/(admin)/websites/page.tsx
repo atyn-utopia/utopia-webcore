@@ -172,11 +172,13 @@ export default function WebsitesPage() {
   // SEO brand name overrides the URL-derived title on the per-site
   // dashboard hero when set in /seo's brand profile.
   const [siteBrand, setSiteBrand] = useState<string | null>(null)
-  // mshots returns a thin low-info JPEG at the requested dimensions even
-  // when it hasn't actually captured the site yet. naturalWidth doesn't
-  // catch that — real screenshots and 'still pending' both come back as
-  // 600x450. File size is more reliable: real captures are typically
-  // 30 KB+, the empty-pending placeholder sits around 8-12 KB.
+  // mshots returns a JPEG at the requested dimensions even when it
+  // hasn't captured the site yet — naturalWidth alone doesn't tell us
+  // anything. Real screenshots range widely: visually-minimal real
+  // sites land around 10-11 KB while content-heavy ones are 70 KB+.
+  // mshots' 'site unreachable / no preview' fallback is around 8-9 KB.
+  // Threshold conservatively at 9500 bytes so a low-content real site
+  // doesn't get a false 'preview generating' overlay.
   const [thumbState, setThumbState] = useState<'pending' | 'ready' | 'placeholder'>('pending')
   useEffect(() => {
     if (!openWebsite) { setThumbState('pending'); return }
@@ -187,7 +189,7 @@ export default function WebsitesPage() {
       .then(r => r.ok ? r.blob() : null)
       .then(b => {
         if (cancelled || !b) return
-        setThumbState(b.size < 20000 ? 'placeholder' : 'ready')
+        setThumbState(b.size < 9500 ? 'placeholder' : 'ready')
       })
       .catch(() => { if (!cancelled) setThumbState('placeholder') })
     return () => { cancelled = true }
