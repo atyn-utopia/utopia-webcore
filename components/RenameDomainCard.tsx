@@ -152,7 +152,8 @@ export default function RenameDomainCard({ domain }: Props) {
       })
       const data = (await res.json().catch(() => ({}))) as {
         error?: string
-        vercel?: { enabled: boolean; projectId: string | null; addedNewDomain: boolean; redeployedDeploymentId: string | null; warnings: string[] }
+        vercel?: { enabled: boolean; projectId: string | null; addedNewDomain: boolean; removedOldDomain: boolean; redeployedDeploymentId: string | null; warnings: string[] }
+        gscNeedsReconnect?: boolean
       }
       if (!res.ok) {
         toast.error(data.error || `Rename failed (${res.status})`, 'Rename failed')
@@ -163,6 +164,7 @@ export default function RenameDomainCard({ domain }: Props) {
       if (v?.enabled && v.projectId) {
         const parts: string[] = []
         if (v.addedNewDomain) parts.push('Vercel domain attached')
+        if (v.removedOldDomain) parts.push('old domain detached')
         if (v.redeployedDeploymentId) parts.push('redeploy triggered')
         if (parts.length) detail += ` · ${parts.join(' · ')}`
         if (v.warnings.length) detail += ` · ${v.warnings.length} warning${v.warnings.length === 1 ? '' : 's'}`
@@ -170,6 +172,15 @@ export default function RenameDomainCard({ domain }: Props) {
         detail += ' · Vercel project not found (manual attach needed)'
       }
       toast.success(detail, 'Domain renamed')
+      // Google Search Console properties are bound to a specific hostname on
+      // Google's side and can't be renamed via API — the user must add a
+      // fresh property for the new domain.
+      if (data.gscNeedsReconnect) {
+        toast.info(
+          'Open the Integrations tab and click Connect Google Search Console again for the new hostname.',
+          'Re-link Search Console'
+        )
+      }
       router.replace(`/site-settings?website=${encodeURIComponent(candidate)}`)
       router.refresh()
     } catch (e) {

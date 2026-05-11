@@ -116,6 +116,21 @@ export async function addDomainToProject(projectId: string, domain: string) {
 }
 
 /**
+ * Detach a domain from a Vercel project. Used by the rename flow so the
+ * old hostname stops resolving to this project once the new one is live.
+ * 404 (already detached / never attached) is treated as success — the
+ * post-condition is "domain is not attached", which is already true.
+ */
+export async function removeDomainFromProject(projectId: string, domain: string) {
+  const res = await vercelFetch(`/v9/projects/${projectId}/domains/${encodeURIComponent(domain)}`, {
+    method: 'DELETE',
+  })
+  if (res.ok) return { removed: true }
+  if (res.status === 404) return { removed: false, alreadyDetached: true }
+  throw new VercelError(await readError(res), res.status)
+}
+
+/**
  * Return the apex domains owned by the team (utopiaai.my, stickerlori.com.my,
  * etc). Used by the rename UI to populate the zone dropdown so the user can
  * pick a subdomain instead of typing a full hostname.

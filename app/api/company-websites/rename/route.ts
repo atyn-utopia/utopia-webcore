@@ -7,6 +7,7 @@ import {
   isVercelEnabled,
   findProjectIdByDomain,
   addDomainToProject,
+  removeDomainFromProject,
   redeployLatestProduction,
   VercelError,
 } from '@/lib/vercel'
@@ -88,9 +89,10 @@ export async function POST(request: Request) {
     enabled: boolean
     projectId: string | null
     addedNewDomain: boolean
+    removedOldDomain: boolean
     redeployedDeploymentId: string | null
     warnings: string[]
-  } = { enabled: isVercelEnabled(), projectId: null, addedNewDomain: false, redeployedDeploymentId: null, warnings: [] }
+  } = { enabled: isVercelEnabled(), projectId: null, addedNewDomain: false, removedOldDomain: false, redeployedDeploymentId: null, warnings: [] }
 
   if (vercelReport.enabled) {
     try {
@@ -155,6 +157,41 @@ export async function POST(request: Request) {
     } catch (e) {
       vercelReport.warnings.push(`Redeploy: ${(e as Error).message}`)
     }
+
+    // ─── Vercel: detach the old hostname so it stops serving this project.
+    // Done last because the redeploy above doesn't need it gone — but leaving
+    // it attached after a rename means the old URL keeps loading the site,
+    // which silently breaks GSC properties and confuses customers about
+    // which hostname is canonical.
+    try {
+      const removed = await removeDomainFromProject(vercelReport.projectId, from)
+      vercelReport.removedOldDomain = removed.removed
+    } catch (e) {
+      vercelReport.warnings.push(`Detach old domain: ${(e as Error).message}`)
+    }
+  }
+
+  // ─── GSC integration: the row's `website` column was already moved by the
+  // cascade above, but its property_id (e.g. `sc-domain:OLD`) is bound to
+  // the OLD hostname on Google's side. Google won't let us mutate the
+  // property URL; the user has to add + verify a new property for the new
+  // hostname. We null property_id here so the Integrations UI surfaces
+  // "needs reconnect" instead of pretending the link is still good.
+  let gscNeedsReconnect = false
+  {
+    const { data: gscRows } = await service
+      .from('website_integrations')
+      .select('id, property_id')
+      .eq('website', to)
+      .eq('provider', 'gsc')
+    if (gscRows && gscRows.length > 0 && gscRows.some(r => r.property_id)) {
+      gscNeedsReconnect = true
+      await service
+        .from('website_integrations')
+        .update({ property_id: null, updated_at: new Date().toISOString() })
+        .eq('website', to)
+        .eq('provider', 'gsc')
+    }
   }
 
   const actor = await resolveActor(user.id)
@@ -165,8 +202,8 @@ export async function POST(request: Request) {
     action: 'update',
     website: to,
     label: `${from} → ${to}`,
-    metadata: { from, to, cascade: counts, vercel: vercelReport },
+    metadata: { from, to, cascade: counts, vercel: vercelReport, gscNeedsReconnect },
   })
 
-  return NextResponse.json({ ok: true, from, to, cascade: counts, vercel: vercelReport })
+  return NextResponse.json({ ok: true, from, to, cascade: counts, vercel: vercelReport, gscNeedsReconnect })
 }
