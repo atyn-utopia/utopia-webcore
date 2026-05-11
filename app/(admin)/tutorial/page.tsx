@@ -32,6 +32,19 @@ const SECTIONS: Section[] = [
       { number: 1, title: 'Pick a site', body: 'Open the home dashboard and click a company folder. Pick the website you want to manage.' },
       { number: 2, title: 'Set the brand profile', body: 'Open the SEO tab. Click the pencil at the top right to fill in business name, location, and target keywords. The AI suggestion features use this.' },
       { number: 3, title: 'Connect Google Search Console', body: 'Open the Integrations tab. Click Connect Google Search Console, sign in with the Google account that owns the property, and pick the right property from the list.' },
+      { number: 4, title: 'Connect Google Analytics + Tag Manager', body: 'Still in the Integrations tab. Click Connect Google Analytics + Tag Manager and authorise with the same Google login that holds the team\'s GA / GTM accounts. Webcore creates the GA4 Property, the Web Data Stream, and a GTM Container with the Google Tag pre-wired. The tracker on the live site picks up the container ID automatically — nothing to paste.' },
+    ],
+  },
+  {
+    title: 'Google Analytics + Tag Manager',
+    intro:
+      'Webcore replaces the old Wix-era SOP (create property → create stream → create container → paste into Wix → publish) with a single Connect button. Behind the scenes it follows the same checklist.',
+    bullets: [
+      'GA4: Property created under your account, Web Data Stream pointed at https://yourdomain. Enhanced Measurement narrowed to Scroll + Outbound Click. Event data retention set to 14 months.',
+      'GTM: Container created with your domain, Google Tag wired to the new G-XXX, click variables (Element / Classes / ID / Target / URL / Text) enabled, container published with consent set to "no additional consent required".',
+      'Customer site: the webcore tracker (/t.js) reads the container ID from /api/public/config on every page load and lazy-injects gtm.js. No designer paste, no Wix step, no redeploy.',
+      'Key Events: once whatsapp_click has fired at least once in GA, click "Mark whatsapp_click as Key Event" in the Integrations tab to promote it.',
+      'Google Ads linking is still manual — Ads API requires a separately-approved developer token, so designers continue to link in the Ads UI after first events flow.',
     ],
   },
   {

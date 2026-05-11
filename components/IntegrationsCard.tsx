@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 
 import { InformationCircleIcon } from '@heroicons/react/24/solid'
-interface IntegrationRow { id: string; website: string; provider: string; property_id: string | null; connected_at: string }
+interface IntegrationRow { id: string; website: string; provider: string; property_id: string | null; meta?: Record<string, unknown>; connected_at: string }
 interface GscProperty { siteUrl: string; permissionLevel: string; matched: boolean; selected: boolean }
 interface RevalidationSettings {
   website: string
@@ -21,6 +21,7 @@ export default function IntegrationsCard({ domain }: { domain: string }) {
   return (
     <div className="space-y-4">
       <GoogleSearchConsoleSection domain={domain} />
+      <MarketingSection domain={domain} />
       <LiveRevalidationSection domain={domain} />
     </div>
   )
@@ -403,6 +404,246 @@ function GoogleSearchConsoleGlyph() {
       <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
       <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
       <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+    </svg>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// Marketing — Google Analytics 4 + Google Tag Manager (combined OAuth + auto-
+// setup matching the team's manual SOP). Both fire from one Connect button:
+// OAuth → create GA4 property + web stream → enable Scroll/Outbound Click
+// only → 14-mo retention → create GTM container with a Google Tag pointing
+// at the GA4 ID → publish. The tracker on the customer site picks up the
+// container ID from /api/public/config and injects gtm.js at runtime.
+// ---------------------------------------------------------------------------
+function MarketingSection({ domain }: { domain: string }) {
+  const searchParams = useSearchParams()
+  const [rows, setRows] = useState<IntegrationRow[]>([])
+  const [loading, setLoading] = useState(true)
+  const [busy, setBusy] = useState(false)
+  const [marking, setMarking] = useState(false)
+  const [flash, setFlash] = useState<{ kind: 'success' | 'error'; text: string } | null>(null)
+  const [noAccount, setNoAccount] = useState<'ga4' | 'gtm' | null>(null)
+
+  function load() {
+    setLoading(true)
+    fetch(`/api/integrations?domain=${encodeURIComponent(domain)}`)
+      .then(r => r.json())
+      .then(d => { if (Array.isArray(d)) setRows(d) })
+      .catch(() => {})
+      .finally(() => setLoading(false))
+  }
+
+  useEffect(() => { load() }, [domain])
+
+  const marketing = rows.find(r => r.provider === 'marketing')
+  const meta = (marketing?.meta ?? {}) as { ga4?: { measurementId?: string }; gtm?: { publicId?: string } }
+  const measurementId = meta.ga4?.measurementId ?? marketing?.property_id ?? null
+  const containerId = meta.gtm?.publicId ?? null
+  const linked = Boolean(measurementId && containerId)
+
+  async function connectMarketing() {
+    setBusy(true)
+    setFlash(null)
+    try {
+      const res = await fetch(`/api/integrations/marketing/connect?domain=${encodeURIComponent(domain)}`)
+      const data = await res.json()
+      if (res.ok && data.url) window.location.href = data.url
+      else setFlash({ kind: 'error', text: data.error ?? 'Failed to start OAuth' })
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  async function autoConnect() {
+    setBusy(true)
+    setNoAccount(null)
+    try {
+      const res = await fetch('/api/integrations/marketing/auto-connect', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ domain }),
+      })
+      const data = await res.json() as {
+        status: 'connected' | 'needs_oauth' | 'no_account' | 'error'
+        kind?: 'ga4' | 'gtm'
+        reason?: string
+        measurementId?: string
+        containerId?: string
+        error?: string
+      }
+      if (data.status === 'connected') {
+        setFlash({ kind: 'success', text: `Connected. GA4 ${data.measurementId}, GTM ${data.containerId}.` })
+        load()
+      } else if (data.status === 'needs_oauth') {
+        await connectMarketing()
+      } else if (data.status === 'no_account' && data.kind) {
+        setNoAccount(data.kind)
+      } else {
+        setFlash({ kind: 'error', text: data.error ?? 'Auto-connect failed' })
+      }
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  useEffect(() => {
+    const connected = searchParams.get('integration_connected')
+    const err = searchParams.get('integration_error')
+    if (connected === 'marketing') {
+      setFlash({ kind: 'success', text: 'Authorised Google — provisioning GA4 + GTM…' })
+      autoConnect()
+    } else if (err && connected !== 'gsc') {
+      // The GSC section claims gsc errors; only handle generic ones here.
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams])
+
+  async function disconnect() {
+    if (!confirm('Disconnect GA4 + GTM for this website? The Google Analytics property and GTM container stay in your Google account — only webcore stops loading them on the live site.')) return
+    setBusy(true)
+    setFlash(null)
+    try {
+      const res = await fetch('/api/integrations/marketing/disconnect', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ domain }),
+      })
+      if (res.ok) { setFlash({ kind: 'success', text: 'Disconnected' }); load() }
+      else { const d = await res.json().catch(() => ({})); setFlash({ kind: 'error', text: d.error ?? 'Disconnect failed' }) }
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  async function markKeyEvent() {
+    setMarking(true)
+    try {
+      const res = await fetch('/api/integrations/marketing/mark-key-event', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ domain, eventName: 'whatsapp_click' }),
+      })
+      const data = await res.json()
+      if (res.ok) setFlash({ kind: 'success', text: 'whatsapp_click marked as a Key Event in GA4.' })
+      else setFlash({ kind: 'error', text: data.error ?? 'Failed to mark Key Event' })
+    } finally {
+      setMarking(false)
+    }
+  }
+
+  function copy(text: string, label: string) {
+    navigator.clipboard.writeText(text)
+      .then(() => setFlash({ kind: 'success', text: `${label} copied` }))
+      .catch(() => setFlash({ kind: 'error', text: 'Copy failed' }))
+  }
+
+  const status = loading
+    ? { label: 'Loading…', tone: 'loading' as const }
+    : linked
+      ? { label: 'Connected', tone: 'connected' as const }
+      : marketing
+        ? { label: 'OAuth ok — needs setup', tone: 'idle' as const }
+        : { label: 'Not connected', tone: 'idle' as const }
+
+  return (
+    <SectionCard
+      icon={<GoogleAnalyticsGlyph />}
+      title="Google Analytics + Tag Manager"
+      status={status}
+    >
+      {flash && (
+        <div className="px-5 py-2 text-xs" style={{ background: flash.kind === 'success' ? '#f0fdf4' : '#fef2f2', color: flash.kind === 'success' ? '#15803d' : '#b91c1c', borderBottom: '1px solid #e2e8f0' }}>
+          {flash.text}
+        </div>
+      )}
+
+      <div className="px-5 py-4 flex items-start justify-between gap-4 flex-wrap">
+        <div className="min-w-0 flex-1 space-y-2">
+          {!marketing ? (
+            <p className="text-xs" style={{ color: '#475569' }}>
+              One click creates a GA4 Property (Scroll + Outbound Click on, 14-month retention) and a GTM Container with the Google Tag pre-wired. The tracker on the live site picks it up automatically — no Wix paste, no redeploy.
+            </p>
+          ) : !linked ? (
+            <p className="text-xs" style={{ color: '#475569' }}>
+              Google access granted but the property hasn&apos;t been created yet. Click <strong>Verify &amp; link</strong> to finish setup.
+            </p>
+          ) : (
+            <div className="space-y-1.5">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="text-[10px] uppercase tracking-wider font-semibold" style={{ color: '#94a3b8' }}>GA4</span>
+                <code className="font-mono text-[11px] px-1.5 py-0.5 rounded" style={{ background: '#f1f5f9', color: '#475569' }}>{measurementId}</code>
+                <button type="button" onClick={() => measurementId && copy(measurementId, 'Measurement ID')}
+                  className="text-[10px] font-medium underline" style={{ color: 'var(--primary)' }}>Copy</button>
+              </div>
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="text-[10px] uppercase tracking-wider font-semibold" style={{ color: '#94a3b8' }}>GTM</span>
+                <code className="font-mono text-[11px] px-1.5 py-0.5 rounded" style={{ background: '#f1f5f9', color: '#475569' }}>{containerId}</code>
+                <button type="button" onClick={() => containerId && copy(containerId, 'Container ID')}
+                  className="text-[10px] font-medium underline" style={{ color: 'var(--primary)' }}>Copy</button>
+                <span className="text-[10px]" style={{ color: '#94a3b8' }}>Loaded by the tracker. No paste needed.</span>
+              </div>
+            </div>
+          )}
+        </div>
+
+        <div className="flex items-center gap-2 flex-shrink-0 flex-wrap">
+          {linked && (
+            <button type="button" onClick={markKeyEvent} disabled={marking}
+              className="text-[11px] font-medium px-3 py-1.5 rounded-full border disabled:opacity-50 transition-colors hover:bg-slate-50"
+              style={{ borderColor: '#e2e8f0', color: '#475569', background: 'white' }}>
+              {marking ? 'Marking…' : 'Mark whatsapp_click as Key Event'}
+            </button>
+          )}
+          {marketing ? (
+            <>
+              {!linked && (
+                <button type="button" onClick={autoConnect} disabled={busy}
+                  className="text-[11px] font-medium px-3 py-1.5 rounded-full text-white disabled:opacity-50 transition-opacity hover:opacity-90"
+                  style={{ background: 'var(--primary)' }}>
+                  {busy ? 'Verifying…' : 'Verify & link'}
+                </button>
+              )}
+              <button type="button" onClick={disconnect} disabled={busy}
+                className="text-[11px] font-medium px-3 py-1.5 rounded-full border disabled:opacity-50 transition-colors"
+                style={{ borderColor: '#e2e8f0', color: '#b91c1c', background: 'white' }}>
+                Disconnect
+              </button>
+            </>
+          ) : (
+            <button type="button" onClick={connectMarketing} disabled={busy}
+              className="text-[11px] font-medium px-3 py-1.5 rounded-full text-white disabled:opacity-50 transition-opacity hover:opacity-90"
+              style={{ background: 'var(--primary)' }}>
+              {busy ? 'Starting…' : 'Connect Google Analytics + Tag Manager'}
+            </button>
+          )}
+        </div>
+      </div>
+
+      {noAccount && (
+        <div className="px-5 py-4 text-xs space-y-2" style={{ background: '#fffbeb', borderTop: '1px solid #fde68a', color: '#92400e' }}>
+          <p className="font-semibold">
+            No {noAccount === 'ga4' ? 'Google Analytics' : 'Tag Manager'} account on this Google login.
+          </p>
+          <p>
+            Webcore can&apos;t create the top-level account for you. Go to{' '}
+            <a href={noAccount === 'ga4' ? 'https://analytics.google.com/' : 'https://tagmanager.google.com/'} target="_blank" rel="noopener noreferrer" className="underline font-medium">
+              {noAccount === 'ga4' ? 'analytics.google.com' : 'tagmanager.google.com'}
+            </a>{' '}
+            with the same Google login, click <strong>Create account</strong>, then come back here and hit <strong>Verify &amp; link</strong>.
+          </p>
+        </div>
+      )}
+    </SectionCard>
+  )
+}
+
+function GoogleAnalyticsGlyph() {
+  return (
+    <svg className="w-4 h-4" viewBox="0 0 24 24" aria-hidden>
+      <path fill="#F9AB00" d="M15.92 4.99v13.7c0 1.53 1.06 2.39 2.18 2.39 1.04 0 2.18-.73 2.18-2.39V5.1c0-1.4-1.04-2.27-2.18-2.27s-2.18.97-2.18 2.16z"/>
+      <path fill="#E37400" d="M9.83 12v6.69c0 1.53 1.06 2.39 2.18 2.39 1.04 0 2.18-.73 2.18-2.39V12.1c0-1.4-1.04-2.27-2.18-2.27s-2.18.97-2.18 2.16z"/>
+      <circle fill="#E37400" cx="3.92" cy="18.92" r="2.18"/>
     </svg>
   )
 }

@@ -30,7 +30,7 @@ export async function GET(request: Request) {
   const service = createServiceClient()
   let query = service
     .from('website_integrations')
-    .select('id, website, provider, property_id, connected_at, updated_at')
+    .select('id, website, provider, property_id, meta, connected_at, updated_at')
     .order('connected_at', { ascending: false })
 
   if (domain) {

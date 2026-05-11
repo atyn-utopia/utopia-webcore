@@ -17,6 +17,7 @@
   var ORIGIN = 'https://utopia-webcore.vercel.app'
   var API = ORIGIN + '/api/public/track'
   var ALTS_API = ORIGIN + '/api/public/seo/alts'
+  var CONFIG_API = ORIGIN + '/api/public/config'
   var script = document.currentScript
   var website = script && script.getAttribute('data-website')
   if (!website) return
@@ -147,6 +148,43 @@
   }
 
   loadAlts()
+
+  // ---------------------------------------------------------------------------
+  // Per-site config — currently used to inject GTM at runtime so admins can
+  // toggle GA/GTM on/off without redeploying the customer site.
+  // ---------------------------------------------------------------------------
+  function injectGtm(gtmId) {
+    if (!gtmId || window.__uwcGtmLoaded) return
+    window.__uwcGtmLoaded = true
+    // Standard GTM snippet — initialise dataLayer + load gtm.js. Skipping the
+    // <noscript> iframe; the tracker is JS-only anyway.
+    window.dataLayer = window.dataLayer || []
+    window.dataLayer.push({ 'gtm.start': new Date().getTime(), event: 'gtm.js' })
+    var s = document.createElement('script')
+    s.async = true
+    s.src = 'https://www.googletagmanager.com/gtm.js?id=' + encodeURIComponent(gtmId)
+    var first = document.getElementsByTagName('script')[0]
+    if (first && first.parentNode) first.parentNode.insertBefore(s, first)
+    else document.head.appendChild(s)
+  }
+
+  function loadConfig() {
+    try {
+      var xhr = new XMLHttpRequest()
+      xhr.open('GET', CONFIG_API + '?website=' + encodeURIComponent(website), true)
+      xhr.onreadystatechange = function () {
+        if (xhr.readyState !== 4) return
+        if (xhr.status < 200 || xhr.status >= 300) return
+        try {
+          var body = JSON.parse(xhr.responseText)
+          if (body && body.gtmId) injectGtm(body.gtmId)
+        } catch (e) { /* ignore */ }
+      }
+      xhr.send()
+    } catch (e) { /* ignore */ }
+  }
+
+  loadConfig()
 
   // Re-apply when the DOM changes — covers client-rendered images and SPA nav.
   // Coalesce bursts of mutations into one applyAlts pass per frame so we don't
