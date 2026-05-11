@@ -22,6 +22,7 @@ import {
   BuildingOfficeIcon,
   CalendarIcon,
   ChevronRightIcon,
+  ClockIcon,
   ComputerDesktopIcon,
   DocumentTextIcon,
   EyeIcon,
@@ -168,6 +169,27 @@ export default function WebsitesPage() {
   const [search, setSearch] = useState('')
   const [viewMode, setViewMode] = useState<ViewMode>('list')
   const [period, setPeriod] = useState<'7d' | '30d' | '90d'>('7d')
+  // SEO brand name overrides the URL-derived title on the per-site
+  // dashboard hero when set in /seo's brand profile.
+  const [siteBrand, setSiteBrand] = useState<string | null>(null)
+  // mshots returns a small placeholder image when it hasn't crawled the
+  // domain yet — typical for newly-connected custom domains. Detect by
+  // naturalWidth and swap to a 'preview generating' overlay.
+  const [thumbState, setThumbState] = useState<'pending' | 'ready' | 'placeholder'>('pending')
+  useEffect(() => { setThumbState('pending') }, [openWebsite])
+  useEffect(() => {
+    if (!openWebsite) { setSiteBrand(null); return }
+    let cancelled = false
+    fetch(`/api/seo/profile?website=${encodeURIComponent(openWebsite)}`)
+      .then(r => r.ok ? r.json() : null)
+      .then((d: { brand?: string | null } | null) => {
+        if (cancelled) return
+        const b = (d?.brand ?? '').trim()
+        setSiteBrand(b || null)
+      })
+      .catch(() => {})
+    return () => { cancelled = true }
+  }, [openWebsite])
 
   useEffect(() => {
     Promise.all([fetch('/api/websites').then(r => r.json()), fetch('/api/companies').then(r => r.json())]).then(([s, c]) => { if (Array.isArray(s)) setSites(s); if (Array.isArray(c)) setCompanies(c); setLoading(false) }).catch(() => setLoading(false))
@@ -541,8 +563,29 @@ export default function WebsitesPage() {
           style={{ borderColor: '#e2e8f0', background: '#f8fafc' }}
           title={`Open ${openWebsite}`}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={thumbUrl} alt={openWebsite} loading="lazy"
-            className="w-full h-full object-cover object-top transition-transform hover:scale-105" />
+          <img
+            src={thumbUrl}
+            alt={openWebsite}
+            loading="lazy"
+            onLoad={e => {
+              // mshots' "not crawled yet" placeholder is ~200px wide; a real
+              // screenshot at w=600 comes back at 600. Threshold at 400 to
+              // be safe against any future placeholder size changes.
+              const img = e.currentTarget
+              setThumbState(img.naturalWidth >= 400 ? 'ready' : 'placeholder')
+            }}
+            onError={() => setThumbState('placeholder')}
+            className={`w-full h-full object-cover object-top transition-transform hover:scale-105 ${thumbState === 'placeholder' ? 'opacity-0' : ''}`}
+          />
+          {thumbState === 'placeholder' && (
+            <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-4" style={{ background: '#f8fafc' }}>
+              <ClockIcon className="w-7 h-7 mb-2" style={{ color: '#cbd5e1' }} />
+              <p className="text-xs font-semibold" style={{ color: '#475569' }}>Preview generating</p>
+              <p className="text-[10px] mt-0.5 leading-snug" style={{ color: '#94a3b8' }}>
+                Can take up to 24 hours after a new domain is first crawled.
+              </p>
+            </div>
+          )}
         </a>
 
         {/* Identity + status + actions */}
@@ -551,7 +594,7 @@ export default function WebsitesPage() {
             <div className="min-w-0">
               <div className="flex items-center gap-2.5 flex-wrap">
                 <h1 className="text-2xl font-bold tracking-tight truncate" style={{ color: 'var(--foreground)' }}>
-                  {openWebsite.replace(/^www\./, '').split('.')[0].split('-').map(s => s.charAt(0).toUpperCase() + s.slice(1)).join(' ')}
+                  {siteBrand ?? openWebsite.replace(/^www\./, '').split('.')[0].split('-').map(s => s.charAt(0).toUpperCase() + s.slice(1)).join(' ')}
                 </h1>
                 <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold px-2 py-0.5 rounded-full" style={{ background: trackerSeenToday ? '#dcfce7' : '#f1f5f9', color: trackerSeenToday ? '#15803d' : '#94a3b8' }}>
                   <span className={`w-1.5 h-1.5 rounded-full ${trackerSeenToday ? 'animate-pulse' : ''}`} style={{ background: trackerSeenToday ? '#22c55e' : '#cbd5e1' }} />
