@@ -172,28 +172,13 @@ export default function WebsitesPage() {
   // SEO brand name overrides the URL-derived title on the per-site
   // dashboard hero when set in /seo's brand profile.
   const [siteBrand, setSiteBrand] = useState<string | null>(null)
-  // mshots returns a JPEG at the requested dimensions even when it
-  // hasn't captured the site yet — naturalWidth alone doesn't tell us
-  // anything. Real screenshots range widely: visually-minimal real
-  // sites land around 10-11 KB while content-heavy ones are 70 KB+.
-  // mshots' 'site unreachable / no preview' fallback is around 8-9 KB.
-  // Threshold conservatively at 9500 bytes so a low-content real site
-  // doesn't get a false 'preview generating' overlay.
-  const [thumbState, setThumbState] = useState<'pending' | 'ready' | 'placeholder'>('pending')
-  useEffect(() => {
-    if (!openWebsite) { setThumbState('pending'); return }
-    setThumbState('pending')
-    const url = `https://s.wordpress.com/mshots/v1/${encodeURIComponent(`https://${openWebsite}`)}?w=600`
-    let cancelled = false
-    fetch(url, { cache: 'force-cache' })
-      .then(r => r.ok ? r.blob() : null)
-      .then(b => {
-        if (cancelled || !b) return
-        setThumbState(b.size < 9500 ? 'placeholder' : 'ready')
-      })
-      .catch(() => { if (!cancelled) setThumbState('placeholder') })
-    return () => { cancelled = true }
-  }, [openWebsite])
+  // Preview state: we only know for certain when the image fails to load
+  // (onError fires). Trying to detect mshots' 'pending' state by file
+  // size or naturalWidth was unreliable — real screenshots of
+  // visually-minimal sites overlap with placeholders. So the overlay
+  // now only appears when the image genuinely fails (404 / network).
+  const [thumbState, setThumbState] = useState<'ready' | 'placeholder'>('ready')
+  useEffect(() => { setThumbState('ready') }, [openWebsite])
   useEffect(() => {
     if (!openWebsite) { setSiteBrand(null); return }
     let cancelled = false
