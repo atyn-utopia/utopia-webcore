@@ -301,7 +301,7 @@ function BusinessInfoBar({ domain, profile, editing, onEditingChange, onSaved }:
 
   return (
     <>
-      <div className="rounded-full border bg-white px-5 py-3 flex items-center gap-6 flex-wrap" style={{ borderColor: '#e2e8f0' }}>
+      <div className="rounded-xl border bg-white px-5 py-3 flex items-center gap-6 flex-wrap" style={{ borderColor: '#e2e8f0' }}>
         <InfoCell label="Business or Brand Name" value={brand} />
         <span style={{ color: '#e2e8f0' }}>|</span>
         <InfoCell label="Location" value={location} />
@@ -1210,7 +1210,7 @@ function Step3Card({ domain }: { domain: string }) {
 
 function Tip({ title, body }: { title: string; body: React.ReactNode }) {
   return (
-    <div className="flex items-start gap-2.5 px-3 py-2.5 rounded-full" style={{ background: '#fafbfc', border: '1px solid #f1f5f9' }}>
+    <div className="flex items-start gap-2.5 px-3 py-2.5 rounded-md" style={{ background: '#fafbfc', border: '1px solid #f1f5f9' }}>
       <span className="w-5 h-5 rounded-full flex-shrink-0 flex items-center justify-center mt-0.5" style={{ background: '#fef3c7', color: '#a16207' }}>
         <LightBulbIcon className="w-3 h-3" />
       </span>
@@ -1658,7 +1658,7 @@ function AltRow({
   }
 
   return (
-    <div className="flex items-center gap-2.5 px-3 py-2 rounded-full" style={{ background: '#fafbfc', border: '1px solid #f1f5f9' }}>
+    <div className="flex items-center gap-2.5 px-3 py-2 rounded-md" style={{ background: '#fafbfc', border: '1px solid #f1f5f9' }}>
       <div className="w-12 h-12 rounded-md flex-shrink-0 overflow-hidden flex items-center justify-center" style={{ background: '#f1f5f9' }}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={previewSrc} alt="" className="w-full h-full object-cover" onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none' }} />

@@ -26,7 +26,7 @@ export default function InsightsPanel({ insights }: { insights: Insight[] }) {
           {insights.map((insight, i) => {
             const style = INSIGHT_STYLES[insight.type] ?? INSIGHT_STYLES.neutral
             return (
-              <div key={i} className="flex items-center gap-3 px-3 py-2.5 rounded-full" style={{ background: style.bg }}>
+              <div key={i} className="flex items-center gap-3 px-3 py-2.5 rounded-lg" style={{ background: style.bg }}>
                 <div className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: style.border + '66' }}>
                   {insight.type === 'positive' && <ArrowTrendingUpIcon className="w-3.5 h-3.5" />}
                   {insight.type === 'negative' && <ArrowTrendingDownIcon className="w-3.5 h-3.5" />}

@@ -744,7 +744,7 @@ export default function ManagePhoneNumbersPage() {
           </Panel>
 
           {/* Save bar */}
-          <div className="sticky bottom-4 rounded-full border flex items-center justify-between gap-3 flex-wrap px-5 py-3 shadow-sm"
+          <div className="sticky bottom-4 rounded-xl border flex items-center justify-between gap-3 flex-wrap px-5 py-3 shadow-sm"
             style={{ borderColor: '#e2e8f0', background: 'white' }}>
             <div className="flex items-center gap-3 text-xs" style={{ color: '#64748b' }}>
               <Link href={cancelHref}

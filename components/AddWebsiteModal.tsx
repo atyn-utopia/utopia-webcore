@@ -137,7 +137,7 @@ export default function AddWebsiteModal({ open, onClose, onCreated, presetCompan
           <form onSubmit={handleSubmit}>
             <div className="px-6 pb-2 space-y-5">
               {error && (
-                <div className="px-3 py-2.5 rounded-full text-sm flex items-start gap-2"
+                <div className="px-3 py-2.5 rounded-md text-sm flex items-start gap-2"
                   style={{ background: '#fef2f2', color: '#b91c1c', border: '1px solid #fecaca' }}>
                   <svg className="w-4 h-4 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><circle cx="12" cy="12" r="9" /><path strokeLinecap="round" d="M12 8v4m0 4h.01" /></svg>
                   <span>{error}</span>

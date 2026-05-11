@@ -73,7 +73,7 @@ export default function TicketsPage() {
       <PageHeader title={t('page.tickets.title')} description={t('page.tickets.description')} />
 
       {/* Beta banner toggle */}
-      <div className="mb-6 rounded-xl border bg-white p-5 flex items-center justify-between" style={{ borderColor: '#cbd5e1' }}>
+      <div className="mb-6 rounded-xl border bg-white p-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3" style={{ borderColor: '#cbd5e1' }}>
         <div>
           <h2 className="text-sm font-semibold" style={{ color: 'var(--foreground)' }}>Beta Banner</h2>
           <p className="text-xs mt-0.5" style={{ color: '#475569' }}>Show a beta testing banner to designers and writers.</p>

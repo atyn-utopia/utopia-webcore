@@ -299,7 +299,7 @@ export default function ProductForm({ mode, productId, initialData = {} }: Produ
               ) : (
                 <div className="space-y-2">
                   {subProducts.map(sub => (
-                    <div key={sub.id} className="flex items-center gap-3 px-3 py-2.5 rounded-full border" style={{ borderColor: '#f1f5f9' }}>
+                    <div key={sub.id} className="flex items-center gap-3 px-3 py-2.5 rounded-lg border" style={{ borderColor: '#f1f5f9' }}>
                       {sub.photos.length > 0 ? (
                         // eslint-disable-next-line @next/next/no-img-element
                         <img src={sub.photos[0].url} alt="" className="w-10 h-10 rounded object-cover flex-shrink-0" />

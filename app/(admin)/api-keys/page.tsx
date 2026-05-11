@@ -443,7 +443,7 @@ function InfoPanel({ label, hint, value, token, copiedToken, onCopy, tone }: {
   const fg = tone === 'warning' ? '#92400e' : '#334155'
   return (
     <div className="rounded-lg overflow-hidden" style={{ border: `1px solid ${borderColor}`, background: bg }}>
-      <div className="px-3 py-2 flex items-center justify-between gap-3" style={{ borderBottom: `1px solid ${borderColor}` }}>
+      <div className="px-3 py-2 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2" style={{ borderBottom: `1px solid ${borderColor}` }}>
         <div>
           <div className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: fg, opacity: 0.8 }}>{label}</div>
           {hint && <div className="text-[11px] mt-0.5" style={{ color: fg, opacity: 0.75 }}>{hint}</div>}

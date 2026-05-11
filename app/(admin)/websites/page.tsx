@@ -888,7 +888,7 @@ function SearchConsoleCard({ domain, period }: { domain: string; period: string 
 
 function GscStat({ label, value, color }: { label: string; value: string; color: string }) {
   return (
-    <div className="rounded-full px-3 py-2.5" style={{ background: '#fafbfc', border: '1px solid #f1f5f9' }}>
+    <div className="rounded-md px-3 py-2.5" style={{ background: '#fafbfc', border: '1px solid #f1f5f9' }}>
       <div className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: '#94a3b8' }}>{label}</div>
       <div className="text-lg font-bold mt-0.5 tabular-nums" style={{ color }}>{value}</div>
     </div>

@@ -501,7 +501,7 @@ function LiveRevalidationSection({ domain }: { domain: string }) {
           )}
 
           {flash && (
-            <div className="mt-3 px-3 py-2 rounded-full text-xs"
+            <div className="mt-3 px-3 py-2 rounded-md text-xs"
               style={{ background: flash.kind === 'success' ? '#f0fdf4' : '#fef2f2', border: `1px solid ${flash.kind === 'success' ? '#bbf7d0' : '#fecaca'}`, color: flash.kind === 'success' ? '#166534' : '#b91c1c' }}>
               {flash.text}
             </div>
