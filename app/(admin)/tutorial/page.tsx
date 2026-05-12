@@ -38,11 +38,11 @@ const SECTIONS: Section[] = [
   {
     title: 'Google Analytics + Tag Manager',
     intro:
-      'Webcore replaces the old Wix-era SOP (create property → create stream → create container → paste into Wix → publish) with a single Connect button. Behind the scenes it follows the same checklist.',
+      'A single Connect button runs the full GA4 + GTM setup checklist. Behind the scenes it creates the GA4 Property, the Web Data Stream, and the GTM Container with the Google Tag, Conversion Linker, and whatsapp_click event pre-wired.',
     bullets: [
       'GA4: Property created under your account, Web Data Stream pointed at https://yourdomain. Enhanced Measurement narrowed to Scroll + Outbound Click. Event data retention set to 14 months.',
       'GTM: Container created with your domain, Google Tag wired to the new G-XXX, click variables (Element / Classes / ID / Target / URL / Text) enabled, container published with consent set to "no additional consent required".',
-      'Customer site: the webcore tracker (/t.js) reads the container ID from /api/public/config on every page load and lazy-injects gtm.js. No designer paste, no Wix step, no redeploy.',
+      'Customer site: the webcore tracker (/t.js) reads the container ID from /api/public/config on every page load and lazy-injects gtm.js. No designer paste, no redeploy.',
       'Key Events: once whatsapp_click has fired at least once in GA, click "Mark whatsapp_click as Key Event" in the Integrations tab to promote it.',
       'Google Ads linking is still manual — Ads API requires a separately-approved developer token, so designers continue to link in the Ads UI after first events flow.',
     ],

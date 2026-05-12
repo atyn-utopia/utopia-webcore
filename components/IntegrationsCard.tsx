@@ -564,7 +564,7 @@ function MarketingSection({ domain }: { domain: string }) {
         <div className="min-w-0 flex-1 space-y-2">
           {!marketing ? (
             <p className="text-xs" style={{ color: '#475569' }}>
-              One click creates a GA4 Property (Scroll + Outbound Click on, 14-month retention) and a GTM Container with the Google Tag pre-wired. The tracker on the live site picks it up automatically — no Wix paste, no redeploy.
+              One click creates a GA4 Property (Scroll + Outbound Click on, 14-month retention) and a GTM Container with the Google Tag pre-wired. The tracker on the live site picks it up automatically — no redeploy needed.
             </p>
           ) : !linked ? (
             <p className="text-xs" style={{ color: '#475569' }}>
