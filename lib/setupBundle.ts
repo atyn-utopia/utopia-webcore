@@ -179,39 +179,33 @@ Stick to this format so events group correctly in webcore:
 
 ## Phone CTA patterns — resolution + rotation
 
-For WhatsApp / Call buttons, ALWAYS call \`resolvePhone()\` at click time — never at render time or build time. Caching the result would freeze one phone for everyone and break the rotation.
-
-The resolver tries these in order (server-side):
+The resolver tries these in order (server-side, per click):
 
 1. Active phones at the passed \`location\` slug → weighted-random pick using the \`percentage\` field
 2. Active phones at \`location_slug = 'all'\` → weighted-random pick
 3. The admin \`type='default'\` row as last resort (returned with \`source: 'default_fallback'\`)
 
-You can tell how the number was chosen from the returned \`source\` field. If you want step 3 disabled (e.g. hide the button instead of showing the default), pass \`{ noFallback: true }\`.
+### Canonical WhatsApp button — use \`whatsappLink()\`
 
-### Canonical WhatsApp button (click-time resolve, always works)
+The single source of truth. Returns a stable webcore-hosted URL that the browser navigates to on click; webcore resolves the phone server-side per click and 302s the user to \`wa.me/<phone>\`. Rotation happens every time, even on a statically-rendered page, with no \`'use client'\` required:
 
 \`\`\`tsx
-'use client'
-import { resolvePhone } from '@/lib/webcore'
+import { whatsappLink } from '@/lib/webcore'
 
-export function WhatsAppButton({ location }: { location?: string }) {
-  async function onClick() {
-    const p = await resolvePhone(location)
-    if (!p) return // default fallback is on by default — null is rare (no default row configured)
-    window.uwc?.('click', { label: \\\`whatsapp-\\\${p.phone_number}\\\` })
-    window.open(
-      \\\`https://wa.me/\\\${p.phone_number}?text=\\\${encodeURIComponent(p.whatsapp_text)}\\\`,
-      '_blank',
-    )
-  }
-  return <button onClick={onClick}>WhatsApp us</button>
+export function WhatsAppCTA({ location }: { location?: string }) {
+  return (
+    <a href={whatsappLink(location)} target="_blank" rel="noopener noreferrer">
+      WhatsApp us
+    </a>
+  )
 }
 \`\`\`
 
-### Call button (pageview rotation — OK for tel: links)
+Pass an optional override message: \`whatsappLink('shah-alam', 'Hi, I want a quote')\`.
 
-\`tel:\` links need the number in the \`href\`, so the number is fixed for the render. Rotation still happens per page visit because \`resolvePhone()\` is called server-side on each request.
+### Call button (\`tel:\` — server-side resolve)
+
+\`tel:\` URIs can't go through a webcore redirect (the browser won't follow \`Location: tel:…\`), so for \`tel:\` you still call \`resolvePhone()\` server-side. Rotation happens per pageview rather than per click:
 
 \`\`\`tsx
 // app/contact/page.tsx — Server Component
@@ -225,8 +219,8 @@ export default async function ContactPage({ params }: { params: { location?: str
 
 ### Anti-patterns — do NOT do these
 
-- ❌ \`const phone = (await fetchPhones())[0]\` — freezes first phone, kills rotation
-- ❌ Baking a WhatsApp URL into static HTML at build time — same reason
+- ❌ Render-time \`getWhatsAppLink()\` / \`waLink()\` helpers that return a bare \`wa.me/<phone>\` string baked into static HTML — freezes one phone for everyone and kills rotation. **Use \`whatsappLink()\` instead** — it returns a redirect URL, so the bake is harmless.
+- ❌ \`const phone = (await fetchPhones())[0]\` — same reason
 - ❌ Caching \`resolvePhone()\` in a module-level variable — same reason
 - ❌ Matching on \`label === 'default'\` client-side — use \`type === 'default'\` instead; labels are editable
 
@@ -469,6 +463,32 @@ export async function resolvePhone(
   const res = await fetch(url, { cache: 'no-store' })
   if (!res.ok) return null
   return res.json()
+}
+
+/**
+ * Build the canonical WhatsApp CTA href for an <a> link.
+ *
+ * Returns a stable URL like
+ *   https://webcore.utopiaai.my/api/public/whatsapp-redirect?website=...&location=...
+ *
+ * The URL is identical for every visitor, so it caches fine in static HTML.
+ * On click the browser navigates to it, webcore resolves a phone number
+ * server-side (rotation + location), then 302s to wa.me/<phone>. Rotation
+ * happens per click without any 'use client' / async resolution code.
+ *
+ * Use this for every WhatsApp CTA:
+ *
+ *   <a href={whatsappLink('shah-alam')}>WhatsApp us</a>
+ *
+ * Synchronous + pure — safe to call from Server Components, Client
+ * Components, render time, click time, anywhere.
+ */
+export function whatsappLink(location?: string, text?: string): string {
+  const url = new URL(\`\${BASE}/api/public/whatsapp-redirect\`)
+  url.searchParams.set('website', SITE)
+  if (location) url.searchParams.set('location', location)
+  if (text) url.searchParams.set('text', text)
+  return url.toString()
 }
 
 /** Fetch all active products (nested main + sub products). */

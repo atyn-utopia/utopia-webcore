@@ -31,6 +31,7 @@ import {
   listGtmTriggers,
   listGtmVariables,
   publishGtmWorkspace,
+  updateLinkClickTrigger,
 } from '@/lib/integrations/gtm'
 
 /**
@@ -280,15 +281,17 @@ export async function POST(request: Request) {
     }
 
     // (c) whatsapp_click — Link Click (Just Links) trigger + GA4 Event tag
-    // pair. Matches the team SOP: customer sites route every WhatsApp button
-    // through a `/redirect-whatsapp-1` URL, so the trigger filters by
-    // `Click URL contains /redirect-whatsapp-1`. Catches clicks regardless
-    // of which element the designer used (anchor, button-as-link, etc.)
+    // pair. Every WhatsApp CTA on every webcore-managed site goes through
+    // the redirect endpoint `/api/public/whatsapp-redirect` (built into
+    // lib/webcore.ts's whatsappLink() helper), so the trigger filters by
+    // `Click URL contains /api/public/whatsapp-redirect`. Catches clicks
+    // regardless of which element the designer used (anchor, button-as-link)
     // without needing dataLayer pushes.
     const WC_EVENT = 'whatsapp_click'
-    const WC_URL_CONTAINS = '/redirect-whatsapp-1'
-    let whatsappTriggerId = existingTriggers.find(t => t.name === WC_EVENT)?.triggerId ?? null
-    if (!whatsappTriggerId) {
+    const WC_URL_CONTAINS = '/api/public/whatsapp-redirect'
+    const existingWhatsappTrigger = existingTriggers.find(t => t.name === WC_EVENT)
+    let whatsappTriggerId: string | null = existingWhatsappTrigger?.triggerId ?? null
+    if (!existingWhatsappTrigger) {
       const created = await createLinkClickTrigger({
         accessToken,
         workspacePath: workspace.path,
@@ -297,6 +300,23 @@ export async function POST(request: Request) {
       })
       whatsappTriggerId = created.triggerId
       changed = true
+    } else {
+      // Self-heal: if a previous Connect run created the trigger with a
+      // different URL substring (e.g. the legacy /redirect-whatsapp-1
+      // pattern that predated the whatsapp-redirect endpoint), update it
+      // in place so the firing tag's triggerId reference stays valid.
+      const currentFilterValue = existingWhatsappTrigger.filter
+        ?.flatMap(f => f.parameter ?? [])
+        .find(p => p.key === 'arg1')?.value
+      if (currentFilterValue !== WC_URL_CONTAINS && existingWhatsappTrigger.path) {
+        await updateLinkClickTrigger({
+          accessToken,
+          triggerPath: existingWhatsappTrigger.path,
+          name: WC_EVENT,
+          urlContains: WC_URL_CONTAINS,
+        })
+        changed = true
+      }
     }
     if (whatsappTriggerId && !existingTags.some(t => t.name === WC_EVENT)) {
       await createGa4EventTag({

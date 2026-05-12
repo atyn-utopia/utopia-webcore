@@ -119,9 +119,14 @@ export interface GtmTag {
 }
 
 export interface GtmTrigger {
+  path?: string
   triggerId: string
   name: string
   type: string
+  filter?: Array<{
+    type: string
+    parameter?: Array<{ type: string; key: string; value: string }>
+  }>
 }
 
 export interface GtmVariable {
@@ -315,26 +320,51 @@ export async function createLinkClickTrigger({
 }): Promise<{ triggerId: string; name: string }> {
   const res = await gtmFetch(`${API}/${workspacePath}/triggers`, accessToken, {
     method: 'POST',
-    body: JSON.stringify({
-      name,
-      type: 'linkClick',
-      // Don't pause navigation waiting for tags — the GA4 Event tag is
-      // sendBeacon-backed so it fires fast enough on its own, and pausing
-      // adds perceived latency to the WhatsApp jump.
-      waitForTags: { type: 'boolean', value: 'false' },
-      checkValidation: { type: 'boolean', value: 'false' },
-      filter: [
-        {
-          type: 'contains',
-          parameter: [
-            { type: 'template', key: 'arg0', value: '{{Click URL}}' },
-            { type: 'template', key: 'arg1', value: urlContains },
-          ],
-        },
-      ],
-    }),
+    body: JSON.stringify(linkClickBody({ name, urlContains })),
   })
   return gtmOk(res, 'GTM createLinkClickTrigger')
+}
+
+/**
+ * Replace a Link Click trigger in-place so a re-run of the auto-connect
+ * flow can migrate existing triggers (e.g. when we change the URL pattern
+ * we filter on). Same triggerId, new filter — so the tag's
+ * firingTriggerId reference stays valid.
+ */
+export async function updateLinkClickTrigger({
+  accessToken,
+  triggerPath,
+  name,
+  urlContains,
+}: {
+  accessToken: string
+  triggerPath: string
+  name: string
+  urlContains: string
+}): Promise<{ triggerId: string }> {
+  const res = await gtmFetch(`${API}/${triggerPath}`, accessToken, {
+    method: 'PUT',
+    body: JSON.stringify(linkClickBody({ name, urlContains })),
+  })
+  return gtmOk(res, 'GTM updateLinkClickTrigger')
+}
+
+function linkClickBody({ name, urlContains }: { name: string; urlContains: string }) {
+  return {
+    name,
+    type: 'linkClick',
+    waitForTags: { type: 'boolean', value: 'false' },
+    checkValidation: { type: 'boolean', value: 'false' },
+    filter: [
+      {
+        type: 'contains',
+        parameter: [
+          { type: 'template', key: 'arg0', value: '{{Click URL}}' },
+          { type: 'template', key: 'arg1', value: urlContains },
+        ],
+      },
+    ],
+  }
 }
 
 /**
