@@ -196,7 +196,7 @@ export default function RenameDomainCard({ domain }: Props) {
       <div className="px-5 py-4" style={{ borderBottom: '1px solid #f1f5f9' }}>
         <h3 className="text-sm font-semibold" style={{ color: 'var(--foreground)' }}>Domain</h3>
         <p className="text-xs mt-0.5" style={{ color: '#94a3b8' }}>
-          Change the recorded domain. All linked rows (phones, products, posts, analytics, audit) move with it{vercelEnabled ? '. Vercel will also attach the new hostname and trigger a redeploy.' : '.'}
+          Change the recorded domain. All linked rows (phones, products, posts, analytics, audit) move with it. When Vercel is configured the new hostname is attached and the project redeploys automatically.
         </p>
       </div>
 
@@ -211,6 +211,19 @@ export default function RenameDomainCard({ domain }: Props) {
         <div className="flex items-center justify-center text-slate-300">
           <ArrowRightIcon className="w-4 h-4 rotate-90" />
         </div>
+
+        {/* Skeleton while the zones API hasn't responded yet — keeps the card
+            from flashing between "no zones" and "with zones" layouts on
+            every page load. */}
+        {!zonesReady && (
+          <div className="space-y-3">
+            <div className="h-7 w-56 rounded-full animate-pulse" style={{ background: '#f1f5f9' }} />
+            <div>
+              <div className="h-3 w-20 rounded animate-pulse mb-1.5" style={{ background: '#f1f5f9' }} />
+              <div className="h-9 w-full rounded-md animate-pulse" style={{ background: '#f1f5f9' }} />
+            </div>
+          </div>
+        )}
 
         {/* Mode toggle */}
         {zonesReady && zones.length > 0 && (
@@ -236,7 +249,7 @@ export default function RenameDomainCard({ domain }: Props) {
 
         {/* Zone mode — subdomain input and zone dropdown share one border so
             they read as a single compound field (like an email input). */}
-        {mode === 'zone' && (
+        {zonesReady && mode === 'zone' && (
           <div>
             <label className="block text-xs font-medium mb-1.5" style={{ color: '#475569' }}>New domain</label>
             <div
@@ -268,7 +281,7 @@ export default function RenameDomainCard({ domain }: Props) {
         )}
 
         {/* Custom mode */}
-        {mode === 'custom' && (
+        {zonesReady && mode === 'custom' && (
           <div>
             <label className="block text-xs font-medium mb-1.5" style={{ color: '#475569' }}>New domain</label>
             <Input
