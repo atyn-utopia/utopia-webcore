@@ -17,12 +17,17 @@ import {
   updateGa4EnhancedMeasurement,
 } from '@/lib/integrations/ga4'
 import {
+  createConversionLinkerTag,
+  createCustomEventTrigger,
+  createGa4EventTag,
   createGoogleTagInWorkspace,
   createGtmContainer,
   enableGtmClickBuiltins,
   getDefaultGtmWorkspace,
   listGtmAccounts,
   listGtmContainers,
+  listGtmTags,
+  listGtmTriggers,
   publishGtmWorkspace,
 } from '@/lib/integrations/gtm'
 
@@ -84,16 +89,12 @@ export async function POST(request: Request) {
     return NextResponse.json({ status: 'needs_oauth' })
   }
 
-  // Already wired? Treat as no-op success.
+  // Keep a reference to existing meta so the orchestrator can skip work
+  // already done. Not short-circuiting on "fully connected" — we want the
+  // Connect button to be safe to re-run when we ship new default tags
+  // (e.g. adding Conversion Linker + whatsapp_click event to setups that
+  // were connected before those tags existed in our flow).
   const existingMeta = (integration.meta ?? {}) as { ga4?: { measurementId?: string }; gtm?: { publicId?: string } }
-  if (existingMeta.ga4?.measurementId && existingMeta.gtm?.publicId) {
-    return NextResponse.json({
-      status: 'connected',
-      measurementId: existingMeta.ga4.measurementId,
-      containerId: existingMeta.gtm.publicId,
-      alreadyLinked: true,
-    })
-  }
 
   // 1. Refresh access token.
   let accessToken: string
@@ -228,23 +229,76 @@ export async function POST(request: Request) {
     return NextResponse.json({ status: 'error', error: `GTM container: ${(e as Error).message}` }, { status: 500 })
   }
 
-  // 8. Workspace + tag + click variables + publish.
+  // 8. Workspace + tags + trigger + click variables + publish.
+  //
+  // Idempotent: each tag/trigger is created only when nothing with the same
+  // name already exists in the workspace. Same Connect button is safe to
+  // re-run, which lets us roll out new defaults to already-connected sites
+  // without anything destructive.
   let workspaceId: string
+  let changed = false
   try {
     const workspace = await getDefaultGtmWorkspace({ accessToken, containerPath })
     workspaceId = workspace.workspaceId
 
-    await createGoogleTagInWorkspace({
-      accessToken,
-      workspacePath: workspace.path,
-      measurementId,
-    })
+    const [existingTags, existingTriggers] = await Promise.all([
+      listGtmTags({ accessToken, workspacePath: workspace.path }),
+      listGtmTriggers({ accessToken, workspacePath: workspace.path }),
+    ])
+
+    // (a) Google Tag — the base GA4 config that loads gtag.js on every page.
+    if (!existingTags.some(t => t.name === 'Google Tag' || t.type === 'googtag')) {
+      await createGoogleTagInWorkspace({ accessToken, workspacePath: workspace.path, measurementId })
+      changed = true
+    }
+
+    // (b) Conversion Linker — Google Ads attribution preservation. Standard
+    // "every site that runs Ads" boilerplate; cheap to include for sites
+    // that don't run Ads yet too.
+    if (!existingTags.some(t => t.name === 'Conversion Linker' || t.type === 'cl')) {
+      await createConversionLinkerTag({ accessToken, workspacePath: workspace.path })
+      changed = true
+    }
+
+    // (c) whatsapp_click — Custom Event trigger + GA4 Event tag pair. Fires
+    // when the customer site does `dataLayer.push({event: 'whatsapp_click'})`;
+    // public/t.js bridges window.uwc('whatsapp_click') into that push, so
+    // any designer code that already calls window.uwc lights this up for
+    // free. The GA4 Event tag sends `whatsapp_click` to the same property.
+    const WC_EVENT = 'whatsapp_click'
+    let whatsappTriggerId = existingTriggers.find(t => t.name === WC_EVENT)?.triggerId ?? null
+    if (!whatsappTriggerId) {
+      const created = await createCustomEventTrigger({
+        accessToken,
+        workspacePath: workspace.path,
+        eventName: WC_EVENT,
+      })
+      whatsappTriggerId = created.triggerId
+      changed = true
+    }
+    if (whatsappTriggerId && !existingTags.some(t => t.name === WC_EVENT)) {
+      await createGa4EventTag({
+        accessToken,
+        workspacePath: workspace.path,
+        eventName: WC_EVENT,
+        measurementId,
+        triggerId: whatsappTriggerId,
+      })
+      changed = true
+    }
+
     await enableGtmClickBuiltins({ accessToken, workspacePath: workspace.path })
-    await publishGtmWorkspace({
-      accessToken,
-      workspacePath: workspace.path,
-      containerPath,
-    })
+
+    // Only spend a version on Google when we actually added something. Avoids
+    // version churn when the Connect button gets clicked on an already-
+    // configured site.
+    if (changed) {
+      await publishGtmWorkspace({
+        accessToken,
+        workspacePath: workspace.path,
+        containerPath,
+      })
+    }
   } catch (e) {
     return NextResponse.json({ status: 'error', error: `GTM workspace setup: ${(e as Error).message}` }, { status: 500 })
   }

@@ -111,6 +111,48 @@ export async function getDefaultGtmWorkspace({
   return def
 }
 
+export interface GtmTag {
+  tagId: string
+  name: string
+  type: string
+  firingTriggerId?: string[]
+}
+
+export interface GtmTrigger {
+  triggerId: string
+  name: string
+  type: string
+}
+
+/**
+ * List tags / triggers in a workspace. Used by the auto-connect flow to
+ * skip resources that already exist by name — same Connect button can
+ * safely re-run on a backfill (e.g. after we ship a new default tag set).
+ */
+export async function listGtmTags({
+  accessToken,
+  workspacePath,
+}: {
+  accessToken: string
+  workspacePath: string
+}): Promise<GtmTag[]> {
+  const res = await gtmFetch(`${API}/${workspacePath}/tags`, accessToken)
+  const data = await gtmOk<{ tag?: GtmTag[] }>(res, 'GTM listTags')
+  return data.tag ?? []
+}
+
+export async function listGtmTriggers({
+  accessToken,
+  workspacePath,
+}: {
+  accessToken: string
+  workspacePath: string
+}): Promise<GtmTrigger[]> {
+  const res = await gtmFetch(`${API}/${workspacePath}/triggers`, accessToken)
+  const data = await gtmOk<{ trigger?: GtmTrigger[] }>(res, 'GTM listTriggers')
+  return data.trigger ?? []
+}
+
 /**
  * Add the Google Tag (gtag.js / GA4) inside the workspace, firing on every
  * pageview. consentSettings.consentStatus = 'notNeeded' matches the SOP's
@@ -140,6 +182,99 @@ export async function createGoogleTagInWorkspace({
     }),
   })
   return gtmOk(res, 'GTM createGoogleTag')
+}
+
+/**
+ * Conversion Linker tag — preserves Google Ads gclid / gbraid / wbraid
+ * across navigation so Ads conversion attribution survives downstream
+ * redirects. Standard "every site that runs Ads" boilerplate.
+ */
+export async function createConversionLinkerTag({
+  accessToken,
+  workspacePath,
+}: {
+  accessToken: string
+  workspacePath: string
+}): Promise<{ tagId: string; name: string }> {
+  const res = await gtmFetch(`${API}/${workspacePath}/tags`, accessToken, {
+    method: 'POST',
+    body: JSON.stringify({
+      name: 'Conversion Linker',
+      type: 'cl',
+      firingTriggerId: [ALL_PAGES_TRIGGER_ID],
+      consentSettings: { consentStatus: 'notNeeded' },
+    }),
+  })
+  return gtmOk(res, 'GTM createConversionLinker')
+}
+
+/**
+ * Custom Event trigger — fires when the customer site pushes
+ * `dataLayer.push({ event: <eventName> })`. The webcore tracker bridges
+ * window.uwc(eventName) calls into that dataLayer push, so any first-party
+ * event the designer fires also feeds GTM with no extra wiring.
+ */
+export async function createCustomEventTrigger({
+  accessToken,
+  workspacePath,
+  eventName,
+}: {
+  accessToken: string
+  workspacePath: string
+  eventName: string
+}): Promise<{ triggerId: string; name: string }> {
+  const res = await gtmFetch(`${API}/${workspacePath}/triggers`, accessToken, {
+    method: 'POST',
+    body: JSON.stringify({
+      name: eventName,
+      type: 'customEvent',
+      customEventFilter: [
+        {
+          type: 'equals',
+          parameter: [
+            { type: 'template', key: 'arg0', value: '{{_event}}' },
+            { type: 'template', key: 'arg1', value: eventName },
+          ],
+        },
+      ],
+    }),
+  })
+  return gtmOk(res, 'GTM createCustomEventTrigger')
+}
+
+/**
+ * GA4 Event tag — sends a named event to the same GA4 property the Google
+ * Tag is wired to. measurementIdOverride lets us point at the stream
+ * directly instead of referencing the Google Tag by name (more robust if
+ * someone later renames it in the GTM UI).
+ */
+export async function createGa4EventTag({
+  accessToken,
+  workspacePath,
+  eventName,
+  measurementId,
+  triggerId,
+}: {
+  accessToken: string
+  workspacePath: string
+  eventName: string
+  measurementId: string           // 'G-XXXXXX'
+  triggerId: string
+}): Promise<{ tagId: string; name: string }> {
+  const res = await gtmFetch(`${API}/${workspacePath}/tags`, accessToken, {
+    method: 'POST',
+    body: JSON.stringify({
+      name: eventName,
+      type: 'gaawe',
+      parameter: [
+        { type: 'template', key: 'eventName', value: eventName },
+        { type: 'template', key: 'measurementIdOverride', value: measurementId },
+      ],
+      firingTriggerId: [triggerId],
+      consentSettings: { consentStatus: 'notNeeded' },
+    }),
+  })
+  return gtmOk(res, 'GTM createGa4EventTag')
 }
 
 /**

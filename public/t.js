@@ -73,9 +73,22 @@
     setTimeout(function () { send('pageview') }, 10)
   })
 
-  // Expose manual tracking
+  // Expose manual tracking. Two side-effects:
+  //   1. POST to /api/public/track for first-party webcore analytics.
+  //   2. Push to window.dataLayer so any GTM container loaded by the GTM
+  //      auto-connect flow can hang triggers off the same event name
+  //      (e.g. `whatsapp_click` → GA4 Event tag → counted in Analytics).
+  // Designer code that already calls window.uwc('whatsapp_click') therefore
+  // lights up GTM-side tracking with no additional integration work.
   window.uwc = function (eventType, extra) {
-    send(eventType || 'click', extra)
+    var name = eventType || 'click'
+    send(name, extra)
+    try {
+      window.dataLayer = window.dataLayer || []
+      var payload = { event: name }
+      if (extra && extra.label != null) payload.label = extra.label
+      window.dataLayer.push(payload)
+    } catch (e) { /* ignore */ }
   }
 
   // ---------------------------------------------------------------------------
