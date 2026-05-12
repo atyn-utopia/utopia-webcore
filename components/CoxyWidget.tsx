@@ -413,9 +413,21 @@ function renderMarkdown(text: string): React.ReactNode[] {
     const next = [text.indexOf('**', i), text.indexOf('`', i), text.indexOf('[', i)]
       .filter(n => n !== -1)
       .reduce((acc, n) => acc === -1 ? n : Math.min(acc, n), -1)
-    const chunk = next === -1 ? text.slice(i) : text.slice(i, next)
-    out.push(<span key={key++}>{chunk}</span>)
-    i = next === -1 ? text.length : next
+    if (next === -1) {
+      out.push(<span key={key++}>{text.slice(i)}</span>)
+      i = text.length
+    } else if (next === i) {
+      // Stuck on an unclosed marker (very common during streaming — the
+      // text often pauses mid-token, e.g. `**bold` with no closing yet).
+      // Emit the marker as literal and step past it so we don't loop
+      // forever and freeze the main thread.
+      const advance = text.startsWith('**', i) ? 2 : 1
+      out.push(<span key={key++}>{text.slice(i, i + advance)}</span>)
+      i += advance
+    } else {
+      out.push(<span key={key++}>{text.slice(i, next)}</span>)
+      i = next
+    }
   }
   return out
 }
