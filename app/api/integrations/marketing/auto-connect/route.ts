@@ -281,14 +281,16 @@ export async function POST(request: Request) {
     }
 
     // (c) whatsapp_click — Link Click (Just Links) trigger + GA4 Event tag
-    // pair. Every WhatsApp CTA on every webcore-managed site goes through
-    // the redirect endpoint `/api/public/whatsapp-redirect` (built into
-    // lib/webcore.ts's whatsappLink() helper), so the trigger filters by
-    // `Click URL contains /api/public/whatsapp-redirect`. Catches clicks
-    // regardless of which element the designer used (anchor, button-as-link)
-    // without needing dataLayer pushes.
+    // pair. Customer sites use one of three WhatsApp click URL patterns:
+    //   - per-site internal redirect (e.g. /ms/redirect-whatsapp-1)
+    //   - the centralized webcore endpoint (/api/public/whatsapp-redirect)
+    //     introduced by the new whatsappLink() helper in lib/webcore.ts
+    //   - direct wa.me/<number> on sites that haven't migrated off the
+    //     baked-URL anti-pattern yet
+    // Single regex covers all three so a fresh Connect on any site catches
+    // every flavor of WhatsApp click out of the box.
     const WC_EVENT = 'whatsapp_click'
-    const WC_URL_CONTAINS = '/api/public/whatsapp-redirect'
+    const WC_URL_PATTERN = '(redirect-whatsapp|whatsapp-redirect|wa\\.me/)'
     const existingWhatsappTrigger = existingTriggers.find(t => t.name === WC_EVENT)
     let whatsappTriggerId: string | null = existingWhatsappTrigger?.triggerId ?? null
     if (!existingWhatsappTrigger) {
@@ -296,24 +298,25 @@ export async function POST(request: Request) {
         accessToken,
         workspacePath: workspace.path,
         name: WC_EVENT,
-        urlContains: WC_URL_CONTAINS,
+        urlPattern: WC_URL_PATTERN,
       })
       whatsappTriggerId = created.triggerId
       changed = true
     } else {
       // Self-heal: if a previous Connect run created the trigger with a
-      // different URL substring (e.g. the legacy /redirect-whatsapp-1
-      // pattern that predated the whatsapp-redirect endpoint), update it
-      // in place so the firing tag's triggerId reference stays valid.
+      // narrower filter (e.g. the original `contains /redirect-whatsapp-1`
+      // or `contains /api/public/whatsapp-redirect` shapes), replace it
+      // in place. Same triggerId, new filter — so the firing tag's
+      // triggerId reference stays valid.
       const currentFilterValue = existingWhatsappTrigger.filter
         ?.flatMap(f => f.parameter ?? [])
         .find(p => p.key === 'arg1')?.value
-      if (currentFilterValue !== WC_URL_CONTAINS && existingWhatsappTrigger.path) {
+      if (currentFilterValue !== WC_URL_PATTERN && existingWhatsappTrigger.path) {
         await updateLinkClickTrigger({
           accessToken,
           triggerPath: existingWhatsappTrigger.path,
           name: WC_EVENT,
-          urlContains: WC_URL_CONTAINS,
+          urlPattern: WC_URL_PATTERN,
         })
         changed = true
       }

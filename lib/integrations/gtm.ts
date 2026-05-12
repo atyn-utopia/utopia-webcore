@@ -299,10 +299,13 @@ export async function createCustomEventTrigger({
 
 /**
  * Link Click trigger (GTM type "Click - Just Links") — fires when a link
- * whose href matches the supplied substring is clicked. Used for the
- * whatsapp_click event: customer sites route WhatsApp buttons through a
- * `/redirect-whatsapp-1` path, so matching that substring catches every
- * WhatsApp click without needing per-site link selectors.
+ * whose href matches the supplied regex is clicked. Used for the
+ * whatsapp_click event. Each customer site can route WhatsApp clicks
+ * differently:
+ *   - some have a per-site internal redirect page (e.g. /redirect-whatsapp-1)
+ *   - some link to the centralized webcore endpoint (/api/public/whatsapp-redirect)
+ *   - unmigrated sites still link directly to wa.me/<number>
+ * Using a single regex covers all three without per-site configuration.
  *
  * Requires the {{Click URL}} built-in variable to be enabled — handled
  * by enableGtmClickBuiltins which is already called from auto-connect.
@@ -311,16 +314,16 @@ export async function createLinkClickTrigger({
   accessToken,
   workspacePath,
   name,
-  urlContains,
+  urlPattern,
 }: {
   accessToken: string
   workspacePath: string
   name: string
-  urlContains: string             // e.g. '/redirect-whatsapp-1'
+  urlPattern: string              // regex, e.g. '(redirect-whatsapp|whatsapp-redirect|wa\\.me/)'
 }): Promise<{ triggerId: string; name: string }> {
   const res = await gtmFetch(`${API}/${workspacePath}/triggers`, accessToken, {
     method: 'POST',
-    body: JSON.stringify(linkClickBody({ name, urlContains })),
+    body: JSON.stringify(linkClickBody({ name, urlPattern })),
   })
   return gtmOk(res, 'GTM createLinkClickTrigger')
 }
@@ -335,21 +338,21 @@ export async function updateLinkClickTrigger({
   accessToken,
   triggerPath,
   name,
-  urlContains,
+  urlPattern,
 }: {
   accessToken: string
   triggerPath: string
   name: string
-  urlContains: string
+  urlPattern: string
 }): Promise<{ triggerId: string }> {
   const res = await gtmFetch(`${API}/${triggerPath}`, accessToken, {
     method: 'PUT',
-    body: JSON.stringify(linkClickBody({ name, urlContains })),
+    body: JSON.stringify(linkClickBody({ name, urlPattern })),
   })
   return gtmOk(res, 'GTM updateLinkClickTrigger')
 }
 
-function linkClickBody({ name, urlContains }: { name: string; urlContains: string }) {
+function linkClickBody({ name, urlPattern }: { name: string; urlPattern: string }) {
   return {
     name,
     type: 'linkClick',
@@ -357,10 +360,14 @@ function linkClickBody({ name, urlContains }: { name: string; urlContains: strin
     checkValidation: { type: 'boolean', value: 'false' },
     filter: [
       {
-        type: 'contains',
+        type: 'matchRegex',
         parameter: [
           { type: 'template', key: 'arg0', value: '{{Click URL}}' },
-          { type: 'template', key: 'arg1', value: urlContains },
+          { type: 'template', key: 'arg1', value: urlPattern },
+          // Case-insensitive — WhatsApp URLs are lowercase in practice
+          // but cheap insurance against a stray uppercase in a designer
+          // template.
+          { type: 'boolean', key: 'ignore_case', value: 'true' },
         ],
       },
     ],
