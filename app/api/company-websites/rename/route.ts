@@ -83,6 +83,30 @@ export async function POST(request: Request) {
   if (!source) return NextResponse.json({ error: `Source domain ${from} not found` }, { status: 404 })
   if (clash) return NextResponse.json({ error: `${to} is already linked to a company` }, { status: 409 })
 
+  // Pre-check: tables with a uniqueness constraint involving `website` would
+  // fail the cascade UPDATE if a row already exists at `to`. Most likely
+  // culprits: website_integrations (per-provider OAuth + IDs) and
+  // website_settings (one row per site for revalidation config). If either
+  // has a row at `to`, that row was created by an out-of-band Connect or
+  // setup — almost certainly an orphan from a previous rename that the
+  // operator forgot about. Bail with a clear message instead of letting
+  // the cascade explode mid-flight.
+  const [{ data: integrationsClash }, { data: settingsClash }] = await Promise.all([
+    service.from('website_integrations').select('provider').eq('website', to),
+    service.from('website_settings').select('website').eq('website', to).maybeSingle(),
+  ])
+  const clashes: string[] = []
+  if (integrationsClash && integrationsClash.length > 0) {
+    clashes.push(`website_integrations (providers: ${integrationsClash.map(r => r.provider).join(', ')})`)
+  }
+  if (settingsClash) clashes.push('website_settings')
+  if (clashes.length > 0) {
+    return NextResponse.json({
+      error: `${to} already has orphan rows in: ${clashes.join('; ')}. These were likely created during a previous rename/connect cycle. Disconnect / clean them up first, then retry the rename.`,
+      orphanTables: clashes,
+    }, { status: 409 })
+  }
+
   // ─── Vercel: attach new domain BEFORE the DB rename. If this fails,
   // bail without touching webcore so the operator can retry safely.
   // Skipped when VERCEL_API_TOKEN isn't configured or the domain isn't
@@ -165,6 +189,25 @@ export async function POST(request: Request) {
       { error: `Children renamed but parent row failed: ${renameErr.message}`, partial: counts },
       { status: 500 },
     )
+  }
+
+  // Defense in depth: Postgres UPDATE is atomic, so the cascade above should
+  // have moved every row matching `website=from`. But if anything got left
+  // behind (e.g. a future bug, or a unique constraint that silently swallowed
+  // an update), surface it instead of pretending success. Limited to the
+  // two tables we pre-checked since they're the high-stakes ones (OAuth
+  // tokens, revalidation secrets).
+  const stragglers: string[] = []
+  const [{ data: leftoverIntegrations }, { data: leftoverSettings }] = await Promise.all([
+    service.from('website_integrations').select('provider').eq('website', from),
+    service.from('website_settings').select('website').eq('website', from).maybeSingle(),
+  ])
+  if (leftoverIntegrations && leftoverIntegrations.length > 0) {
+    stragglers.push(`website_integrations (${leftoverIntegrations.length})`)
+  }
+  if (leftoverSettings) stragglers.push('website_settings')
+  if (stragglers.length > 0) {
+    vercelReport.warnings.push(`Rename completed but orphan rows still exist for ${from}: ${stragglers.join(', ')}`)
   }
 
   // ─── Vercel: redeploy after the DB cascade so the fresh build picks up
