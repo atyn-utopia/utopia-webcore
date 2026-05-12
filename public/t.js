@@ -14,13 +14,21 @@
  */
 ;(function () {
   'use strict'
-  var ORIGIN = 'https://utopia-webcore.vercel.app'
-  var API = ORIGIN + '/api/public/track'
-  var ALTS_API = ORIGIN + '/api/public/seo/alts'
-  var CONFIG_API = ORIGIN + '/api/public/config'
   var script = document.currentScript
   var website = script && script.getAttribute('data-website')
   if (!website) return
+  // Derive ORIGIN from the script's own URL so this tracker keeps working
+  // when webcore moves between Vercel projects or domain aliases change.
+  // Hardcoding caused every analytics + GTM-config fetch to 404 once the
+  // production domain switched from utopia-webcore.vercel.app to
+  // webcore.utopiaai.my.
+  var ORIGIN = 'https://webcore.utopiaai.my'
+  try {
+    if (script && script.src) ORIGIN = new URL(script.src).origin
+  } catch (e) { /* fall back to the literal */ }
+  var API = ORIGIN + '/api/public/track'
+  var ALTS_API = ORIGIN + '/api/public/seo/alts'
+  var CONFIG_API = ORIGIN + '/api/public/config'
 
   // Simple session ID (persists per tab, no cookies)
   var sid = sessionStorage.getItem('_uwc_sid')
