@@ -124,6 +124,56 @@ export interface GtmTrigger {
   type: string
 }
 
+export interface GtmVariable {
+  variableId: string
+  name: string
+  type: string
+}
+
+/**
+ * List user-defined variables in a workspace. Used to skip creating a
+ * `Constant_Measurement ID` (or similar) variable that's already there.
+ */
+export async function listGtmVariables({
+  accessToken,
+  workspacePath,
+}: {
+  accessToken: string
+  workspacePath: string
+}): Promise<GtmVariable[]> {
+  const res = await gtmFetch(`${API}/${workspacePath}/variables`, accessToken)
+  const data = await gtmOk<{ variable?: GtmVariable[] }>(res, 'GTM listVariables')
+  return data.variable ?? []
+}
+
+/**
+ * Create a Constant variable (type `c`). The team's GTM convention puts the
+ * GA4 measurement ID into a single `Constant_Measurement ID` variable so
+ * every tag references one source of truth — change the property and only
+ * the variable's value updates, not every tag config.
+ */
+export async function createConstantVariable({
+  accessToken,
+  workspacePath,
+  name,
+  value,
+}: {
+  accessToken: string
+  workspacePath: string
+  name: string
+  value: string
+}): Promise<{ variableId: string; name: string }> {
+  const res = await gtmFetch(`${API}/${workspacePath}/variables`, accessToken, {
+    method: 'POST',
+    body: JSON.stringify({
+      name,
+      type: 'c',
+      parameter: [{ type: 'template', key: 'value', value }],
+    }),
+  })
+  return gtmOk(res, 'GTM createConstantVariable')
+}
+
 /**
  * List tags / triggers in a workspace. Used by the auto-connect flow to
  * skip resources that already exist by name — same Connect button can
@@ -243,6 +293,51 @@ export async function createCustomEventTrigger({
 }
 
 /**
+ * Link Click trigger (GTM type "Click - Just Links") — fires when a link
+ * whose href matches the supplied substring is clicked. Used for the
+ * whatsapp_click event: customer sites route WhatsApp buttons through a
+ * `/redirect-whatsapp-1` path, so matching that substring catches every
+ * WhatsApp click without needing per-site link selectors.
+ *
+ * Requires the {{Click URL}} built-in variable to be enabled — handled
+ * by enableGtmClickBuiltins which is already called from auto-connect.
+ */
+export async function createLinkClickTrigger({
+  accessToken,
+  workspacePath,
+  name,
+  urlContains,
+}: {
+  accessToken: string
+  workspacePath: string
+  name: string
+  urlContains: string             // e.g. '/redirect-whatsapp-1'
+}): Promise<{ triggerId: string; name: string }> {
+  const res = await gtmFetch(`${API}/${workspacePath}/triggers`, accessToken, {
+    method: 'POST',
+    body: JSON.stringify({
+      name,
+      type: 'linkClick',
+      // Don't pause navigation waiting for tags — the GA4 Event tag is
+      // sendBeacon-backed so it fires fast enough on its own, and pausing
+      // adds perceived latency to the WhatsApp jump.
+      waitForTags: { type: 'boolean', value: 'false' },
+      checkValidation: { type: 'boolean', value: 'false' },
+      filter: [
+        {
+          type: 'contains',
+          parameter: [
+            { type: 'template', key: 'arg0', value: '{{Click URL}}' },
+            { type: 'template', key: 'arg1', value: urlContains },
+          ],
+        },
+      ],
+    }),
+  })
+  return gtmOk(res, 'GTM createLinkClickTrigger')
+}
+
+/**
  * GA4 Event tag — sends a named event to the same GA4 property the Google
  * Tag is wired to. measurementIdOverride lets us point at the stream
  * directly instead of referencing the Google Tag by name (more robust if
@@ -294,6 +389,10 @@ export async function enableGtmClickBuiltins({
   const types = [
     'clickElement', 'clickClasses', 'clickId', 'clickTarget', 'clickUrl', 'clickText',
     'pageUrl', 'pageHostname', 'pagePath', 'referrer',
+    // `event` exposes the current dataLayer `event` value to triggers + tags.
+    // Required if anyone later adds a Custom Event trigger or wants to fork
+    // tag logic by event name.
+    'event',
   ]
   const params = types.map(t => `type=${t}`).join('&')
   const res = await gtmFetch(`${API}/${workspacePath}/built_in_variables?${params}`, accessToken, {

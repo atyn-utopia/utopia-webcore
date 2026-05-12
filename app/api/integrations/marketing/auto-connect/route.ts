@@ -17,17 +17,19 @@ import {
   updateGa4EnhancedMeasurement,
 } from '@/lib/integrations/ga4'
 import {
+  createConstantVariable,
   createConversionLinkerTag,
-  createCustomEventTrigger,
   createGa4EventTag,
   createGoogleTagInWorkspace,
   createGtmContainer,
+  createLinkClickTrigger,
   enableGtmClickBuiltins,
   getDefaultGtmWorkspace,
   listGtmAccounts,
   listGtmContainers,
   listGtmTags,
   listGtmTriggers,
+  listGtmVariables,
   publishGtmWorkspace,
 } from '@/lib/integrations/gtm'
 
@@ -241,14 +243,31 @@ export async function POST(request: Request) {
     const workspace = await getDefaultGtmWorkspace({ accessToken, containerPath })
     workspaceId = workspace.workspaceId
 
-    const [existingTags, existingTriggers] = await Promise.all([
+    const [existingTags, existingTriggers, existingVariables] = await Promise.all([
       listGtmTags({ accessToken, workspacePath: workspace.path }),
       listGtmTriggers({ accessToken, workspacePath: workspace.path }),
+      listGtmVariables({ accessToken, workspacePath: workspace.path }),
     ])
+
+    // (0) Constant_Measurement ID — single source of truth for the GA4
+    // measurement ID. Every tag below references {{Constant_Measurement ID}}
+    // instead of hardcoding the G-XXX, so swapping the property later is
+    // a one-variable edit.
+    const MEASUREMENT_VAR = 'Constant_Measurement ID'
+    const MEASUREMENT_REF = `{{${MEASUREMENT_VAR}}}`
+    if (!existingVariables.some(v => v.name === MEASUREMENT_VAR)) {
+      await createConstantVariable({
+        accessToken,
+        workspacePath: workspace.path,
+        name: MEASUREMENT_VAR,
+        value: measurementId,
+      })
+      changed = true
+    }
 
     // (a) Google Tag — the base GA4 config that loads gtag.js on every page.
     if (!existingTags.some(t => t.name === 'Google Tag' || t.type === 'googtag')) {
-      await createGoogleTagInWorkspace({ accessToken, workspacePath: workspace.path, measurementId })
+      await createGoogleTagInWorkspace({ accessToken, workspacePath: workspace.path, measurementId: MEASUREMENT_REF })
       changed = true
     }
 
@@ -260,18 +279,21 @@ export async function POST(request: Request) {
       changed = true
     }
 
-    // (c) whatsapp_click — Custom Event trigger + GA4 Event tag pair. Fires
-    // when the customer site does `dataLayer.push({event: 'whatsapp_click'})`;
-    // public/t.js bridges window.uwc('whatsapp_click') into that push, so
-    // any designer code that already calls window.uwc lights this up for
-    // free. The GA4 Event tag sends `whatsapp_click` to the same property.
+    // (c) whatsapp_click — Link Click (Just Links) trigger + GA4 Event tag
+    // pair. Matches the team SOP: customer sites route every WhatsApp button
+    // through a `/redirect-whatsapp-1` URL, so the trigger filters by
+    // `Click URL contains /redirect-whatsapp-1`. Catches clicks regardless
+    // of which element the designer used (anchor, button-as-link, etc.)
+    // without needing dataLayer pushes.
     const WC_EVENT = 'whatsapp_click'
+    const WC_URL_CONTAINS = '/redirect-whatsapp-1'
     let whatsappTriggerId = existingTriggers.find(t => t.name === WC_EVENT)?.triggerId ?? null
     if (!whatsappTriggerId) {
-      const created = await createCustomEventTrigger({
+      const created = await createLinkClickTrigger({
         accessToken,
         workspacePath: workspace.path,
-        eventName: WC_EVENT,
+        name: WC_EVENT,
+        urlContains: WC_URL_CONTAINS,
       })
       whatsappTriggerId = created.triggerId
       changed = true
@@ -281,7 +303,7 @@ export async function POST(request: Request) {
         accessToken,
         workspacePath: workspace.path,
         eventName: WC_EVENT,
-        measurementId,
+        measurementId: MEASUREMENT_REF,
         triggerId: whatsappTriggerId,
       })
       changed = true
