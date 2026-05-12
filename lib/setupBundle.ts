@@ -224,6 +224,33 @@ export default async function ContactPage({ params }: { params: { location?: str
 - ❌ Caching \`resolvePhone()\` in a module-level variable — same reason
 - ❌ Matching on \`label === 'default'\` client-side — use \`type === 'default'\` instead; labels are editable
 
+### Migration from render-time WhatsApp helpers
+
+If this codebase predates the \`whatsappLink()\` helper, it almost certainly has the rotation bug — every visitor to a cached page sees the same number, GA's \`whatsapp_click\` event never fires, and \`leads_mode = rotation | location | hybrid\` is silently broken. Do this audit when you first land in the codebase:
+
+1. **Grep for the legacy helpers** in this project:
+   \`\`\`
+   git grep -nE 'getWhatsAppLink|waLink\\(|wa\\.me'
+   \`\`\`
+   Hits in \`lib/webcore.ts\` itself are fine if they're the new \`whatsappLink()\` body. Hits anywhere else (Server Components resolving WhatsApp URLs at render time, client components building \`wa.me/\${phone}\` strings, etc.) are the bug.
+
+2. **Replace each WhatsApp CTA** with the canonical pattern:
+   \`\`\`tsx
+   // Before — render-time bake, kills rotation:
+   const waUrl = await getWhatsAppLink(location)
+   <a href={waUrl} target="_blank" rel="noopener noreferrer">WhatsApp</a>
+
+   // After — stable redirect URL, rotation per click:
+   <a href={whatsappLink(location)} target="_blank" rel="noopener noreferrer">WhatsApp</a>
+   \`\`\`
+   Drop the \`await\` (whatsappLink is synchronous + pure). Drop any \`waUrl\` props threaded through to client components — the href is now a constant string.
+
+3. **Delete the legacy helpers from \`lib/webcore.ts\`** if a previous designer added them. The current canonical \`lib/webcore.ts\` exports only \`fetchPhones\`, \`resolvePhone\`, \`whatsappLink\`, and the product/blog helpers — no \`getWhatsAppLink\` / \`waLink\` / \`waUrl\` exports should remain.
+
+4. **Verify**: deploy, then \`curl -I "https://webcore.utopiaai.my/api/public/whatsapp-redirect?website=THIS-DOMAIN"\` from a terminal — should be \`302\` with a \`Location: https://wa.me/<some-number>\`. Re-run a few times; the resolved number should rotate when the site has multiple active phones at the chosen location.
+
+\`tel:\` links don't migrate — keep using server-side \`resolvePhone()\` for those.
+
 ## Live revalidation — how content stays fresh
 
 This site has \`app/api/revalidate/route.ts\` shipped with the setup bundle. **Don't delete or modify it.** It's how webcore tells this site to flush its ISR cache when a product / phone / blog post changes in the admin.
